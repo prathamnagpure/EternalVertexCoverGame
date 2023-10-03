@@ -9,6 +9,7 @@ export default class TouchableCircle extends Component {
 
         this.state = {
             guardPresent: false,
+            isSelected: false,
         }
     }
 
@@ -33,23 +34,9 @@ export default class TouchableCircle extends Component {
             content = <Image source={images.guard} style={{ width:this.props.radius*1.5, height: this.props.radius*1.5, resizeMode: 'stretch'}}/>
         }
 
-        const showGuard = () => {
-            let change = 0;
-            if (this.state.guardPresent == true){
-                this.setState({ guardPresent: false });
-                change = 1;
-            } else {
-                this.setState({ guardPresent: true });
-                change = -1;
-            }
-            if (this.props.onPressIn != null){
-                this.props.onPressIn(change);
-            }
-        }
-
         return (
-            <Pressable onPressIn={showGuard}>
-                <View style={this.styles.circleContainer} >
+            <Pressable onPressIn={() => this.props.showGuard(this)}>
+                <View style={[this.styles.circleContainer, {borderColor: (this.state.isSelected)?'orange':'blue', borderWidth: 5}]} >
                     {content}
                 </View>
             </Pressable>
