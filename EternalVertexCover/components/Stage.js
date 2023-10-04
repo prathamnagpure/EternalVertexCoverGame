@@ -225,12 +225,13 @@ export default class Stage extends Component{
     styles = StyleSheet.create({
         container: {
             flex: -1,
+            backgroundColor:'black'
+
         },
         heading: {
             alignSelf: 'center',
             fontSize: 20,
             top: 5,
-            color: 'white'
         },
         button: {
             backgroundColor: 'grey',
@@ -238,7 +239,7 @@ export default class Stage extends Component{
             alignItems: 'center',
             justifyContent: 'center',
             position: 'absolute',
-            top: 650,
+            top: 550,
             width: 100,
             alignSelf: 'center'
         },

@@ -12,7 +12,7 @@ export default class Level2 extends Component {
   render() {
     return (
       <SafeAreaView style={styles.container}>
-        <Stage stage={stages[0]} />
+        <Stage stage={stages[1]} />
       </SafeAreaView>
     );
   }

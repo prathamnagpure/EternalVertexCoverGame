@@ -4,7 +4,7 @@ import { Button,View, Text, StyleSheet } from 'react-native';
 const PlayerVsPlayer = ({navigation}) => {
   return (
     <View style={styles.container}>
-    <View style={styles.container}>
+    <View >
       <Text style={styles.title}>PlayerVsPlayer Page</Text>
     </View>
 
