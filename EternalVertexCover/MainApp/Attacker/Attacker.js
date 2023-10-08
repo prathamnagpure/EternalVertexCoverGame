@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 
 const AttackerPage = () => {
   return (
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
-    marginVertical: 20
+    marginVertical: 20,
   },
 });
 

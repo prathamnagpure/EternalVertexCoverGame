@@ -1,27 +1,24 @@
 import React from 'react';
-import { Button,View, Text, StyleSheet } from 'react-native';
+import {Button, View, Text, StyleSheet} from 'react-native';
 
 const PlayerVsPlayer = ({navigation}) => {
   return (
     <View style={styles.container}>
-    <View >
-      <Text style={styles.title}>PlayerVsPlayer Page</Text>
-    </View>
+      <View>
+        <Text style={styles.title}>PlayerVsPlayer Page</Text>
+      </View>
 
       <Button
-
         style={styles.button}
         title="Level 1"
         onPress={() => navigation.navigate('Level1')}
       />
       <Button
-
         style={styles.button}
         title="Level 2"
         onPress={() => navigation.navigate('Level2')}
       />
-      </View>
-
+    </View>
   );
 };
 
@@ -46,7 +43,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
-    marginVertical: 20
+    marginVertical: 20,
   },
 });
 

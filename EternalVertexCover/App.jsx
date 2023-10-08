@@ -29,9 +29,21 @@ export default class App extends Component {
       <NavigationContainer independent={true}>
         <Stack.Navigator initialRouteName="Main">
           <Stack.Screen name="Eternal Vertex Cover " component={MainPage} />
-          <Stack.Screen style = {styles.Button} name="Attacker" component={AttackerPage} />
-          <Stack.Screen style = {styles.Button} name="Defender" component={Defender} />
-          <Stack.Screen style = {styles.Button} name="PlayerVsPlayer" component={PlayerVsPlayer} />
+          <Stack.Screen
+            style={styles.Button}
+            name="Attacker"
+            component={AttackerPage}
+          />
+          <Stack.Screen
+            style={styles.Button}
+            name="Defender"
+            component={Defender}
+          />
+          <Stack.Screen
+            style={styles.Button}
+            name="PlayerVsPlayer"
+            component={PlayerVsPlayer}
+          />
           <Stack.Screen name="Level1" component={Level1} />
           <Stack.Screen name="Level2" component={Level2} />
         </Stack.Navigator>
@@ -41,13 +53,12 @@ export default class App extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-  },
+  container: {},
   Button: {
     backgroundColor: 'orange',
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
-    marginVertical: 20
+    marginVertical: 20,
   },
 });
