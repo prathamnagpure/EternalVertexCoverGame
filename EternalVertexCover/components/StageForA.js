@@ -3,6 +3,7 @@ import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import { giveMap ,tupleToString} from '../MainApp/MainAlgoBruteForce';
 
 const turns = {
   defenderFirst: 0,
@@ -10,7 +11,7 @@ const turns = {
   attacker: 2,
 };
 
-export default class Stage extends Component {
+export default class StageForA extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,6 +43,10 @@ export default class Stage extends Component {
           this.nodes[element.edge_list[0].id],
           this.nodes[element.edge_list[1].id],
         ]);
+        this.edgeList.push([
+          element.edge_list[0].id,
+          element.edge_list[1].id,
+        ]);
         this.nodesMap
           .get(String(element.edge_list[0].id))
           .neighbours.push(String(element.edge_list[1].id));
@@ -50,14 +55,23 @@ export default class Stage extends Component {
           .neighbours.push(String(element.edge_list[0].id));
       }
     }
+    this.nodes.forEach(element => {this.adjList.push([]);});
+    this.edgeList.forEach(element => {this.adjList[element[0]].push(element[1]);this.adjList[element[1]].push(element[0]);})
   }
 
   nodes = [];
   edges = [];
+  edgeList = [];
   nodesMap = new Map();
   edgesMap = new Map();
   algoEdgeMap = new Map();
   numNodes = 0 ;
+  aMoveMap = undefined; 
+  adjList = []
+  guards = []
+  moves = this.props.stage.moves;
+  guardNum = this.props.stage.guardCount;
+  //guardNum,adjList,edgList,moves
 
   renderNodes = () => {
     return this.nodes.map(node => {
@@ -95,13 +109,37 @@ export default class Stage extends Component {
   };
 
   changeTurn = () => {
+    console.log("change turn is called ."+this.moves);
     if (this.state.turn === turns.defenderFirst) {
       if (this.state.guardCount === 0) {
-        this.setState({turn: turns.attacker});
+        // Alert.alert("change turn inside dfender first  ."+this.moves);
+        this.setState({turn: turns.attacker},()=>{
+        this.guards = [];
+        this.nodesMap.forEach(element  => {if(element.ref.state.guardPresent){this.guards.push(parseInt(element.ref.props.id));}});
+        if(this.aMoveMap== undefined)
+        {
+        // Alert.alert("before called "+this.moves);
+        this.aMoveMap = giveMap(this.guardNum,this.adjList,this.edgeList,this.moves) ;
+        // Alert.alert("after called "+this.moves);
+        }
+      
+        console.log(this.aMoveMap);
+        console.log(tupleToString(this.guards)+';'+this.moves+"hueuheh");
+        // Alert.alert("getting from map ");
+        while(this.aMoveMap == undefined);
+        let toAttack = this.aMoveMap.get(tupleToString(this.guards)+';'+this.moves)[0];
+        this.attackedEdge =this.edgesMap.get(this.edgeList[toAttack][0]+';'+this.edgeList[toAttack][1]);
+        this.onEdgePress(this.attackedEdge);
+        this.moves--;
+        this.changeTurn();
+
+
+        });
       } else {
         Alert.alert('Guards left should be 0');
       }
     } else if (this.state.turn === turns.attacker) {
+      // Alert.alert("insdie attacker");
       if (this.attackedEdge === undefined) {
         Alert.alert('You have to attack an edge');
       } else {
@@ -116,6 +154,7 @@ export default class Stage extends Component {
         }
       }
     } else {
+      // Alert.alert("inside defender later ");
       let nodeGuardCounter = new Map();
       this.nodesMap.forEach((node, node_id) => {
         nodeGuardCounter.set(
@@ -165,6 +204,7 @@ export default class Stage extends Component {
         ) {
           Alert.alert('Game Over, Attacker Won');
         } else {
+          this.moves--;
           this.edgesMap.forEach((edge, edge_id) => {
             edge.setState({
               moveGuard1: false,
@@ -172,9 +212,28 @@ export default class Stage extends Component {
               isAttacked: false,
             });
           });
-          this.setState({turn: turns.attacker});
-          this.attackedEdge = undefined;
-        }
+          this.setState({turn: turns.attacker},()=>{
+
+            if(this.moves==0)
+            {
+            Alert.alert('Game Over, Attacker Won');
+            }
+            else
+            {
+          this.guards = [];
+          this.nodesMap.forEach(element  => {if(element.ref.state.guardPresent){this.guards.push(parseInt(element.ref.props.id));}});
+
+          console.log(this.aMoveMap);
+          console.log(tupleToString(this.guards)+';'+this.moves+"hueuheh");
+          let toAttack = this.aMoveMap.get(tupleToString(this.guards)+';'+this.moves)[0];
+          this.attackedEdge =this.edgesMap.get(this.edgeList[toAttack][0]+';'+this.edgeList[toAttack][1]);
+          this.onEdgePress(this.attackedEdge);
+          this.moves--;
+          this.changeTurn();
+          }
+
+            });
+          }
       }
     }
   };

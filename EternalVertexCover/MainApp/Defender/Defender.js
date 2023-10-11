@@ -1,10 +1,23 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {Button, View, Text, StyleSheet} from 'react-native';
 
-const Defender = () => {
+const Defender = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Defender Page</Text>
+      <View>
+        <Text style={styles.title}>Defender Page</Text>
+      </View>
+
+      <Button
+        style={styles.button}
+        title="Level 1"
+        onPress={() => navigation.navigate('DLevel1')}
+      />
+      <Button
+        style={styles.button}
+        title="Level 2"
+        onPress={() => navigation.navigate('DLevel2')}
+      />
     </View>
   );
 };
