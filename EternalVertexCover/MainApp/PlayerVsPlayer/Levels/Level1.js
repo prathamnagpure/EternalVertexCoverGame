@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
 
 import Stage from '../../../components/Stage';
 import stages from '../../../assets/Stages';
-const pvplevels = [0,1];
+const pvplevels = [0, 1];
 
 export default class Level1 extends Component {
   constructor(props) {

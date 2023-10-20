@@ -3,7 +3,7 @@ import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import { giveMap ,tupleToString} from '../MainApp/MainAlgoBruteForce';
+import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
 
 const turns = {
   defenderFirst: 0,
@@ -43,10 +43,7 @@ export default class StageForA extends Component {
           this.nodes[element.edge_list[0].id],
           this.nodes[element.edge_list[1].id],
         ]);
-        this.edgeList.push([
-          element.edge_list[0].id,
-          element.edge_list[1].id,
-        ]);
+        this.edgeList.push([element.edge_list[0].id, element.edge_list[1].id]);
         this.nodesMap
           .get(String(element.edge_list[0].id))
           .neighbours.push(String(element.edge_list[1].id));
@@ -55,8 +52,13 @@ export default class StageForA extends Component {
           .neighbours.push(String(element.edge_list[0].id));
       }
     }
-    this.nodes.forEach(element => {this.adjList.push([]);});
-    this.edgeList.forEach(element => {this.adjList[element[0]].push(element[1]);this.adjList[element[1]].push(element[0]);})
+    this.nodes.forEach(element => {
+      this.adjList.push([]);
+    });
+    this.edgeList.forEach(element => {
+      this.adjList[element[0]].push(element[1]);
+      this.adjList[element[1]].push(element[0]);
+    });
   }
 
   nodes = [];
@@ -65,10 +67,10 @@ export default class StageForA extends Component {
   nodesMap = new Map();
   edgesMap = new Map();
   algoEdgeMap = new Map();
-  numNodes = 0 ;
-  aMoveMap = undefined; 
-  adjList = []
-  guards = []
+  numNodes = 0;
+  aMoveMap = undefined;
+  adjList = [];
+  guards = [];
   moves = this.props.stage.moves;
   guardNum = this.props.stage.guardCount;
   //guardNum,adjList,edgList,moves
@@ -109,31 +111,43 @@ export default class StageForA extends Component {
   };
 
   changeTurn = () => {
-    console.log("change turn is called ."+this.moves);
+    console.log('change turn is called .' + this.moves);
     if (this.state.turn === turns.defenderFirst) {
       if (this.state.guardCount === 0) {
         // Alert.alert("change turn inside dfender first  ."+this.moves);
-        this.setState({turn: turns.attacker},()=>{
-        this.guards = [];
-        this.nodesMap.forEach(element  => {if(element.ref.state.guardPresent){this.guards.push(parseInt(element.ref.props.id));}});
-        if(this.aMoveMap== undefined)
-        {
-        // Alert.alert("before called "+this.moves);
-        this.aMoveMap = giveMap(this.guardNum,this.adjList,this.edgeList,this.moves) ;
-        // Alert.alert("after called "+this.moves);
-        }
-      
-        console.log(this.aMoveMap);
-        console.log(tupleToString(this.guards)+';'+this.moves+"hueuheh");
-        // Alert.alert("getting from map ");
-        while(this.aMoveMap == undefined);
-        let toAttack = this.aMoveMap.get(tupleToString(this.guards)+';'+this.moves)[0];
-        this.attackedEdge =this.edgesMap.get(this.edgeList[toAttack][0]+';'+this.edgeList[toAttack][1]);
-        this.onEdgePress(this.attackedEdge);
-        this.moves--;
-        this.changeTurn();
+        this.setState({turn: turns.attacker}, () => {
+          this.guards = [];
+          this.nodesMap.forEach(element => {
+            if (element.ref.state.guardPresent) {
+              this.guards.push(parseInt(element.ref.props.id));
+            }
+          });
+          if (this.aMoveMap == undefined) {
+            // Alert.alert("before called "+this.moves);
+            this.aMoveMap = giveMap(
+              this.guardNum,
+              this.adjList,
+              this.edgeList,
+              this.moves,
+            );
+            // Alert.alert("after called "+this.moves);
+          }
 
-
+          console.log(this.aMoveMap);
+          console.log(
+            tupleToString(this.guards) + ';' + this.moves + 'hueuheh',
+          );
+          // Alert.alert("getting from map ");
+          while (this.aMoveMap == undefined) {}
+          let toAttack = this.aMoveMap.get(
+            tupleToString(this.guards) + ';' + this.moves,
+          )[0];
+          this.attackedEdge = this.edgesMap.get(
+            this.edgeList[toAttack][0] + ';' + this.edgeList[toAttack][1],
+          );
+          this.onEdgePress(this.attackedEdge);
+          this.moves--;
+          this.changeTurn();
         });
       } else {
         Alert.alert('Guards left should be 0');
@@ -212,28 +226,33 @@ export default class StageForA extends Component {
               isAttacked: false,
             });
           });
-          this.setState({turn: turns.attacker},()=>{
+          this.setState({turn: turns.attacker}, () => {
+            if (this.moves == 0) {
+              Alert.alert('Game Over, Attacker Won');
+            } else {
+              this.guards = [];
+              this.nodesMap.forEach(element => {
+                if (element.ref.state.guardPresent) {
+                  this.guards.push(parseInt(element.ref.props.id));
+                }
+              });
 
-            if(this.moves==0)
-            {
-            Alert.alert('Game Over, Attacker Won');
+              console.log(this.aMoveMap);
+              console.log(
+                tupleToString(this.guards) + ';' + this.moves + 'hueuheh',
+              );
+              let toAttack = this.aMoveMap.get(
+                tupleToString(this.guards) + ';' + this.moves,
+              )[0];
+              this.attackedEdge = this.edgesMap.get(
+                this.edgeList[toAttack][0] + ';' + this.edgeList[toAttack][1],
+              );
+              this.onEdgePress(this.attackedEdge);
+              this.moves--;
+              this.changeTurn();
             }
-            else
-            {
-          this.guards = [];
-          this.nodesMap.forEach(element  => {if(element.ref.state.guardPresent){this.guards.push(parseInt(element.ref.props.id));}});
-
-          console.log(this.aMoveMap);
-          console.log(tupleToString(this.guards)+';'+this.moves+"hueuheh");
-          let toAttack = this.aMoveMap.get(tupleToString(this.guards)+';'+this.moves)[0];
-          this.attackedEdge =this.edgesMap.get(this.edgeList[toAttack][0]+';'+this.edgeList[toAttack][1]);
-          this.onEdgePress(this.attackedEdge);
-          this.moves--;
-          this.changeTurn();
-          }
-
-            });
-          }
+          });
+        }
       }
     }
   };
