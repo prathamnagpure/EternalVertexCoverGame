@@ -11,13 +11,13 @@ const Defender = ({navigation}) => {
   for (let i = 1; i <= numberOfLevels; i++) {
     const level = i;
     const buttonLabel = `Level ${level}`;
-    
+
     levelButtons.push(
       <Button
         key={level}
         title={buttonLabel}
-        onPress={() => navigation.navigate(`DLevel1`,{levelno : i-1})}
-      />
+        onPress={() => navigation.navigate('DLevel1', {levelno: i - 1})}
+      />,
     );
   }
   return (
@@ -26,10 +26,7 @@ const Defender = ({navigation}) => {
         <Text style={styles.title}>Defender Page</Text>
       </View>
 
-      {
-        levelButtons
-      }
-
+      {levelButtons}
     </View>
   );
 };
