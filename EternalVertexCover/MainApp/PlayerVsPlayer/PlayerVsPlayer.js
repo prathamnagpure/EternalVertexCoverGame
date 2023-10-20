@@ -2,22 +2,33 @@ import React from 'react';
 import {Button, View, Text, StyleSheet} from 'react-native';
 
 const PlayerVsPlayer = ({navigation}) => {
+  const numberOfLevels = 2;
+
+  // Create an array to store buttons
+  const levelButtons = [];
+
+  // Use a loop to create buttons for each level
+  for (let i = 1; i <= numberOfLevels; i++) {
+    const level = i;
+    const buttonLabel = `Level ${level}`;
+    
+    levelButtons.push(
+      <Button
+        key={level}
+        title={buttonLabel}
+        onPress={() => navigation.navigate(`Level1`,{levelno : i-1})}
+      />
+    );
+  }
   return (
     <View style={styles.container}>
       <View>
         <Text style={styles.title}>PlayerVsPlayer Page</Text>
       </View>
+      {
+        levelButtons
+      }
 
-      <Button
-        style={styles.button}
-        title="Level 1"
-        onPress={() => navigation.navigate('Level1')}
-      />
-      <Button
-        style={styles.button}
-        title="Level 2"
-        onPress={() => navigation.navigate('Level2')}
-      />
     </View>
   );
 };

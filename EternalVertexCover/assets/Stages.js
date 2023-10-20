@@ -7,7 +7,7 @@ import graph6 from './graphs/graph6';
 export default stages = [
   {graph: graph1, guardCount: 2},
   {graph: graph2, guardCount: 3},
-  {graph: graph3, guardCount: 2, moves:6},
+  {graph: graph3, guardCount: 3, moves:6},
   {graph: graph4, guardCount: 3, moves:4},
   {graph: graph5, guardCount: 4, moves:4},
   {graph: graph6, guardCount: 4, moves:4},

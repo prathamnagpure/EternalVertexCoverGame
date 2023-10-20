@@ -81,11 +81,11 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
   let cnt = 0;
   let minMoves = 100;
   let minMoves2 = 100; 
+  let mxMoves =0;
   if (turn == 1) {
     // console.log("Attacker");
     if(curMove == 0)
     {
-
       aMoveMap.set(tupleToString(guards)+';'+curMove, [0, 0, 1, result.lose,1]);
       return  [0,0,1,result.lose,1] ;
     }
@@ -110,13 +110,18 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
         aWin += tempdLose;
         aLose += tempdWin;
         if (true) {
-          if (tempPura == result.lose ) {
+          if (tempPura == result.lose && minMoves>= moves +1 ) {
             pura = result.win;
             fin = 1;
             winEdge = index;
             minMoves = Math.min(minMoves,moves+1);
           } else if (tempPura == result.win) {
             cnt+=1;
+            if(mxMoves<=moves+1)
+            {
+              puraEdge=index;
+              mxMoves=moves+1;
+            }
           } else {
             if ((tempdLose / (tempdLose + tempdWin)) >= probMax) {
               puraEdge = index;
@@ -128,9 +133,8 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
       if (cnt == edgList.length) {
         pura = result.lose;
       }
-
       if (pura == result.lose) {
-        aMoveMap.set(tupleToString(guards)+';'+curMove, [0, aWin, aLose, pura,minMoves]);
+        aMoveMap.set(tupleToString(guards)+';'+curMove, [puraEdge, aWin, aLose, pura,mxMoves]);
       } else if (pura == result.win) {
         aMoveMap.set(tupleToString(guards)+';'+curMove, [winEdge, aWin, aLose, pura,minMoves]);
       } else {
@@ -260,7 +264,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
           dLose+=tempaWin;
           if(true )
           {
-          if(tempPura == result.lose  )
+          if(tempPura == result.lose && minMoves <= Moves + 1 )
           {
             pura = result.win;
             fin = 1;
@@ -270,7 +274,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
           else if( tempPura == result.win)
           {
             cnt +=1;
-            minMoves2 = Math.min(minMoves2,Moves);
+            if(minMoves2>= Moves +1)
+            puraState = element; 
+
+            minMoves2 = Math.max(minMoves2,Moves+1);
           }
           else
           {
@@ -292,7 +299,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
         }
 
         if (pura == result.lose) {
-          dMoveMap.set(tupleToString(guards)+';'+attackedge+';'+curMove, [retPosits[0], dWin, dLose, pura,minMoves2]);
+          dMoveMap.set(tupleToString(guards)+';'+attackedge+';'+curMove, [puraState, dWin, dLose, pura,minMoves2]);
         } else if (pura == result.win) {
           dMoveMap.set(tupleToString(guards)+';'+attackedge+';'+curMove, [winState, dWin, dLose, pura,minMoves]);
         } else {
@@ -314,14 +321,15 @@ export function giveMap(guardNum,adjList,edgList,moves){
     tempArr.push(i);
   }
 
-  combinations(tempArr,guardNum).map(value => {
+  for(let i=1;i<=guardNum;i++){
+  combinations(tempArr,i).map(value => {
 //    2 [[1], [0, 2], [1, 3], [2]] [[0, 1], [1, 2], [2, 3]] 6
   // console.log(value);
   // console.log();
   mainAlgo(1,value,undefined,adjList,edgList,moves);
   console.log("Done this ",value);
   // console.log(mainAlgo(1,value,undefined,[[1],[0]],[[0,1]],4));
-  })
+  })}
   // console.log(aMoveMap);
   // console.log(dMoveMap);
   return aMoveMap;

@@ -16,14 +16,13 @@ import AttackerPage from './MainApp/Attacker/Attacker';
 import Defender from './MainApp/Defender/Defender';
 import PlayerVsPlayer from './MainApp/PlayerVsPlayer/PlayerVsPlayer';
 import Level1 from './MainApp/PlayerVsPlayer/Levels/Level1';
-import Level2 from './MainApp/PlayerVsPlayer/Levels/Level2';
 import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
-import DLevel2 from './MainApp/PlayerVsPlayer/Levels/DLevel2';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
   constructor(props) {
     super(props);
+
   }
 
   render() {
@@ -47,9 +46,9 @@ export default class App extends Component {
             component={PlayerVsPlayer}
           />
           <Stack.Screen name="Level1" component={Level1} />
-          <Stack.Screen name="Level2" component={Level2} />
+          {/*remove this one */}
           <Stack.Screen name="DLevel1" component={DLevel1} />
-          <Stack.Screen name="DLevel2" component={DLevel2} />
+          {/* remove this one  */}
         </Stack.Navigator>
       </NavigationContainer>
     );

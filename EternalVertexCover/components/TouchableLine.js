@@ -37,7 +37,7 @@ export default class TouchableLine extends Component {
       },
 
       lineColor: {
-        backgroundColor: 'white',
+        backgroundColor: 'green',
       },
 
       attackedLineColor: {
