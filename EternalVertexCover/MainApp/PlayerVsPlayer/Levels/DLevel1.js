@@ -2,13 +2,8 @@ import {React, Component} from 'react';
 import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
 
 import stages from '../../../assets/Stages';
-import StageForA from '../../../components/StageForA';
-<<<<<<< HEAD
-const DLevels = [2,3,4,5,11];
-=======
 import Stage from '../../../components/Stage';
-const DLevels = [2, 3, 4, 5];
->>>>>>> 4f0b4d90df250f107fa5171523efe8e338b7d87b
+const DLevels = [2,3,4,5,6];
 export default class DLevel1 extends Component {
   constructor(props) {
     super(props);
