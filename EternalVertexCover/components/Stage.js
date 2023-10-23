@@ -1,4 +1,4 @@
-import {React, Component, useEffect} from 'react';
+import {React, Component} from 'react';
 import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
@@ -106,7 +106,7 @@ export default class Stage extends Component {
     if (this.props.mode === Modes.AutoDefender) {
       this.nodesMap.forEach((value, key) => {
         if (this.props.stage.guards.includes(parseInt(key))) {
-          value.ref.setState({guardPresent: true});
+          value.ref.setState({isGuardPresent: true});
         }
       });
       this.setState({turn: Turns.Attacker});
@@ -195,7 +195,7 @@ export default class Stage extends Component {
 
   resetNodes() {
     this.nodesMap.forEach((value, key) => {
-      value.ref.setState({guardPresent: false, isSelected: false});
+      value.ref.setState({isGuardPresent: false, isSelected: false});
     });
   }
 
@@ -218,7 +218,7 @@ export default class Stage extends Component {
       if (this.props.mode === Modes.AutoDefender) {
         this.nodesMap.forEach((value, key) => {
           if (this.props.stage.guards.includes(parseInt(key))) {
-            value.ref.setState({guardPresent: true});
+            value.ref.setState({isGuardPresent: true});
           }
         });
         this.setState({turn: Turns.Attacker, isGameFinished: false});
@@ -246,7 +246,7 @@ export default class Stage extends Component {
           completeMove = () => {
             this.guards = [];
             this.nodesMap.forEach(element => {
-              if (element.ref.state.guardPresent) {
+              if (element.ref.state.isGuardPresent) {
                 this.guards.push(parseInt(element.ref.props.id));
               }
             });
@@ -277,46 +277,28 @@ export default class Stage extends Component {
           }
           this.guards = [];
           this.nodesMap.forEach(element => {
-            if (element.ref.state.guardPresent) {
+            if (element.ref.state.isGuardPresent) {
               this.guards.push(parseInt(element.ref.props.id));
             }
           });
           this.guards.sort((a, b) => a - b);
-          let [node1, node2] = this.attackedEdge.props.id.split(';');
+          const [node1, node2] = this.attackedEdge.props.id.split(';');
           let edgeIndex = -1;
           this.edgeList.forEach((value, index) => {
             if (value[0] == node1 && value[1] == node2) {
               edgeIndex = index;
             }
           });
-          console.log(this.moveMap);
-          let nextMove = this.moveMap.get(
+          const nextMove = this.moveMap.get(
             tupleToString(this.guards) + ';' + edgeIndex + ';' + this.moves,
           );
-          console.log(
-            'get ' +
-              tupleToString(this.guards) +
-              ';' +
-              edgeIndex +
-              ';' +
-              this.moves,
-          );
-          console.log('next move');
-          let newPos = nextMove[0];
-          let changes = nextMove[nextMove.length - 1];
-          let sleep = ms => {
-            var start = new Date().getTime(),
-              expire = start + ms;
-            while (new Date().getTime() < expire) {}
-            return;
-          };
-          console.log(this.guards, changes);
+          const newPos = nextMove[0];
+          const changes = nextMove[nextMove.length - 1];
           newPos.forEach(async (value, index) => {
-            let nodeComponent1 = this.nodesMap.get(
+            const nodeComponent1 = this.nodesMap.get(
               String(this.guards[changes[index]]),
             );
-            let nodeComponent2 = this.nodesMap.get(String(value));
-            console.log(String(this.guards[index]), String(value));
+            const nodeComponent2 = this.nodesMap.get(String(value));
             this.showGuard(nodeComponent1.ref, true);
             this.showGuard(nodeComponent2.ref, true);
           });
@@ -326,10 +308,10 @@ export default class Stage extends Component {
       if (this.attackedEdge === undefined) {
         this.setState({warning: 'You have to attack an edge'});
       } else {
-        let [node1, node2] = this.attackedEdge.props.id.split(';');
+        const [node1, node2] = this.attackedEdge.props.id.split(';');
         if (
-          !this.nodesMap.get(node1).ref.state.guardPresent &&
-          !this.nodesMap.get(node2).ref.state.guardPresent
+          !this.nodesMap.get(node1).ref.state.isGuardPresent &&
+          !this.nodesMap.get(node2).ref.state.isGuardPresent
         ) {
           this.finishGame(Winner.Attacker);
         } else {
@@ -337,11 +319,11 @@ export default class Stage extends Component {
         }
       }
     } else {
-      let nodeGuardCounter = new Map();
+      const nodeGuardCounter = new Map();
       this.nodesMap.forEach((node, node_id) => {
         nodeGuardCounter.set(
           node_id,
-          this.nodesMap.get(node_id).ref.state.guardPresent ? 1 : 0,
+          this.nodesMap.get(node_id).ref.state.isGuardPresent ? 1 : 0,
         );
       });
       this.edgesMap.forEach((edge, edge_id) => {
@@ -365,19 +347,19 @@ export default class Stage extends Component {
 
       if (good) {
         let wasCovered = false;
-        let guardExistsSet = new Set();
-        let moveGuard = (edge, node1, node2) => {
+        const guardExistsSet = new Set();
+        const moveGuard = (edge, node1, node2) => {
           if (edge === this.attackedEdge) {
             wasCovered = true;
           }
           if (!guardExistsSet.has(node1)) {
-            this.nodesMap.get(node1).ref.setState({guardPresent: false});
+            this.nodesMap.get(node1).ref.setState({isGuardPresent: false});
           }
-          this.nodesMap.get(node2).ref.setState({guardPresent: true});
+          this.nodesMap.get(node2).ref.setState({isGuardPresent: true});
           guardExistsSet.add(node2);
         };
         this.edgesMap.forEach((edge, edge_id) => {
-          let [node1, node2] = edge_id.split(';');
+          const [node1, node2] = edge_id.split(';');
           if (edge.state.moveGuard1) {
             moveGuard(edge, node1, node2, guardExistsSet);
           }
@@ -385,22 +367,16 @@ export default class Stage extends Component {
             moveGuard(edge, node2, node1, guardExistsSet);
           }
         });
-        let [attackedNode1, attackedNode2] =
+        const [attackedNode1, attackedNode2] =
           this.attackedEdge.props.id.split(';');
         if (
-          (!this.nodesMap.get(attackedNode1).ref.state.guardPresent &&
-            !this.nodesMap.get(attackedNode2).ref.state.guardPresent) ||
+          (!this.nodesMap.get(attackedNode1).ref.state.isGuardPresent &&
+            !this.nodesMap.get(attackedNode2).ref.state.isGuardPresent) ||
           !wasCovered
         ) {
           this.finishGame(Winner.Attacker);
         } else {
-          this.edgesMap.forEach((edge, edge_id) => {
-            edge.setState({
-              moveGuard1: false,
-              moveGuard2: false,
-              isAttacked: false,
-            });
-          });
+          this.resetEdges();
           let completeMove = () => {
             this.attackedEdge = undefined;
           };
@@ -412,11 +388,11 @@ export default class Stage extends Component {
               } else {
                 this.guards = [];
                 this.nodesMap.forEach(element => {
-                  if (element.ref.state.guardPresent) {
+                  if (element.ref.state.isGuardPresent) {
                     this.guards.push(parseInt(element.ref.props.id));
                   }
                 });
-                let toAttack = this.moveMap.get(
+                const toAttack = this.moveMap.get(
                   tupleToString(this.guards) + ';' + this.moves,
                 )[0];
                 this.attackedEdge = this.edgesMap.get(
@@ -457,19 +433,19 @@ export default class Stage extends Component {
   };
 
   showGuard = (node, bySystem) => {
-    if (!bySystem && this.state.isLoading) {
-      return;
-    }
-    if (this.props.mode === Modes.AutoDefender && !bySystem) {
+    if (
+      !bySystem &&
+      (this.state.isLoading || this.props.mode === Modes.AutoDefender)
+    ) {
       return;
     }
     if (this.state.turn === Turns.DefenderFirst) {
-      if (node.state.guardPresent) {
-        node.setState({guardPresent: false});
+      if (node.state.isGuardPresent) {
         this.setState({guardCount: this.state.guardCount + 1});
+        node.setState({isGuardPresent: false});
       } else {
-        node.setState({guardPresent: true});
         this.setState({guardCount: this.state.guardCount - 1});
+        node.setState({isGuardPresent: true});
       }
     } else if (this.state.turn === Turns.DefenderLater) {
       if (this.selected) {
@@ -478,7 +454,7 @@ export default class Stage extends Component {
             .get(this.selected.props.id)
             .neighbours.includes(node.props.id)
         ) {
-          let edgeId = this.selected.props.id + ';' + node.props.id;
+          const edgeId = this.selected.props.id + ';' + node.props.id;
           if (this.edgesMap.has(edgeId)) {
             this.edgesMap.get(edgeId).setState({moveGuard1: true});
           } else {
@@ -489,7 +465,7 @@ export default class Stage extends Component {
         }
         this.selected.setState({isSelected: false});
         this.selected = undefined;
-      } else if (node.state.guardPresent) {
+      } else if (node.state.isGuardPresent) {
         node.setState({isSelected: true});
         this.selected = node;
       }
@@ -498,65 +474,53 @@ export default class Stage extends Component {
 
   render = () => {
     let buttonTitle = 'Done';
+    let headingStyle = [this.styles.heading];
+    let headingText = '';
     if (this.state.isGameFinished) {
       buttonTitle = 'Restart';
+    } else if (this.state.isLoading) {
+      headingText = 'Loading... Please Wait';
     } else {
-      this.heading = (
-        <Text
-          style={[
-            this.styles.heading,
-            {color: this.state.guardCount < 0 ? 'red' : 'white'},
-          ]}>
-          Guards Left: {this.state.guardCount}
-        </Text>
-      );
-
-      if (this.props.mode === Modes.AutoAttacker) {
-        if (this.state.turn === Turns.Attacker) {
-          this.heading = (
-            <Text style={this.styles.heading}>Attacker's Turn</Text>
-          );
-        } else if (this.state.turn === Turns.DefenderLater) {
-          this.heading = (
-            <Text style={this.styles.heading}>
-              Your turn | Turns Left: {(this.moves + 1) / 2}
-            </Text>
-          );
-        }
-      } else if (this.props.mode === Modes.AutoDefender) {
-        if (this.state.turn === Turns.Attacker) {
-          this.heading = (
-            <Text style={this.styles.heading}>
-              Your turn | Turns Left: {(this.moves + 1) / 2}
-            </Text>
-          );
-        } else if (this.state.turn === Turns.DefenderFirst) {
-          this.heading = (
-            <Text style={this.styles.heading}>Defenders's Turn</Text>
-          );
-        } else {
-          this.heading = (
-            <Text style={this.styles.heading}>Defenders's Turn</Text>
-          );
-        }
-      } else {
-        if (this.state.turn === Turns.Attacker) {
-          this.heading = (
-            <Text style={this.styles.heading}>Attacker's Turn</Text>
-          );
-        } else if (this.state.turn === Turns.DefenderLater) {
-          this.heading = (
-            <Text style={this.styles.heading}>Defenders's turn</Text>
-          );
-        }
+      switch (this.props.mode) {
+        case Modes.AutoAttacker:
+          switch (this.state.turn) {
+            case Turns.Attacker:
+              headingText = "Attacker's Turn";
+              break;
+            case Turns.DefenderLater:
+              headingText = `Your turn | Turns Left: ${(this.moves + 1) / 2}`;
+              break;
+            case Turns.DefenderFirst:
+              headingText = `Guards Left: ${this.state.guardCount}`;
+              headingStyle.push({
+                color: this.state.guardCount < 0 ? 'red' : 'white',
+              });
+              break;
+            default:
+          }
+          break;
+        case Modes.AutoDefender:
+          headingText =
+            this.state.turn === Turns.Attacker
+              ? `Your turn | Turns Left: ${(this.moves + 1) / 2}`
+              : "Defender's Turn";
+          break;
+        default:
+          switch (this.state.turn) {
+            case Turns.Attacker:
+              headingText = "Attacker's Turn";
+              break;
+            case Turns.DefenderLater:
+              headingText = "Defenders's turn";
+              break;
+            default:
+              headingText = `Guards Left: ${this.state.guardCount}`;
+              headingStyle.push({
+                color: this.state.guardCount < 0 ? 'red' : 'white',
+              });
+          }
       }
-      if (this.state.isLoading) {
-        this.heading = (
-          <View style={this.styles.container}>
-            <Text style={this.styles.heading}>Loading... Please Wait</Text>
-          </View>
-        );
-      }
+      this.heading = <Text style={[headingStyle]}>{headingText}</Text>;
     }
     return (
       <View style={this.styles.container}>

@@ -7,7 +7,7 @@ export default class TouchableCircle extends Component {
     super(props);
 
     this.state = {
-      guardPresent: false,
+      isGuardPresent: false,
       isSelected: false,
     };
   }
@@ -29,7 +29,7 @@ export default class TouchableCircle extends Component {
   render() {
     let content = null;
 
-    if (this.state.guardPresent == true) {
+    if (this.state.isGuardPresent == true) {
       content = (
         <Image
           source={images.guard}
