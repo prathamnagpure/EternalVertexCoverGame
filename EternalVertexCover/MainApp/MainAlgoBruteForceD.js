@@ -42,7 +42,7 @@ function combinations(arr, k) {
 // const k = 2;
 // const kCombinations = combinations(pNumbers, k);
 
-// //console.log(kCombinations);
+//console.log(kCombinations);
 
 const result = {win: 1, lose: 0, na: 2};
 let aMoveMap = new Map();
@@ -86,8 +86,8 @@ function forDefender(guards, adjList, cantGo, cur) {
 }
 
 export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
-  //   console.log("mainAlgo");
-  //   console.log(turn, guards, attackedge, adjList, edgList,curMove);
+  //console.log("mainAlgo");
+  //console.log(turn, guards, attackedge, adjList, edgList,curMove);
   let fin = 0;
   let pura = result.na;
   let probMax = 0;
@@ -96,7 +96,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   let minMoves2 = 100;
   let mxMoves = 0;
   if (turn == 1) {
-    // console.log("Attacker");
+    //console.log("Attacker");
     if (curMove == 0) {
       aMoveMap.set(tupleToString(guards) + ';' + curMove, [
         0,
@@ -113,7 +113,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
     let winEdge;
     let puraEdge;
     if (aMoveMap.get(tupleToString(guards) + ';' + curMove) === undefined) {
-      // console.log("not HIT");
+      //console.log("not HIT");
       //console.log(aMoveMap);
       edgList.forEach((element, index) => {
         let [_, tempdWin, tempdLose, tempPura, moves, __] = mainAlgo(
@@ -183,7 +183,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       dMoveMap.get(tupleToString(guards) + ';' + attackedge + ';' + curMove) !=
       undefined
     ) {
-      // console.log("HIT");
+      //console.log("HIT");
       return dMoveMap.get(
         tupleToString(guards) + ';' + attackedge + ';' + curMove,
       );
@@ -491,34 +491,34 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
 }
 
 export function giveMap(guardNum, guardPos, adjList, edgList, moves) {
-  ////console.log(mainAlgo(1,[1,2],undefined,[[1],[0,2],[1,3],[2]],[[0,1],[1,2],[2,3]]));
+  //console.log(mainAlgo(1,[1,2],undefined,[[1],[0,2],[1,3],[2]],[[0,1],[1,2],[2,3]]));
   aMoveMap = new Map();
   dMoveMap = new Map();
-  console.log(guardNum, adjList, edgList, moves);
+  //console.log(guardNum, adjList, edgList, moves);
   let tempArr = [];
   for (let i = 0; i < edgList.length; i++) {
     tempArr.push(i);
   }
 
   combinations(tempArr, 1).map(value => {
-    //    2 [[1], [0, 2], [1, 3], [2]] [[0, 1], [1, 2], [2, 3]] 6
-    // console.log(value);
-    // console.log();
+    // 2 [[1], [0, 2], [1, 3], [2]] [[0, 1], [1, 2], [2, 3]] 6
+    //console.log(value);
+    //console.log();
     mainAlgo(0, guardPos, value, adjList, edgList, moves);
-    console.log('Done this ', value);
-    // console.log(mainAlgo(1,value,undefined,[[1],[0]],[[0,1]],4));
+    //console.log('Done this ', value);
+    //console.log(mainAlgo(1,value,undefined,[[1],[0]],[[0,1]],4));
   });
-  // console.log(aMoveMap);
-  // console.log(dMoveMap);
+  //console.log(aMoveMap);
+  //console.log(dMoveMap);
   return dMoveMap;
   //console.log(forDefender([1,2],[[1],[0,2],[1,3],[2]],[0,0,0,0],0));
   //console.log(combinations([0,1,2,3],1));
   //console.log(combinations([0,1,2,3],2));
 }
 // giveMap(5,[0,1,3,5,7],[[1,5],[3,2,7,0],[1],[4,1,5],[3],[6,0,1],[5],[1,9,8],[7],[7]],[[0,1],[1,2],[1,3],[3,5],[5,0],[5,6],[3,4],[1,7],[7,9],[7,8]],7);
-// console.log(dMoveMap);
-// console.log(dMoveMap.get(tupleToString([0,1,3,5,7])+';'+'9'+';'+'7'));
-// console.log(dMoveMap.get(tupleToString([1,3,5,7,8])+';'+'8'+';'+5));
-// console.log(dMoveMap.get(tupleToString([1,3,5,8,9])+';'+'7'+';'+3));
-// console.log(tupleToString([1,2,4,3]));
-// console.log(tupleToString([4,3,2,1]));
+//console.log(dMoveMap);
+//console.log(dMoveMap.get(tupleToString([0,1,3,5,7])+';'+'9'+';'+'7'));
+//console.log(dMoveMap.get(tupleToString([1,3,5,7,8])+';'+'8'+';'+5));
+//console.log(dMoveMap.get(tupleToString([1,3,5,8,9])+';'+'7'+';'+3));
+//console.log(tupleToString([1,2,4,3]));
+//console.log(tupleToString([4,3,2,1]));

@@ -5,10 +5,20 @@ import TouchableLine from './TouchableLine';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
 import {giveMap as giveDefenderMap} from '../MainApp/MainAlgoBruteForceD';
-const turns = {
-  defenderFirst: 0,
-  defenderLater: 1,
-  attacker: 2,
+const Turns = {
+  DefenderFirst: 0,
+  DefenderLater: 1,
+  Attacker: 2,
+};
+
+const Winner = {
+  Defender: 0,
+  Attacker: 1,
+};
+
+const Modes = {
+  AutoAttacker: 'autoAttacker',
+  AutoDefender: 'autoDefender',
 };
 
 export default class Stage extends Component {
@@ -16,8 +26,10 @@ export default class Stage extends Component {
     super(props);
     this.state = {
       guardCount: this.props.stage.guardCount,
-      turn: turns.defenderFirst,
+      turn: Turns.DefenderFirst,
       isLoading: true,
+      isGameFinished: false,
+      warning: '',
     };
     const parse = require('dotparser');
     let ast = null;
@@ -45,8 +57,8 @@ export default class Stage extends Component {
           this.nodes[element.edge_list[1].id],
         ]);
         if (
-          this.props.mode === 'autoAttacker' ||
-          this.props.mode === 'autoDefender'
+          this.props.mode === Modes.AutoAttacker ||
+          this.props.mode === Modes.AutoDefender
         ) {
           this.edgeList.push([
             element.edge_list[0].id,
@@ -62,10 +74,10 @@ export default class Stage extends Component {
       }
     }
     if (
-      this.props.mode === 'autoAttacker' ||
-      this.props.mode === 'autoDefender'
+      this.props.mode === Modes.AutoAttacker ||
+      this.props.mode === Modes.AutoDefender
     ) {
-      this.nodes.forEach(element => {
+      this.nodes.forEach(_ => {
         this.adjList.push([]);
       });
       this.edgeList.forEach(element => {
@@ -91,32 +103,35 @@ export default class Stage extends Component {
   selected = undefined;
 
   componentDidMount() {
+    if (this.props.mode === Modes.AutoDefender) {
+      this.nodesMap.forEach((value, key) => {
+        if (this.props.stage.guards.includes(parseInt(key))) {
+          value.ref.setState({guardPresent: true});
+        }
+      });
+      this.setState({turn: Turns.Attacker});
+    }
     setTimeout(() => {
       this.calculateMap();
     }, 0);
   }
 
   calculateMap() {
-    if (this.props.mode === 'autoDefender') {
-      this.nodesMap.forEach((value, key) => {
-        if (this.props.stage.guards.includes(parseInt(key))) {
-          this.showGuard(value.ref, true);
-        }
-      });
-      this.setState({turn: turns.attacker});
+    if (this.props.mode === Modes.AutoDefender) {
+      this.props.stage.guards.sort((a, b) => a - b);
       this.moveMap = giveDefenderMap(
         this.guardNum,
-        this.guards,
+        this.props.stage.guards,
         this.adjList,
         this.edgeList,
-        this.moves,
+        this.props.stage.moves - 1,
       );
-    } else if (this.props.mode === 'autoAttacker') {
+    } else if (this.props.mode === Modes.AutoAttacker) {
       this.moveMap = giveMap(
         this.guardNum,
         this.adjList,
         this.edgeList,
-        this.moves,
+        this.props.stage.moves,
       );
     }
     this.setState({isLoading: false});
@@ -149,7 +164,7 @@ export default class Stage extends Component {
           y1={startNode.pos.y}
           x2={endNode.pos.x}
           y2={endNode.pos.y}
-          thickness={10}
+          thickness={17}
           onEdgePress={this.onEdgePress}
           ref={ref => this.edgesMap.set(startNode.id + ';' + endNode.id, ref)}
         />
@@ -157,14 +172,77 @@ export default class Stage extends Component {
     });
   };
 
+  finishGame = winner => {
+    let winText = winner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
+    let textColor = {color: 'white'};
+    if (this.props.mode) {
+      const isAutoAttacker = this.props.mode === Modes.AutoAttacker;
+      const isWinnerAttacker = winner === Winner.Attacker;
+      winText = isAutoAttacker === isWinnerAttacker ? 'You Lose' : 'You Won';
+      textColor =
+        isAutoAttacker === isWinnerAttacker
+          ? this.styles.red
+          : this.styles.green;
+    }
+    this.heading = (
+      <Text style={[this.styles.heading, textColor]}>
+        {`Game Over, ${winText}`}
+      </Text>
+    );
+
+    this.setState({isGameFinished: true});
+  };
+
+  resetNodes() {
+    this.nodesMap.forEach((value, key) => {
+      value.ref.setState({guardPresent: false, isSelected: false});
+    });
+  }
+
+  resetEdges() {
+    this.edgesMap.forEach(value => {
+      value.setState({
+        moveGuard1: false,
+        moveGuard2: false,
+        isAttacked: false,
+      });
+    });
+  }
+
+  onButtonPress = () => {
+    if (this.state.isGameFinished) {
+      this.moves = this.props.stage.moves;
+      this.attackedEdge = undefined;
+      this.resetNodes();
+      this.resetEdges();
+      if (this.props.mode === Modes.AutoDefender) {
+        this.nodesMap.forEach((value, key) => {
+          if (this.props.stage.guards.includes(parseInt(key))) {
+            value.ref.setState({guardPresent: true});
+          }
+        });
+        this.setState({turn: Turns.Attacker, isGameFinished: false});
+      } else {
+        this.setState({
+          turn: Turns.DefenderFirst,
+          isGameFinished: false,
+          guardCount: this.props.stage.guardCount,
+        });
+      }
+    } else {
+      this.changeTurn();
+    }
+  };
+
   changeTurn = () => {
     if (this.state.isLoading) {
       return;
     }
-    if (this.state.turn === turns.defenderFirst) {
+    this.setState({warning: ''});
+    if (this.state.turn === Turns.DefenderFirst) {
       if (this.state.guardCount === 0) {
         let completeMove = () => {};
-        if (this.props.mode === 'autoAttacker') {
+        if (this.props.mode === Modes.AutoAttacker) {
           completeMove = () => {
             this.guards = [];
             this.nodesMap.forEach(element => {
@@ -183,17 +261,18 @@ export default class Stage extends Component {
             this.changeTurn();
           };
         }
-        this.setState({turn: turns.attacker}, completeMove);
+        this.setState({turn: Turns.Attacker}, completeMove);
       } else {
-        Alert.alert('Guards left should be 0');
+        this.setState({warning: 'Guards left should be 0'});
       }
-    } else if (this.state.turn === turns.attacker) {
+    } else if (this.state.turn === Turns.Attacker) {
       let completeMove = () => {};
-      if (this.props.mode === 'autoDefender') {
-        this.moves--;
+      if (this.props.mode === Modes.AutoDefender) {
+        // Automatically playing Defenders turn.
         completeMove = () => {
+          this.moves--;
           if (this.moves <= 0) {
-            Alert.alert('Game Over: Defender Won');
+            this.finishGame(Winner.Defender);
             return;
           }
           this.guards = [];
@@ -203,7 +282,6 @@ export default class Stage extends Component {
             }
           });
           this.guards.sort((a, b) => a - b);
-
           let [node1, node2] = this.attackedEdge.props.id.split(';');
           let edgeIndex = -1;
           this.edgeList.forEach((value, index) => {
@@ -211,6 +289,7 @@ export default class Stage extends Component {
               edgeIndex = index;
             }
           });
+          console.log(this.moveMap);
           let nextMove = this.moveMap.get(
             tupleToString(this.guards) + ';' + edgeIndex + ';' + this.moves,
           );
@@ -245,16 +324,16 @@ export default class Stage extends Component {
         };
       }
       if (this.attackedEdge === undefined) {
-        Alert.alert('You have to attack an edge');
+        this.setState({warning: 'You have to attack an edge'});
       } else {
         let [node1, node2] = this.attackedEdge.props.id.split(';');
         if (
           !this.nodesMap.get(node1).ref.state.guardPresent &&
           !this.nodesMap.get(node2).ref.state.guardPresent
         ) {
-          Alert.alert('Game Over: Attacker Won');
+          this.finishGame(Winner.Attacker);
         } else {
-          this.setState({turn: turns.defenderLater}, completeMove);
+          this.setState({turn: Turns.DefenderLater}, completeMove);
         }
       }
     } else {
@@ -313,7 +392,7 @@ export default class Stage extends Component {
             !this.nodesMap.get(attackedNode2).ref.state.guardPresent) ||
           !wasCovered
         ) {
-          Alert.alert('Game Over: Attacker Won');
+          this.finishGame(Winner.Attacker);
         } else {
           this.edgesMap.forEach((edge, edge_id) => {
             edge.setState({
@@ -325,11 +404,11 @@ export default class Stage extends Component {
           let completeMove = () => {
             this.attackedEdge = undefined;
           };
-          if (this.props.mode === 'autoAttacker') {
+          if (this.props.mode === Modes.AutoAttacker) {
             this.moves--;
             completeMove = () => {
               if (this.moves === 0) {
-                Alert.alert('Game Over: Defender Won');
+                this.finishGame(Winner.Defender);
               } else {
                 this.guards = [];
                 this.nodesMap.forEach(element => {
@@ -348,13 +427,13 @@ export default class Stage extends Component {
                 this.changeTurn();
               }
             };
-          } else if (this.props.mode === 'autoDefender') {
+          } else if (this.props.mode === Modes.AutoDefender) {
             this.moves--;
           }
-          this.setState({turn: turns.attacker}, completeMove);
+          this.setState({turn: Turns.Attacker}, completeMove);
         }
       } else {
-        Alert.alert('Invalid move, try again.');
+        this.setState({warning: 'Invalid move, try again.'});
       }
     }
   };
@@ -363,28 +442,28 @@ export default class Stage extends Component {
     if (this.state.isLoading) {
       return;
     }
-    if (this.state.turn === turns.attacker) {
+    if (this.state.turn === Turns.Attacker) {
       if (this.attackedEdge) {
         this.attackedEdge.setState({isAttacked: false});
       }
       this.attackedEdge = edge;
       edge.setState({isAttacked: true});
     } else if (
-      this.state.turn === turns.defenderLater &&
-      this.props.mode !== 'autoDefender'
+      this.state.turn === Turns.DefenderLater &&
+      this.props.mode !== Modes.AutoDefender
     ) {
       edge.setState({moveGuard1: false, moveGuard2: false});
     }
   };
 
   showGuard = (node, bySystem) => {
-    if (this.state.isLoading) {
+    if (!bySystem && this.state.isLoading) {
       return;
     }
-    if (this.props.mode === 'autoDefender' && !bySystem) {
+    if (this.props.mode === Modes.AutoDefender && !bySystem) {
       return;
     }
-    if (this.state.turn === turns.defenderFirst) {
+    if (this.state.turn === Turns.DefenderFirst) {
       if (node.state.guardPresent) {
         node.setState({guardPresent: false});
         this.setState({guardCount: this.state.guardCount + 1});
@@ -392,7 +471,7 @@ export default class Stage extends Component {
         node.setState({guardPresent: true});
         this.setState({guardCount: this.state.guardCount - 1});
       }
-    } else if (this.state.turn === turns.defenderLater) {
+    } else if (this.state.turn === Turns.DefenderLater) {
       if (this.selected) {
         if (
           this.nodesMap
@@ -418,60 +497,77 @@ export default class Stage extends Component {
   };
 
   render = () => {
-    let heading = (
-      <Text
-        style={[
-          this.styles.heading,
-          {color: this.state.guardCount < 0 ? 'red' : 'white'},
-        ]}>
-        Guards Left: {this.state.guardCount}
-      </Text>
-    );
-
-    if (this.props.mode === 'autoAttacker') {
-      if (this.state.turn === turns.attacker) {
-        heading = <Text style={this.styles.heading}>Attacker's turn</Text>;
-      } else if (this.state.turn === turns.defenderLater) {
-        heading = (
-          <Text style={this.styles.heading}>
-            Your turn | Turns Left: {(this.moves + 1) / 2}
-          </Text>
-        );
-      }
-    } else if (this.props.mode === 'autoDefender') {
-      if (this.state.turn === turns.attacker) {
-        heading = (
-          <Text style={this.styles.heading}>
-            Your turn | Turns Left: {(this.moves + 1) / 2}
-          </Text>
-        );
-      } else if (this.state.turn === turns.defenderFirst) {
-        heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
-      } else {
-        heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
-      }
+    let buttonTitle = 'Done';
+    if (this.state.isGameFinished) {
+      buttonTitle = 'Restart';
     } else {
-      if (this.state.turn === turns.attacker) {
-        heading = <Text style={this.styles.heading}>Attacker's turn</Text>;
-      } else if (this.state.turn === turns.defenderLater) {
-        heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
+      this.heading = (
+        <Text
+          style={[
+            this.styles.heading,
+            {color: this.state.guardCount < 0 ? 'red' : 'white'},
+          ]}>
+          Guards Left: {this.state.guardCount}
+        </Text>
+      );
+
+      if (this.props.mode === Modes.AutoAttacker) {
+        if (this.state.turn === Turns.Attacker) {
+          this.heading = (
+            <Text style={this.styles.heading}>Attacker's Turn</Text>
+          );
+        } else if (this.state.turn === Turns.DefenderLater) {
+          this.heading = (
+            <Text style={this.styles.heading}>
+              Your turn | Turns Left: {(this.moves + 1) / 2}
+            </Text>
+          );
+        }
+      } else if (this.props.mode === Modes.AutoDefender) {
+        if (this.state.turn === Turns.Attacker) {
+          this.heading = (
+            <Text style={this.styles.heading}>
+              Your turn | Turns Left: {(this.moves + 1) / 2}
+            </Text>
+          );
+        } else if (this.state.turn === Turns.DefenderFirst) {
+          this.heading = (
+            <Text style={this.styles.heading}>Defenders's Turn</Text>
+          );
+        } else {
+          this.heading = (
+            <Text style={this.styles.heading}>Defenders's Turn</Text>
+          );
+        }
+      } else {
+        if (this.state.turn === Turns.Attacker) {
+          this.heading = (
+            <Text style={this.styles.heading}>Attacker's Turn</Text>
+          );
+        } else if (this.state.turn === Turns.DefenderLater) {
+          this.heading = (
+            <Text style={this.styles.heading}>Defenders's turn</Text>
+          );
+        }
       }
-    }
-    if (this.state.isLoading) {
-      heading = <Text style={this.styles.heading}>Loading...</Text>;
+      if (this.state.isLoading) {
+        this.heading = (
+          <View style={this.styles.container}>
+            <Text style={this.styles.heading}>Loading... Please Wait</Text>
+          </View>
+        );
+      }
     }
     return (
       <View style={this.styles.container}>
-        {heading}
+        {this.heading}
         <View style={this.styles.container}>
           {this.renderEdges()}
           {this.renderNodes()}
         </View>
-        <Pressable
-          onPressIn={this.changeTurn}
-          title="Done"
-          style={this.styles.button}>
-          <Text>Done</Text>
+        <Text style={this.styles.warning}>{this.state.warning}</Text>
+        <Pressable onPressIn={this.onButtonPress} style={this.styles.button}>
+          <Text>{buttonTitle}</Text>
         </Pressable>
       </View>
     );
@@ -489,6 +585,12 @@ export default class Stage extends Component {
       color: 'white',
       height: 35,
     },
+    red: {
+      color: 'red',
+    },
+    green: {
+      color: 'green',
+    },
     button: {
       backgroundColor: 'grey',
       padding: 15,
@@ -496,7 +598,17 @@ export default class Stage extends Component {
       justifyContent: 'center',
       position: 'absolute',
       top: 550,
-      width: 100,
+      width: '100%',
+      alignSelf: 'center',
+    },
+    warning: {
+      padding: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 500,
+      color: 'red',
+      fontSize: 15,
       alignSelf: 'center',
     },
   });

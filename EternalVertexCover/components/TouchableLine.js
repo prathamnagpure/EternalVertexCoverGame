@@ -48,10 +48,10 @@ export default class TouchableLine extends Component {
         height: 0,
         backgroundColor: 'transparent',
         borderStyle: 'solid',
-        borderTopWidth: 10,
-        borderBottomWidth: 10,
+        borderTopWidth: this.props.thickness,
+        borderBottomWidth: this.props.thickness,
         borderLeftWidth: 0,
-        borderRightWidth: 20,
+        borderRightWidth: this.props.thickness * 2,
         borderTopColor: 'transparent',
         borderBottomColor: 'transparent',
         borderRightColor: 'blue', // Change this to the color you want
@@ -59,13 +59,13 @@ export default class TouchableLine extends Component {
         left:
           this.props.x1 +
           r * Math.cos((angle * Math.PI) / 180) +
-          10 * Math.cos((angle * Math.PI) / 180) -
-          10,
+          this.props.thickness * Math.cos((angle * Math.PI) / 180) -
+          this.props.thickness,
         top:
           this.props.y1 +
           r * Math.sin((angle * Math.PI) / 180) +
-          10 * Math.sin((angle * Math.PI) / 180) -
-          5,
+          this.props.thickness * Math.sin((angle * Math.PI) / 180) -
+          this.props.thickness / 2,
         transform: [{rotate: `${angle}deg`}],
       },
       head1: {
@@ -73,10 +73,10 @@ export default class TouchableLine extends Component {
         height: 0,
         backgroundColor: 'transparent',
         borderStyle: 'solid',
-        borderTopWidth: 10,
-        borderBottomWidth: 10,
+        borderTopWidth: this.props.thickness,
+        borderBottomWidth: this.props.thickness,
         borderLeftWidth: 0,
-        borderRightWidth: 20,
+        borderRightWidth: this.props.thickness * 2,
         borderTopColor: 'transparent',
         borderBottomColor: 'transparent',
         borderRightColor: 'blue', // Change this to the color you want
@@ -84,13 +84,13 @@ export default class TouchableLine extends Component {
         left:
           this.props.x2 +
           r * Math.cos(((180 + angle) * Math.PI) / 180) +
-          10 * Math.cos(((180 + angle) * Math.PI) / 180) -
-          10,
+          this.props.thickness * Math.cos(((180 + angle) * Math.PI) / 180) -
+          this.props.thickness,
         top:
           this.props.y2 +
           r * Math.sin(((180 + angle) * Math.PI) / 180) +
-          10 * Math.sin(((180 + angle) * Math.PI) / 180) -
-          5,
+          this.props.thickness * Math.sin(((180 + angle) * Math.PI) / 180) -
+          this.props.thickness / 2,
         transform: [{rotate: `${angle + 180}deg`}],
       },
       headNone: {},
