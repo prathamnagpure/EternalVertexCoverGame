@@ -4,7 +4,7 @@ import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
-
+import {giveMap as giveAttackerMap} from '../MainApp/MainAlgoBruteForceD';
 const turns = {
   defenderFirst: 0,
   defenderLater: 1,
@@ -43,7 +43,10 @@ export default class Stage extends Component {
           this.nodes[element.edge_list[0].id],
           this.nodes[element.edge_list[1].id],
         ]);
-        if (this.props.isAttackerAuto) {
+        if (
+          this.props.mode === 'autoAttacker' ||
+          this.props.mode === 'autoDefender'
+        ) {
           this.edgeList.push([
             element.edge_list[0].id,
             element.edge_list[1].id,
@@ -57,7 +60,10 @@ export default class Stage extends Component {
           .neighbours.push(String(element.edge_list[0].id));
       }
     }
-    if (this.props.isAttackerAuto) {
+    if (
+      this.props.mode === 'autoAttacker' ||
+      this.props.mode === 'autoDefender'
+    ) {
       this.nodes.forEach(element => {
         this.adjList.push([]);
       });
@@ -66,11 +72,10 @@ export default class Stage extends Component {
         this.adjList[element[1]].push(element[0]);
       });
     }
+
+    this.nodeComponents = this.renderNodes();
+    this.edgeComponents = this.renderEdges();
   }
-
-  ConstructForAutoAttacker = () => {};
-
-  ConstructForPlayerVsPlayer = () => {};
 
   nodes = [];
   edges = [];
@@ -79,13 +84,24 @@ export default class Stage extends Component {
   edgesMap = new Map();
   algoEdgeMap = new Map();
   numNodes = 0;
-  aMoveMap = undefined;
+  moveMap = undefined;
   adjList = [];
   guards = [];
   moves = this.props.stage.moves;
   guardNum = this.props.stage.guardCount;
   attackedEdge = undefined;
   selected = undefined;
+
+  componentDidMount() {
+    if (this.props.mode === 'autoDefender') {
+      this.nodesMap.forEach((value, key) => {
+        if (this.props.stage.guards.includes(parseInt(key))) {
+          this.showGuard(value.ref);
+        }
+      });
+      this.setState({turn: turns.attacker});
+    }
+  }
 
   renderNodes = () => {
     return this.nodes.map(node => {
@@ -126,7 +142,7 @@ export default class Stage extends Component {
     if (this.state.turn === turns.defenderFirst) {
       if (this.state.guardCount === 0) {
         let completeMove = () => {};
-        if (this.props.isAttackerAuto) {
+        if (this.props.mode === 'autoAttacker') {
           completeMove = () => {
             this.guards = [];
             this.nodesMap.forEach(element => {
@@ -134,16 +150,16 @@ export default class Stage extends Component {
                 this.guards.push(parseInt(element.ref.props.id));
               }
             });
-            if (this.aMoveMap === undefined) {
-              this.aMoveMap = giveMap(
+            if (this.moveMap === undefined) {
+              this.moveMap = giveMap(
                 this.guardNum,
                 this.adjList,
                 this.edgeList,
                 this.moves,
               );
             }
-            while (this.aMoveMap === undefined) {}
-            let toAttack = this.aMoveMap.get(
+            while (this.moveMap === undefined) {}
+            let toAttack = this.moveMap.get(
               tupleToString(this.guards) + ';' + this.moves,
             )[0];
             this.attackedEdge = this.edgesMap.get(
@@ -159,6 +175,63 @@ export default class Stage extends Component {
         Alert.alert('Guards left should be 0');
       }
     } else if (this.state.turn === turns.attacker) {
+      let completeMove = () => {};
+      if (this.props.mode === 'autoDefender') {
+        completeMove = () => {
+          console.log('==============================');
+          this.guards = [];
+          this.nodesMap.forEach(element => {
+            if (element.ref.state.guardPresent) {
+              this.guards.push(parseInt(element.ref.props.id));
+            }
+          });
+          this.guards.sort((a, b) => a - b);
+          if (this.moveMap === undefined) {
+            this.moveMap = giveAttackerMap(
+              this.guardNum,
+              this.guards,
+              this.adjList,
+              this.edgeList,
+              this.moves,
+            );
+          }
+          let [node1, node2] = this.attackedEdge.props.id.split(';');
+          let edgeIndex = -1;
+          this.edgeList.forEach((value, index) => {
+            if (value[0] == node1 && value[1] == node2) {
+              edgeIndex = index;
+            }
+          });
+          let nextMove = this.moveMap.get(
+            tupleToString(this.guards) + ';' + edgeIndex + ';' + this.moves,
+          );
+          console.log(
+            'get ' +
+              tupleToString(this.guards) +
+              ';' +
+              edgeIndex +
+              ';' +
+              this.moves,
+          );
+          console.log(nextMove[0]);
+          let changes = nextMove[nextMove.length - 1];
+          let sleep = ms => {
+            var start = new Date().getTime(),
+              expire = start + ms;
+            while (new Date().getTime() < expire) {}
+            return;
+          };
+          console.log(this.guards, changes);
+          changes.forEach(async (value, index) => {
+            let nodeComponent1 = this.nodesMap.get(String(this.guards[index]));
+            let nodeComponent2 = this.nodesMap.get(String(value));
+            this.showGuard(nodeComponent1.ref);
+            this.showGuard(nodeComponent2.ref);
+          });
+          Alert.alert('moves made');
+          //this.changeTurn();
+        };
+      }
       if (this.attackedEdge === undefined) {
         Alert.alert('You have to attack an edge');
       } else {
@@ -169,7 +242,7 @@ export default class Stage extends Component {
         ) {
           Alert.alert('Game Over: Attacker Won');
         } else {
-          this.setState({turn: turns.defenderLater});
+          this.setState({turn: turns.defenderLater}, completeMove);
         }
       }
     } else {
@@ -240,7 +313,7 @@ export default class Stage extends Component {
           let completeMove = () => {
             this.attackedEdge = undefined;
           };
-          if (this.props.isAttackerAuto) {
+          if (this.props.mode === 'autoAttacker') {
             this.moves--;
             completeMove = () => {
               if (this.moves === 0) {
@@ -252,7 +325,7 @@ export default class Stage extends Component {
                     this.guards.push(parseInt(element.ref.props.id));
                   }
                 });
-                let toAttack = this.aMoveMap.get(
+                let toAttack = this.moveMap.get(
                   tupleToString(this.guards) + ';' + this.moves,
                 )[0];
                 this.attackedEdge = this.edgesMap.get(
@@ -328,7 +401,8 @@ export default class Stage extends Component {
         Guards Left: {this.state.guardCount}
       </Text>
     );
-    if (this.props.isAttackerAuto) {
+
+    if (this.props.mode === 'autoAttacker') {
       if (this.state.turn === turns.attacker) {
         heading = <Text style={this.styles.heading}>Attacker's turn</Text>;
       } else if (this.state.turn === turns.defenderLater) {
@@ -338,6 +412,14 @@ export default class Stage extends Component {
           </Text>
         );
       }
+    } else if (this.props.mode === 'autoDefender') {
+      if (this.state.turn === turns.attacker) {
+        heading = <Text style={this.styles.heading}>Your turn</Text>;
+      } else if (this.state.turn === turns.defenderFirst) {
+        heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
+      } else {
+        heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
+      }
     } else {
       if (this.state.turn === turns.attacker) {
         heading = <Text style={this.styles.heading}>Attacker's turn</Text>;
@@ -345,12 +427,13 @@ export default class Stage extends Component {
         heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
       }
     }
+
     return (
       <View style={this.styles.container}>
         {heading}
         <View>
-          {this.renderEdges()}
-          {this.renderNodes()}
+          {this.edgeComponents}
+          {this.nodeComponents}
         </View>
         <Pressable
           onPressIn={this.changeTurn}

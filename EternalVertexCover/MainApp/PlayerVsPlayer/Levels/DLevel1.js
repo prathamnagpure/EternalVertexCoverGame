@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
 
 import stages from '../../../assets/Stages';
 import Stage from '../../../components/Stage';
-const DLevels = [2,3,4,5,6];
+const DLevels = [2, 3, 4, 5, 6];
 export default class DLevel1 extends Component {
   constructor(props) {
     super(props);
@@ -14,7 +14,7 @@ export default class DLevel1 extends Component {
     return (
       <SafeAreaView style={styles.container}>
         <Stage
-          isAttackerAuto={true}
+          mode="autoAttacker"
           stage={stages[DLevels[this.props.route.params.levelno]]}
         />
       </SafeAreaView>
