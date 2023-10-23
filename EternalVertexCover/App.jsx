@@ -12,11 +12,12 @@ import {
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import MainPage from './MainApp/Main';
-import AttackerPage from './MainApp/Attacker/Attacker';
+import Attacker from './MainApp/Attacker/Attacker';
 import Defender from './MainApp/Defender/Defender';
 import PlayerVsPlayer from './MainApp/PlayerVsPlayer/PlayerVsPlayer';
 import Level1 from './MainApp/PlayerVsPlayer/Levels/Level1';
 import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
+import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
@@ -33,7 +34,7 @@ export default class App extends Component {
           <Stack.Screen
             style={styles.Button}
             name="Attacker"
-            component={AttackerPage}
+            component={Attacker}
           />
           <Stack.Screen
             style={styles.Button}
@@ -46,9 +47,8 @@ export default class App extends Component {
             component={PlayerVsPlayer}
           />
           <Stack.Screen name="Level1" component={Level1} />
-          {/*remove this one */}
           <Stack.Screen name="DLevel1" component={DLevel1} />
-          {/* remove this one  */}
+          <Stack.Screen name="ALevel" component={ALevel} />
         </Stack.Navigator>
       </NavigationContainer>
     );

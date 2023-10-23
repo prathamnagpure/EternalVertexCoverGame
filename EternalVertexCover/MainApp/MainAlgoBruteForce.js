@@ -98,7 +98,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
 
           // console.log("not HIT");
           //console.log(aMoveMap);
+          let countt=0;
       edgList.forEach((element,index) => {
+
         let [_,tempdWin, tempdLose, tempPura,moves] = mainAlgo(
           0,
           guards,
@@ -107,6 +109,12 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
           edgList,
           curMove-1,
         );
+        let [node1, node2] = element;
+        let pos1 = guards.indexOf(node1);
+        let pos2 = guards.indexOf(node2);
+        if(!(pos1!=-1&&pos2!=-1)){
+          countt++;
+
         aWin += tempdLose;
         aLose += tempdWin;
         if (true) {
@@ -129,8 +137,8 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
             }
           }
         }
-      });
-      if (cnt == edgList.length) {
+      }});
+      if (cnt == countt) {
         pura = result.lose;
       }
       if (pura == result.lose) {
@@ -231,6 +239,8 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
               cantgo[element] = 1;
               retPosits=retPosits.concat(forDefender(guardsCopy, adjList, cantgo, 0).map(element2 => {return element2.concat([element,node1])})
 );
+
+              cantgo[element] = 0;
             }
           });
           //console.log("postions' after concat ");
@@ -242,6 +252,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList,curMove){
             if (cantgo[element] == 0) {
               cantgo[element] = 1;
               retPosits=retPosits.concat(forDefender(guardsCopy, adjList, cantgo, 0).map(element2 =>{return element2.concat([element,node2])}));
+              cantgo[element] = 0;
             }
           });
           //console.log("postions' after concat ");

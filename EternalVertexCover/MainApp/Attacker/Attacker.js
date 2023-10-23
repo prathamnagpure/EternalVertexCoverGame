@@ -1,10 +1,32 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {Button, View, Text, StyleSheet} from 'react-native';
 
-const AttackerPage = () => {
+const Attacker = ({navigation}) => {
+  const numberOfLevels = 5;
+
+  // Create an array to store buttons
+  const levelButtons = [];
+
+  // Use a loop to create buttons for each level
+  for (let i = 1; i <= numberOfLevels; i++) {
+    const level = i;
+    const buttonLabel = `Level ${level}`;
+
+    levelButtons.push(
+      <Button
+        key={level}
+        title={buttonLabel}
+        onPress={() => navigation.navigate('ALevel', {levelno: i - 1})}
+      />,
+    );
+  }
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Attacker Page</Text>
+      <View>
+        <Text style={styles.title}>Attacker Page</Text>
+      </View>
+
+      {levelButtons}
     </View>
   );
 };
@@ -34,4 +56,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AttackerPage;
+export default Attacker;
