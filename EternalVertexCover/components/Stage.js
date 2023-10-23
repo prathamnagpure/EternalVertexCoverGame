@@ -1,10 +1,10 @@
-import {React, Component} from 'react';
+import {React, Component, useEffect} from 'react';
 import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
-import {giveMap as giveAttackerMap} from '../MainApp/MainAlgoBruteForceD';
+import {giveMap as giveDefenderMap} from '../MainApp/MainAlgoBruteForceD';
 const turns = {
   defenderFirst: 0,
   defenderLater: 1,
@@ -17,6 +17,7 @@ export default class Stage extends Component {
     this.state = {
       guardCount: this.props.stage.guardCount,
       turn: turns.defenderFirst,
+      isLoading: true,
     };
     const parse = require('dotparser');
     let ast = null;
@@ -72,9 +73,6 @@ export default class Stage extends Component {
         this.adjList[element[1]].push(element[0]);
       });
     }
-
-    this.nodeComponents = this.renderNodes();
-    this.edgeComponents = this.renderEdges();
   }
 
   nodes = [];
@@ -93,14 +91,35 @@ export default class Stage extends Component {
   selected = undefined;
 
   componentDidMount() {
+    setTimeout(() => {
+      this.calculateMap();
+    }, 0);
+  }
+
+  calculateMap() {
     if (this.props.mode === 'autoDefender') {
       this.nodesMap.forEach((value, key) => {
         if (this.props.stage.guards.includes(parseInt(key))) {
-          this.showGuard(value.ref);
+          this.showGuard(value.ref, true);
         }
       });
       this.setState({turn: turns.attacker});
+      this.moveMap = giveDefenderMap(
+        this.guardNum,
+        this.guards,
+        this.adjList,
+        this.edgeList,
+        this.moves,
+      );
+    } else if (this.props.mode === 'autoAttacker') {
+      this.moveMap = giveMap(
+        this.guardNum,
+        this.adjList,
+        this.edgeList,
+        this.moves,
+      );
     }
+    this.setState({isLoading: false});
   }
 
   renderNodes = () => {
@@ -139,6 +158,9 @@ export default class Stage extends Component {
   };
 
   changeTurn = () => {
+    if (this.state.isLoading) {
+      return;
+    }
     if (this.state.turn === turns.defenderFirst) {
       if (this.state.guardCount === 0) {
         let completeMove = () => {};
@@ -150,15 +172,6 @@ export default class Stage extends Component {
                 this.guards.push(parseInt(element.ref.props.id));
               }
             });
-            if (this.moveMap === undefined) {
-              this.moveMap = giveMap(
-                this.guardNum,
-                this.adjList,
-                this.edgeList,
-                this.moves,
-              );
-            }
-            while (this.moveMap === undefined) {}
             let toAttack = this.moveMap.get(
               tupleToString(this.guards) + ';' + this.moves,
             )[0];
@@ -177,8 +190,12 @@ export default class Stage extends Component {
     } else if (this.state.turn === turns.attacker) {
       let completeMove = () => {};
       if (this.props.mode === 'autoDefender') {
+        this.moves--;
         completeMove = () => {
-          console.log('==============================');
+          if (this.moves <= 0) {
+            Alert.alert('Game Over: Defender Won');
+            return;
+          }
           this.guards = [];
           this.nodesMap.forEach(element => {
             if (element.ref.state.guardPresent) {
@@ -186,15 +203,7 @@ export default class Stage extends Component {
             }
           });
           this.guards.sort((a, b) => a - b);
-          if (this.moveMap === undefined) {
-            this.moveMap = giveAttackerMap(
-              this.guardNum,
-              this.guards,
-              this.adjList,
-              this.edgeList,
-              this.moves,
-            );
-          }
+
           let [node1, node2] = this.attackedEdge.props.id.split(';');
           let edgeIndex = -1;
           this.edgeList.forEach((value, index) => {
@@ -213,7 +222,8 @@ export default class Stage extends Component {
               ';' +
               this.moves,
           );
-          console.log(nextMove[0]);
+          console.log('next move');
+          let newPos = nextMove[0];
           let changes = nextMove[nextMove.length - 1];
           let sleep = ms => {
             var start = new Date().getTime(),
@@ -222,13 +232,15 @@ export default class Stage extends Component {
             return;
           };
           console.log(this.guards, changes);
-          changes.forEach(async (value, index) => {
-            let nodeComponent1 = this.nodesMap.get(String(this.guards[index]));
+          newPos.forEach(async (value, index) => {
+            let nodeComponent1 = this.nodesMap.get(
+              String(this.guards[changes[index]]),
+            );
             let nodeComponent2 = this.nodesMap.get(String(value));
-            this.showGuard(nodeComponent1.ref);
-            this.showGuard(nodeComponent2.ref);
+            console.log(String(this.guards[index]), String(value));
+            this.showGuard(nodeComponent1.ref, true);
+            this.showGuard(nodeComponent2.ref, true);
           });
-          Alert.alert('moves made');
           //this.changeTurn();
         };
       }
@@ -301,7 +313,7 @@ export default class Stage extends Component {
             !this.nodesMap.get(attackedNode2).ref.state.guardPresent) ||
           !wasCovered
         ) {
-          Alert.alert('Game Over, Attacker Won');
+          Alert.alert('Game Over: Attacker Won');
         } else {
           this.edgesMap.forEach((edge, edge_id) => {
             edge.setState({
@@ -336,6 +348,8 @@ export default class Stage extends Component {
                 this.changeTurn();
               }
             };
+          } else if (this.props.mode === 'autoDefender') {
+            this.moves--;
           }
           this.setState({turn: turns.attacker}, completeMove);
         }
@@ -346,18 +360,30 @@ export default class Stage extends Component {
   };
 
   onEdgePress = edge => {
+    if (this.state.isLoading) {
+      return;
+    }
     if (this.state.turn === turns.attacker) {
       if (this.attackedEdge) {
         this.attackedEdge.setState({isAttacked: false});
       }
       this.attackedEdge = edge;
       edge.setState({isAttacked: true});
-    } else if (this.state.turn === turns.defenderLater) {
+    } else if (
+      this.state.turn === turns.defenderLater &&
+      this.props.mode !== 'autoDefender'
+    ) {
       edge.setState({moveGuard1: false, moveGuard2: false});
     }
   };
 
-  showGuard = node => {
+  showGuard = (node, bySystem) => {
+    if (this.state.isLoading) {
+      return;
+    }
+    if (this.props.mode === 'autoDefender' && !bySystem) {
+      return;
+    }
     if (this.state.turn === turns.defenderFirst) {
       if (node.state.guardPresent) {
         node.setState({guardPresent: false});
@@ -414,7 +440,11 @@ export default class Stage extends Component {
       }
     } else if (this.props.mode === 'autoDefender') {
       if (this.state.turn === turns.attacker) {
-        heading = <Text style={this.styles.heading}>Your turn</Text>;
+        heading = (
+          <Text style={this.styles.heading}>
+            Your turn | Turns Left: {(this.moves + 1) / 2}
+          </Text>
+        );
       } else if (this.state.turn === turns.defenderFirst) {
         heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
       } else {
@@ -427,13 +457,15 @@ export default class Stage extends Component {
         heading = <Text style={this.styles.heading}>Defenders's turn</Text>;
       }
     }
-
+    if (this.state.isLoading) {
+      heading = <Text style={this.styles.heading}>Loading...</Text>;
+    }
     return (
       <View style={this.styles.container}>
         {heading}
-        <View>
-          {this.edgeComponents}
-          {this.nodeComponents}
+        <View style={this.styles.container}>
+          {this.renderEdges()}
+          {this.renderNodes()}
         </View>
         <Pressable
           onPressIn={this.changeTurn}
@@ -455,6 +487,7 @@ export default class Stage extends Component {
       fontSize: 20,
       top: 5,
       color: 'white',
+      height: 35,
     },
     button: {
       backgroundColor: 'grey',

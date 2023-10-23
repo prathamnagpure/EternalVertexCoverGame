@@ -6,8 +6,8 @@ export default graph = `digraph G {
 4 [label="100 300"]
 5 [label="100 150"]
 6 [label="250 210"]
-7 [label="380 210"]
-8 [label="380 350"]
+7 [label="320 100"]
+8 [label="320 350"]
 0 -- 1
 0 -- 5
 5 -- 4
