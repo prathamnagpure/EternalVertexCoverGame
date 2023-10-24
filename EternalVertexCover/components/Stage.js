@@ -480,6 +480,7 @@ export default class Stage extends Component {
       buttonTitle = 'Restart';
     } else if (this.state.isLoading) {
       headingText = 'Loading... Please Wait';
+      this.heading = <Text style={headingStyle}>{headingText}</Text>;
     } else {
       switch (this.props.mode) {
         case Modes.AutoAttacker:
