@@ -2,7 +2,7 @@ import React from 'react';
 import {Button, View, Text, StyleSheet} from 'react-native';
 
 const PlayerVsPlayer = ({navigation}) => {
-  const numberOfLevels = 2;
+  const numberOfLevels = 16;
 
   // Create an array to store buttons
   const levelButtons = [];

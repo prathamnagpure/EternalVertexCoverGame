@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
 
 import stages from '../../../assets/Stages';
 import Stage from '../../../components/Stage';
-const ALevels = [7, 8, 9, 10, 11];
+const ALevels = [7, 8, 9, 10, 11,12,13];
 export default class ALevel extends Component {
   constructor(props) {
     super(props);

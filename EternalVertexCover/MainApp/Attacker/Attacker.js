@@ -2,7 +2,7 @@ import React from 'react';
 import {Button, View, Text, StyleSheet} from 'react-native';
 
 const Attacker = ({navigation}) => {
-  const numberOfLevels = 5;
+  const numberOfLevels = 7;
 
   // Create an array to store buttons
   const levelButtons = [];

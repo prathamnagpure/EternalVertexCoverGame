@@ -27,6 +27,10 @@ export default class App extends Component {
   }
 
   render() {
+    var fdata = require('./assets/graphMaps/file3.json')
+    console.log(fdata["1,2,4;6"]);
+    var mp = new Map(Object.entries(fdata))
+    console.log(mp.get("1,2,4;6")[0]);
     return (
       <NavigationContainer independent={true}>
         <Stack.Navigator initialRouteName="Main">

@@ -2,7 +2,6 @@ import {React, Component} from 'react';
 import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
 import {giveMap as giveDefenderMap} from '../MainApp/MainAlgoBruteForceD';
 const Turns = {
@@ -119,20 +118,48 @@ export default class Stage extends Component {
   calculateMap() {
     if (this.props.mode === Modes.AutoDefender) {
       this.props.stage.guards.sort((a, b) => a - b);
-      this.moveMap = giveDefenderMap(
-        this.guardNum,
+      console.log(this.props.stage.graphNum);
+      console.log();
+      console.log(        this.guardNum,
+        ',',
         this.props.stage.guards,
+        ',',
         this.adjList,
+        ',',
         this.edgeList,
-        this.props.stage.moves - 1,
-      );
+        ',',
+        this.props.stage.moves - 1,',',);
+
+      //this.moveMap = giveDefenderMap(
+        //this.guardNum,
+        //this.props.stage.guards,
+        //this.adjList,
+        //this.edgeList,
+        //this.props.stage.moves - 1,
+      //);
+      this.moveMap = new Map(Object.entries(this.props.stage.map));
+
     } else if (this.props.mode === Modes.AutoAttacker) {
-      this.moveMap = giveMap(
-        this.guardNum,
+      console.log(this.props.stage.graphNum);
+      console.log("yoyou");
+      console.log(        this.guardNum,
+        ',',
         this.adjList,
+        ',',
         this.edgeList,
-        this.props.stage.moves,
-      );
+        ',',
+        this.props.stage.moves,',',);
+      //this.moveMap = giveMap(
+        //this.guardNum,
+        //this.adjList,
+        //this.edgeList,
+        //this.props.stage.moves,
+      //);
+      //console.log(this.props.stage.map);
+      this.moveMap = new Map(Object.entries(this.props.stage.map));
+      console.log(this.moveMap);
+
+
     }
     this.setState({isLoading: false});
   }
@@ -250,6 +277,7 @@ export default class Stage extends Component {
                 this.guards.push(parseInt(element.ref.props.id));
               }
             });
+            console.log(              tupleToString(this.guards) + ';' + this.moves,);
             let toAttack = this.moveMap.get(
               tupleToString(this.guards) + ';' + this.moves,
             )[0];
