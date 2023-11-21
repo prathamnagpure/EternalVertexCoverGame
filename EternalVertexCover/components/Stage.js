@@ -11,8 +11,8 @@ const Turns = {
 };
 
 const Winner = {
-  Defender: 0,
-  Attacker: 1,
+  Defender: 1,
+  Attacker: 2,
 };
 
 const Modes = {
@@ -27,7 +27,7 @@ export default class Stage extends Component {
       guardCount: this.props.stage.guardCount,
       turn: Turns.DefenderFirst,
       isLoading: true,
-      isGameFinished: false,
+      gameWinner: undefined,
       warning: '',
     };
     const parse = require('dotparser');
@@ -100,6 +100,92 @@ export default class Stage extends Component {
   guardNum = this.props.stage.guardCount;
   attackedEdge = undefined;
   selected = undefined;
+  momentos = [];
+  currentMomentoIndex = 0;
+  maxMomentoIndex = 0;
+
+  saveMomento = (calledByUndo = false) => {
+    this.momentos = this.momentos.slice(0, this.currentMomentoIndex);
+    let momento = {
+      nodes: [],
+      edges: [],
+      moves: this.moves,
+      attackedEdge: this.attackedEdge,
+      state: {turn: this.state.turn, gameWinner: this.state.gameWinner},
+    };
+    this.nodesMap.forEach((value, key) => {
+      let touchableCircle = value.ref;
+      momento.nodes.push({
+        id: key,
+        state: {
+          isGuardPresent: touchableCircle.state.isGuardPresent,
+          isSelected: touchableCircle.state.isSelected,
+        },
+      });
+    });
+
+    this.edgesMap.forEach((value, key) => {
+      let touchableLine = value;
+      momento.edges.push({
+        id: key,
+        state: {
+          isAttacked: touchableLine.state.isAttacked,
+          moveGuard1: touchableLine.state.moveGuard1,
+          moveGuard2: touchableLine.state.moveGuard2,
+        },
+      });
+    });
+    this.momentos.push(momento);
+    if (!calledByUndo) {
+      this.maxMomentoIndex = this.currentMomentoIndex + 1;
+    }
+    this.currentMomentoIndex = this.maxMomentoIndex;
+  };
+
+  undo = () => {
+    if (this.currentMomentoIndex == 0) return;
+    if (this.currentMomentoIndex == this.maxMomentoIndex) {
+      this.saveMomento(true);
+    }
+    this.currentMomentoIndex--;
+    this.applyMomento(this.momentos[this.currentMomentoIndex]);
+  };
+
+  redo = () => {
+    if (this.currentMomentoIndex == this.maxMomentoIndex) return;
+    this.currentMomentoIndex++;
+    if (
+      (this.props.mode === Modes.AutoDefender &&
+        this.state.turn === Turns.Attacker) ||
+      (this.props.mode === Modes.AutoAttacker &&
+        (this.state.turn === Turns.DefenderFirst ||
+          this.state.turn === Turns.DefenderLater)) ||
+      !this.props.mode
+    ) {
+      this.applyMomento(this.momentos[this.currentMomentoIndex]);
+    }
+  };
+
+  applyMomento = momento => {
+    momento.nodes.forEach(value => {
+      let id = value.id;
+      let state = value.state;
+      let touchableCircle = this.nodesMap.get(id).ref;
+      touchableCircle.setState(state);
+    });
+    momento.edges.forEach(value => {
+      let id = value.id;
+      let state = value.state;
+      let touchableLine = this.edgesMap.get(id);
+      touchableLine.setState(state);
+    });
+    this.moves = momento.moves;
+    this.attackedEdge = momento.attackedEdge;
+    this.setState(momento.state);
+    if (momento.state.gameWinner) {
+      this.finishGame(momento.state.gameWinner);
+    }
+  };
 
   componentDidMount() {
     if (this.props.mode === Modes.AutoDefender) {
@@ -120,7 +206,8 @@ export default class Stage extends Component {
       this.props.stage.guards.sort((a, b) => a - b);
       console.log(this.props.stage.graphNum);
       console.log();
-      console.log(        this.guardNum,
+      console.log(
+        this.guardNum,
         ',',
         this.props.stage.guards,
         ',',
@@ -128,38 +215,40 @@ export default class Stage extends Component {
         ',',
         this.edgeList,
         ',',
-        this.props.stage.moves - 1,',',);
+        this.props.stage.moves - 1,
+        ',',
+      );
 
       //this.moveMap = giveDefenderMap(
-        //this.guardNum,
-        //this.props.stage.guards,
-        //this.adjList,
-        //this.edgeList,
-        //this.props.stage.moves - 1,
+      //this.guardNum,
+      //this.props.stage.guards,
+      //this.adjList,
+      //this.edgeList,
+      //this.props.stage.moves - 1,
       //);
       this.moveMap = new Map(Object.entries(this.props.stage.map));
-
     } else if (this.props.mode === Modes.AutoAttacker) {
       console.log(this.props.stage.graphNum);
-      console.log("yoyou");
-      console.log(        this.guardNum,
+      console.log('yoyou');
+      console.log(
+        this.guardNum,
         ',',
         this.adjList,
         ',',
         this.edgeList,
         ',',
-        this.props.stage.moves,',',);
+        this.props.stage.moves,
+        ',',
+      );
       //this.moveMap = giveMap(
-        //this.guardNum,
-        //this.adjList,
-        //this.edgeList,
-        //this.props.stage.moves,
+      //this.guardNum,
+      //this.adjList,
+      //this.edgeList,
+      //this.props.stage.moves,
       //);
       //console.log(this.props.stage.map);
       this.moveMap = new Map(Object.entries(this.props.stage.map));
       console.log(this.moveMap);
-
-
     }
     this.setState({isLoading: false});
   }
@@ -216,8 +305,7 @@ export default class Stage extends Component {
         {`Game Over, ${winText}`}
       </Text>
     );
-
-    this.setState({isGameFinished: true});
+    this.setState({gameWinner: winner});
   };
 
   resetNodes() {
@@ -236,38 +324,49 @@ export default class Stage extends Component {
     });
   }
 
+  restartGame = () => {
+    this.currentMomentoIndex = -1;
+    this.momentos = [];
+    this.moves = this.props.stage.moves;
+    this.attackedEdge = undefined;
+    this.resetNodes();
+    this.resetEdges();
+    if (this.props.mode === Modes.AutoDefender) {
+      this.nodesMap.forEach((value, key) => {
+        if (this.props.stage.guards.includes(parseInt(key))) {
+          value.ref.setState({isGuardPresent: true});
+        }
+      });
+      this.setState({turn: Turns.Attacker, gameWinner: undefined});
+    } else {
+      this.setState({
+        turn: Turns.DefenderFirst,
+        gameWinner: undefined,
+        guardCount: this.props.stage.guardCount,
+      });
+    }
+  };
+
   onButtonPress = () => {
-    if (this.state.isGameFinished) {
-      this.moves = this.props.stage.moves;
-      this.attackedEdge = undefined;
-      this.resetNodes();
-      this.resetEdges();
-      if (this.props.mode === Modes.AutoDefender) {
-        this.nodesMap.forEach((value, key) => {
-          if (this.props.stage.guards.includes(parseInt(key))) {
-            value.ref.setState({isGuardPresent: true});
-          }
-        });
-        this.setState({turn: Turns.Attacker, isGameFinished: false});
-      } else {
-        this.setState({
-          turn: Turns.DefenderFirst,
-          isGameFinished: false,
-          guardCount: this.props.stage.guardCount,
-        });
-      }
+    if (this.state.gameWinner) {
+      this.restartGame();
     } else {
       this.changeTurn();
     }
   };
 
-  changeTurn = () => {
+  changeTurn = (calledByRedo = false) => {
     if (this.state.isLoading) {
       return;
     }
     this.setState({warning: ''});
     if (this.state.turn === Turns.DefenderFirst) {
       if (this.state.guardCount === 0) {
+        // Saving momento.
+        if (this.props.mode != Modes.AutoDefender && !calledByRedo) {
+          this.saveMomento();
+        }
+
         let completeMove = () => {};
         if (this.props.mode === Modes.AutoAttacker) {
           completeMove = () => {
@@ -277,7 +376,7 @@ export default class Stage extends Component {
                 this.guards.push(parseInt(element.ref.props.id));
               }
             });
-            console.log(              tupleToString(this.guards) + ';' + this.moves,);
+            console.log(tupleToString(this.guards) + ';' + this.moves);
             let toAttack = this.moveMap.get(
               tupleToString(this.guards) + ';' + this.moves,
             )[0];
@@ -333,9 +432,14 @@ export default class Stage extends Component {
           //this.changeTurn();
         };
       }
+
       if (this.attackedEdge === undefined) {
         this.setState({warning: 'You have to attack an edge'});
       } else {
+        // Saving momento.
+        if (this.props.mode !== Modes.AutoAttacker && !calledByRedo) {
+          this.saveMomento();
+        }
         const [node1, node2] = this.attackedEdge.props.id.split(';');
         if (
           !this.nodesMap.get(node1).ref.state.isGuardPresent &&
@@ -346,7 +450,7 @@ export default class Stage extends Component {
           this.setState({turn: Turns.DefenderLater}, completeMove);
         }
       }
-    } else {
+    } /* this.state.turn = Turns.DefenderLater */ else {
       const nodeGuardCounter = new Map();
       this.nodesMap.forEach((node, node_id) => {
         nodeGuardCounter.set(
@@ -374,6 +478,11 @@ export default class Stage extends Component {
       });
 
       if (good) {
+        // Saving momento.
+        if (this.props.mode !== Modes.AutoDefender && !calledByRedo) {
+          this.saveMomento();
+        }
+
         let wasCovered = false;
         const guardExistsSet = new Set();
         const moveGuard = (edge, node1, node2) => {
@@ -504,7 +613,7 @@ export default class Stage extends Component {
     let buttonTitle = 'Done';
     let headingStyle = [this.styles.heading];
     let headingText = '';
-    if (this.state.isGameFinished) {
+    if (this.state.gameWinner) {
       buttonTitle = 'Restart';
     } else if (this.state.isLoading) {
       headingText = 'Loading... Please Wait';
@@ -554,6 +663,27 @@ export default class Stage extends Component {
     return (
       <View style={this.styles.container}>
         {this.heading}
+        <Pressable
+          onPressIn={this.undo}
+          style={[
+            this.styles.undo,
+            {display: this.currentMomentoIndex > 0 ? 'flex' : 'none'},
+          ]}>
+          <Text>Undo</Text>
+        </Pressable>
+        <Pressable
+          onPressIn={this.redo}
+          style={[
+            this.styles.redo,
+            {
+              display:
+                this.currentMomentoIndex < this.maxMomentoIndex
+                  ? 'flex'
+                  : 'none',
+            },
+          ]}>
+          <Text>Redo</Text>
+        </Pressable>
         <View style={this.styles.container}>
           {this.renderEdges()}
           {this.renderNodes()}
@@ -590,7 +720,7 @@ export default class Stage extends Component {
       alignItems: 'center',
       justifyContent: 'center',
       position: 'absolute',
-      top: 550,
+      top: 600,
       width: '100%',
       alignSelf: 'center',
     },
@@ -602,6 +732,28 @@ export default class Stage extends Component {
       top: 500,
       color: 'red',
       fontSize: 15,
+      alignSelf: 'center',
+    },
+    undo: {
+      backgroundColor: 'grey',
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 550,
+      width: '20%',
+      left: 50,
+      alignSelf: 'center',
+    },
+    redo: {
+      backgroundColor: 'grey',
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 550,
+      right: 50,
+      width: '20%',
       alignSelf: 'center',
     },
   });
