@@ -325,7 +325,8 @@ export default class Stage extends Component {
   }
 
   restartGame = () => {
-    this.currentMomentoIndex = -1;
+    this.currentMomentoIndex = 0;
+    this.maxMomentoIndex = 0;
     this.momentos = [];
     this.moves = this.props.stage.moves;
     this.attackedEdge = undefined;
