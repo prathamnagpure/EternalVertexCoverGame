@@ -1,60 +1,48 @@
-import {Image, StyleSheet, Pressable, View, Alert} from 'react-native';
+import {Image, StyleSheet, Pressable, View} from 'react-native';
 import images from '../assets/Images';
-import {React, Component} from 'react';
+import {React, memo} from 'react';
 
-export default class TouchableCircle extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isGuardPresent: false,
-      isSelected: false,
-    };
-  }
-
-  styles = StyleSheet.create({
+const TouchableCircle = memo(function TouchableCircle({
+  x,
+  y,
+  radius,
+  showGuard,
+  isGuardPresent,
+  isSelected,
+  id,
+}) {
+  const styles = StyleSheet.create({
     circleContainer: {
       position: 'absolute',
-      top: this.props.y - this.props.radius,
-      left: this.props.x - this.props.radius,
-      width: 2 * this.props.radius,
-      height: 2 * this.props.radius,
-      borderRadius: this.props.radius,
+      top: y - radius,
+      left: x - radius,
+      width: 2 * radius,
+      height: 2 * radius,
+      borderRadius: radius,
       backgroundColor: 'blue',
       alignItems: 'center',
       paddingVertical: 5,
+      borderColor: isSelected ? 'orange' : 'blue',
+      borderWidth: 5,
+    },
+    image: {
+      width: radius * 1.5,
+      height: radius * 1.5,
+      resizeMode: 'stretch',
     },
   });
 
-  render() {
-    let content = null;
+  let content = null;
 
-    if (this.state.isGuardPresent == true) {
-      content = (
-        <Image
-          source={images.guard}
-          style={{
-            width: this.props.radius * 1.5,
-            height: this.props.radius * 1.5,
-            resizeMode: 'stretch',
-          }}
-        />
-      );
-    }
-
-    return (
-      <Pressable onPressIn={() => this.props.showGuard(this)}>
-        <View
-          style={[
-            this.styles.circleContainer,
-            {
-              borderColor: this.state.isSelected ? 'orange' : 'blue',
-              borderWidth: 5,
-            },
-          ]}>
-          {content}
-        </View>
-      </Pressable>
-    );
+  if (isGuardPresent) {
+    content = <Image source={images.guard} style={styles.image} />;
   }
-}
+
+  return (
+    <Pressable onPressIn={() => showGuard(id)}>
+      <View style={styles.circleContainer}>{content}</View>
+    </Pressable>
+  );
+});
+
+export default TouchableCircle;
