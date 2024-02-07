@@ -1,14 +1,13 @@
-import {React, useState, useEffect, useRef, useCallback} from 'react';
-import {View, Pressable, StyleSheet, Text} from 'react-native';
+import {React, Component} from 'react';
+import {View, Pressable, StyleSheet, Text, Button, Alert} from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
-import parse from 'dotparser';
-import {tupleToString} from '../MainApp/MainAlgoBruteForce';
-
+import {giveMap, tupleToString} from '../MainApp/MainAlgoBruteForce';
+import {giveMap as giveDefenderMap} from '../MainApp/MainAlgoBruteForceD';
 const Turns = {
-  DefenderFirst: 1,
-  DefenderLater: 2,
-  Attacker: 3,
+  DefenderFirst: 0,
+  DefenderLater: 1,
+  Attacker: 2,
 };
 
 const Winner = {
@@ -21,354 +20,463 @@ const Modes = {
   AutoDefender: 'autoDefender',
 };
 
-export default function Stage({stage, mode}) {
-  const [guardCount, setGuardCount] = useState(stage.guardCount);
-  const [turn, setTurn] = useState(Turns.DefenderFirst);
-  const [isLoading, setIsLoading] = useState(true);
-  const [gameWinner, setGameWinner] = useState(null);
-  const [warning, setWarning] = useState('');
-  const [nodeStateMap, setNodeStateMap] = useState(new Map());
-  const [edgeStateMap, setEdgeStateMap] = useState(new Map());
-
-  const adjList = useRef(null);
-  const edgeList = useRef([]);
-  const moveMap = useRef(null);
-  const momentoes = useRef([]);
-  const currentMomentoIndex = useRef(0);
-  const maxMomentoIndex = useRef(0);
-  const attackedEdge = useRef(null);
-  const guards = useRef([]);
-  const moves = useRef(stage.moves);
-  const selected = useRef(null);
-
-  // Initializer
-  useEffect(() => {
-    if (construct()) {
-      if (mode === Modes.AutoDefender) {
-        stage.guards.sort((a, b) => a - b);
-        moveMap.current = new Map(Object.entries(stage.map));
-        setTurn(Turns.Attacker);
-      } else if (mode === Modes.AutoAttacker) {
-        moveMap.current = new Map(Object.entries(stage.map));
-      }
-    } else {
-      setWarning('An error occurred');
+export default class Stage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      guardCount: this.props.stage.guardCount,
+      turn: Turns.DefenderFirst,
+      isLoading: true,
+      gameWinner: undefined,
+      warning: '',
+    };
+    const parse = require('dotparser');
+    let ast = null;
+    try {
+      ast = parse(this.props.stage.graph);
+    } catch {
+      return <View />;
     }
-    setIsLoading(false);
-  }, [construct, mode, stage.guards, stage.map]);
-
-  const saveMomento = useCallback(
-    function (calledByUndo = false) {
-      const momento = {
-        nodes: [],
-        edges: [],
-        moves: moves.current,
-        attackedEdge: attackedEdge.current,
-        turn,
-        gameWinner,
-      };
-
-      [...nodeStateMap.keys()].forEach(key => {
-        const nodeState = nodeStateMap.get(key);
-        momento.nodes.push({
-          ...nodeState,
+    if (!ast) {
+      return <View />;
+    }
+    const children = ast[0].children;
+    for (const element of children) {
+      if (element.type === 'node_stmt') {
+        let coordinates = element.attr_list[0].eq.split(' ');
+        this.nodes.push({
+          id: String(element.node_id.id),
+          pos: {x: parseFloat(coordinates[0]), y: parseFloat(coordinates[1])},
         });
-      });
-      [...edgeStateMap.keys()].forEach(key => {
-        const edgeState = edgeStateMap.get(key);
-        momento.edges.push({
-          ...edgeState,
-        });
-      });
-
-      momentoes.current.slice(0, currentMomentoIndex.current);
-      momentoes.current.push(momento);
-
-      if (!calledByUndo) {
-        maxMomentoIndex.current = currentMomentoIndex.current + 1;
+        this.nodesMap.set(String(element.node_id.id), {neighbours: []});
+        this.numNodes++;
+      } else {
+        this.edges.push([
+          this.nodes[element.edge_list[0].id],
+          this.nodes[element.edge_list[1].id],
+        ]);
+        if (
+          this.props.mode === Modes.AutoAttacker ||
+          this.props.mode === Modes.AutoDefender
+        ) {
+          this.edgeList.push([
+            element.edge_list[0].id,
+            element.edge_list[1].id,
+          ]);
+        }
+        this.nodesMap
+          .get(String(element.edge_list[0].id))
+          .neighbours.push(String(element.edge_list[1].id));
+        this.nodesMap
+          .get(String(element.edge_list[1].id))
+          .neighbours.push(String(element.edge_list[0].id));
       }
-      currentMomentoIndex.current = maxMomentoIndex.current;
-    },
-    [edgeStateMap, gameWinner, nodeStateMap, turn],
-  );
+    }
+    if (
+      this.props.mode === Modes.AutoAttacker ||
+      this.props.mode === Modes.AutoDefender
+    ) {
+      this.nodes.forEach(_ => {
+        this.adjList.push([]);
+      });
+      this.edgeList.forEach(element => {
+        this.adjList[element[0]].push(element[1]);
+        this.adjList[element[1]].push(element[0]);
+      });
+    }
+  }
 
-  function undo() {
-    if (currentMomentoIndex.current === 0) {
+  nodes = [];
+  edges = [];
+  edgeList = [];
+  nodesMap = new Map();
+  edgesMap = new Map();
+  algoEdgeMap = new Map();
+  numNodes = 0;
+  moveMap = undefined;
+  adjList = [];
+  guards = [];
+  moves = this.props.stage.moves;
+  guardNum = this.props.stage.guardCount;
+  attackedEdge = undefined;
+  selected = undefined;
+  momentos = [];
+  currentMomentoIndex = 0;
+  maxMomentoIndex = 0;
+
+  saveMomento = (calledByUndo = false) => {
+    this.momentos = this.momentos.slice(0, this.currentMomentoIndex);
+    let momento = {
+      nodes: [],
+      edges: [],
+      moves: this.moves,
+      attackedEdge: this.attackedEdge,
+      state: {turn: this.state.turn, gameWinner: this.state.gameWinner},
+    };
+    this.nodesMap.forEach((value, key) => {
+      let touchableCircle = value.ref;
+      momento.nodes.push({
+        id: key,
+        state: {
+          isGuardPresent: touchableCircle.state.isGuardPresent,
+          isSelected: touchableCircle.state.isSelected,
+        },
+      });
+    });
+
+    this.edgesMap.forEach((value, key) => {
+      let touchableLine = value;
+      momento.edges.push({
+        id: key,
+        state: {
+          isAttacked: touchableLine.state.isAttacked,
+          moveGuard1: touchableLine.state.moveGuard1,
+          moveGuard2: touchableLine.state.moveGuard2,
+        },
+      });
+    });
+    this.momentos.push(momento);
+    if (!calledByUndo) {
+      this.maxMomentoIndex = this.currentMomentoIndex + 1;
+    }
+    this.currentMomentoIndex = this.maxMomentoIndex;
+  };
+
+  undo = () => {
+    if (this.currentMomentoIndex == 0) {
       return;
     }
-    if (currentMomentoIndex.current === maxMomentoIndex.current) {
-      saveMomento(true);
+    if (this.currentMomentoIndex == this.maxMomentoIndex) {
+      this.saveMomento(true);
     }
-    currentMomentoIndex.current--;
-    applyMomento(momentoes.current[currentMomentoIndex.current]);
-  }
+    this.currentMomentoIndex--;
+    this.applyMomento(this.momentos[this.currentMomentoIndex]);
+  };
 
-  function isHumanPlaying() {
-    return (
-      (mode === Modes.AutoDefender && turn === Turns.Attacker) ||
-      (mode === Modes.AutoAttacker &&
-        (turn === Turns.DefenderFirst || turn === Turns.DefenderLater)) ||
-      !mode
-    );
-  }
-
-  function redo() {
-    if (currentMomentoIndex.current === maxMomentoIndex.current) {
+  redo = () => {
+    if (this.currentMomentoIndex == this.maxMomentoIndex) {
       return;
     }
-    currentMomentoIndex.current++;
-    if (isHumanPlaying()) {
-      applyMomento(currentMomentoIndex.current);
+    this.currentMomentoIndex++;
+    if (
+      (this.props.mode === Modes.AutoDefender &&
+        this.state.turn === Turns.Attacker) ||
+      (this.props.mode === Modes.AutoAttacker &&
+        (this.state.turn === Turns.DefenderFirst ||
+          this.state.turn === Turns.DefenderLater)) ||
+      !this.props.mode
+    ) {
+      this.applyMomento(this.momentos[this.currentMomentoIndex]);
     }
-  }
+  };
 
-  function applyMomento(momento) {
-    const newNodeStateMap = new Map();
+  applyMomento = momento => {
     momento.nodes.forEach(value => {
-      newNodeStateMap.set(value.id, value);
+      let id = value.id;
+      let state = value.state;
+      let touchableCircle = this.nodesMap.get(id).ref;
+      touchableCircle.setState(state);
     });
-    setNodeStateMap(newNodeStateMap);
-
-    const newEdgeStateMap = new Map();
     momento.edges.forEach(value => {
-      newEdgeStateMap.set(value.id, value);
+      let id = value.id;
+      let state = value.state;
+      let touchableLine = this.edgesMap.get(id);
+      touchableLine.setState(state);
     });
-    setEdgeStateMap(newEdgeStateMap);
+    this.moves = momento.moves;
+    this.attackedEdge = momento.attackedEdge;
+    this.setState(momento.state);
+    if (momento.state.gameWinner) {
+      this.finishGame(momento.state.gameWinner);
+    }
+  };
 
-    attackedEdge.current = momento.attackedEdge;
-    moves.current = momento.moves;
-    setTurn(momento.turn);
-    setGameWinner(momento.gameWinner);
-  }
-
-  function renderNodes() {
-    return [...nodeStateMap.keys()]
-      .map(key => nodeStateMap.get(key))
-      .map(value => {
-        return (
-          <TouchableCircle
-            key={value.id}
-            radius={30}
-            showGuard={showGuard}
-            {...value}
-          />
-        );
-      });
-  }
-
-  function renderEdges() {
-    return [...edgeStateMap.keys()]
-      .map(key => [key, edgeStateMap.get(key)])
-      .map(element => {
-        const [key, value] = element;
-        return (
-          <TouchableLine
-            key={key}
-            thickness={17}
-            onEdgePress={onEdgePress}
-            {...value}
-          />
-        );
-      });
-  }
-
-  function resetNodes() {
-    const newNodeStateMap = new Map();
-    [...nodeStateMap.keys()].forEach(key => {
-      const value = nodeStateMap.get(key);
-      newNodeStateMap.set(key, {
-        ...value,
-        isGuardPresent: false,
-        isSelected: false,
-      });
-    });
-    setNodeStateMap(newNodeStateMap);
-  }
-
-  function resetEdges() {
-    const newEdgeStateMap = new Map();
-    [...edgeStateMap.keys()].forEach(key => {
-      const value = edgeStateMap.get(key);
-      value.moveGuard1 = false;
-      value.moveGuard2 = false;
-      value.isAttacked = false;
-      newEdgeStateMap.set(key, value);
-    });
-    setEdgeStateMap(newEdgeStateMap);
-  }
-
-  function restartGame() {
-    currentMomentoIndex.current = 0;
-    maxMomentoIndex.current = 0;
-    momentoes.current = [];
-    attackedEdge.current = null;
-    moves.current = stage.moves;
-    resetNodes();
-    resetEdges();
-    if (mode === Modes.AutoDefender) {
-      const newNodeStateMap = new Map(nodeStateMap);
-      [...nodeStateMap.keys()].forEach(key => {
-        const value = nodeStateMap.get(key);
-        if (stage.guards.includes(parseInt(key, 10))) {
-          newNodeStateMap.set(key, {...value, isGuardPresent: true});
+  componentDidMount() {
+    if (this.props.mode === Modes.AutoDefender) {
+      this.nodesMap.forEach((value, key) => {
+        if (this.props.stage.guards.includes(parseInt(key))) {
+          value.ref.setState({isGuardPresent: true});
         }
       });
-      setTurn(Turns.Attacker);
-      setGameWinner(null);
-      setNodeStateMap(newNodeStateMap);
-    } else {
-      setTurn(Turns.DefenderFirst);
-      setGameWinner(null);
-      setGuardCount(stage.guardCount);
+      this.setState({turn: Turns.Attacker});
     }
+    setTimeout(() => {
+      this.calculateMap();
+    }, 0);
   }
 
-  function onButtonPress() {
-    if (gameWinner) {
-      restartGame();
-    } else {
-      changeTurn();
+  calculateMap() {
+    if (this.props.mode === Modes.AutoDefender) {
+      this.props.stage.guards.sort((a, b) => a - b);
+      console.log(this.props.stage.graphNum);
+      console.log();
+      console.log(
+        this.guardNum,
+        ',',
+        this.props.stage.guards,
+        ',',
+        this.adjList,
+        ',',
+        this.edgeList,
+        ',',
+        this.props.stage.moves - 1,
+        ',',
+      );
+
+      //this.moveMap = giveDefenderMap(
+      //this.guardNum,
+      //this.props.stage.guards,
+      //this.adjList,
+      //this.edgeList,
+      //this.props.stage.moves - 1,
+      //);
+      this.moveMap = new Map(Object.entries(this.props.stage.map));
+    } else if (this.props.mode === Modes.AutoAttacker) {
+      console.log(this.props.stage.graphNum);
+      console.log('yoyou');
+      console.log(
+        this.guardNum,
+        ',',
+        this.adjList,
+        ',',
+        this.edgeList,
+        ',',
+        this.props.stage.moves,
+        ',',
+      );
+      //this.moveMap = giveMap(
+      //this.guardNum,
+      //this.adjList,
+      //this.edgeList,
+      //this.props.stage.moves,
+      //);
+      //console.log(this.props.stage.map);
+      this.moveMap = new Map(Object.entries(this.props.stage.map));
+      console.log(this.moveMap);
     }
+    this.setState({isLoading: false});
   }
 
-  function isGuardOnEdge(edgeId) {
-    const [node1, node2] = edgeId.split(';');
-    return (
-      nodeStateMap.get(node1).isGuardPresent ||
-      nodeStateMap.get(node2).isGuardPresent
+  renderNodes = () => {
+    return this.nodes.map(node => {
+      return (
+        <TouchableCircle
+          key={node.id}
+          id={String(node.id)}
+          x={node.pos.x}
+          y={node.pos.y}
+          radius={30}
+          showGuard={this.showGuard}
+          ref={ref => (this.nodesMap.get(node.id).ref = ref)}
+        />
+      );
+    });
+  };
+
+  renderEdges = () => {
+    return this.edges.map(edge => {
+      const [startNode, endNode] = edge;
+      return (
+        <TouchableLine
+          key={startNode.id + ';' + endNode.id}
+          id={startNode.id + ';' + endNode.id}
+          x1={startNode.pos.x}
+          y1={startNode.pos.y}
+          x2={endNode.pos.x}
+          y2={endNode.pos.y}
+          thickness={17}
+          onEdgePress={this.onEdgePress}
+          ref={ref => this.edgesMap.set(startNode.id + ';' + endNode.id, ref)}
+        />
+      );
+    });
+  };
+
+  finishGame = winner => {
+    let winText = winner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
+    let textColor = {color: 'white'};
+    if (this.props.mode) {
+      const isAutoAttacker = this.props.mode === Modes.AutoAttacker;
+      const isWinnerAttacker = winner === Winner.Attacker;
+      winText = isAutoAttacker === isWinnerAttacker ? 'You Lose' : 'You Won';
+      textColor =
+        isAutoAttacker === isWinnerAttacker
+          ? this.styles.red
+          : this.styles.green;
+    }
+    this.heading = (
+      <Text style={[this.styles.heading, textColor]}>
+        {`Game Over, ${winText}`}
+      </Text>
     );
+    this.setState({gameWinner: winner});
+  };
+
+  resetNodes() {
+    this.nodesMap.forEach((value, key) => {
+      value.ref.setState({isGuardPresent: false, isSelected: false});
+    });
   }
 
-  function playAutoAttacker(isCalledByRedo) {
-    if (moves.current === 0) {
-      setGameWinner(prev => (prev ? prev : Winner.Defender));
-      return;
-    }
-
-    guards.current = [];
-    const newNodeStateMap = new Map(nodeStateMap);
-    newNodeStateMap.forEach(nodeState => {
-      if (nodeState.isGuardPresent) {
-        guards.current.push(parseInt(nodeState.id, 10));
-      }
+  resetEdges() {
+    this.edgesMap.forEach(value => {
+      value.setState({
+        moveGuard1: false,
+        moveGuard2: false,
+        isAttacked: false,
+      });
     });
-
-    let toAttack = moveMap.current.get(
-      tupleToString(guards.current) + ';' + moves.current,
-    )[0];
-
-    attackedEdge.current =
-      edgeList.current[toAttack][0] + ';' + edgeList.current[toAttack][1];
-
-    onEdgePress(attackedEdge.current, Turns.Attacker);
-    moves.current--;
-    checkAttack(isCalledByRedo);
   }
 
-  function playAutoDefender() {
-    --moves.current;
-    if (moves.current <= 0) {
-      setGameWinner(prev => (prev ? prev : Winner.Defender));
-      return;
-    }
-    guards.current = [];
-    const newNodeStateMap = new Map(nodeStateMap);
-    newNodeStateMap.forEach(nodeState => {
-      if (nodeState.isGuardPresent) {
-        guards.current.push(parseInt(nodeState.id, 10));
-      }
-    });
-
-    guards.current.sort((a, b) => a - b);
-    const [node1, node2] = attackedEdge.current.split(';');
-    let edgeIndex = -1;
-    edgeList.current.forEach((value, index) => {
-      if (String(value[0]) === node1 && String(value[1]) === node2) {
-        edgeIndex = index;
-      }
-    });
-
-    const nextMove = moveMap.current.get(
-      tupleToString(guards.current) + ';' + edgeIndex + ';' + moves.current,
-    );
-
-    const newPos = nextMove[0];
-    const changes = nextMove[nextMove.length - 1];
-    const newEdgeStateMap = new Map(edgeStateMap);
-    newPos.forEach((value, index) => {
-      const nodeId1 = String(guards.current[changes[index]]);
-      const nodeId2 = String(value);
-      showGuardMovement(newEdgeStateMap, nodeId1, nodeId2);
-    });
-    setEdgeStateMap(newEdgeStateMap);
-  }
-
-  function checkAttack(isCalledByRedo = false) {
-    if (!attackedEdge.current) {
-      setWarning('You have to attack an edge');
+  restartGame = () => {
+    this.currentMomentoIndex = 0;
+    this.maxMomentoIndex = 0;
+    this.momentos = [];
+    this.moves = this.props.stage.moves;
+    this.attackedEdge = undefined;
+    this.resetNodes();
+    this.resetEdges();
+    if (this.props.mode === Modes.AutoDefender) {
+      this.nodesMap.forEach((value, key) => {
+        if (this.props.stage.guards.includes(parseInt(key))) {
+          value.ref.setState({isGuardPresent: true});
+        }
+      });
+      this.setState({turn: Turns.Attacker, gameWinner: undefined});
     } else {
-      // Saving momento.
-      if (mode !== Modes.AutoAttacker && !isCalledByRedo) {
-        saveMomento();
-      }
-      if (isGuardOnEdge(attackedEdge.current)) {
-        setTurn(Turns.DefenderLater);
-      } else {
-        setGameWinner(prev => (prev ? prev : Winner.Attacker));
-      }
+      this.setState({
+        turn: Turns.DefenderFirst,
+        gameWinner: undefined,
+        guardCount: this.props.stage.guardCount,
+      });
     }
-  }
+  };
 
-  function changeTurn(isCalledByRedo = false) {
-    if (isLoading) {
+  onButtonPress = () => {
+    if (this.state.gameWinner) {
+      this.restartGame();
+    } else {
+      this.changeTurn();
+    }
+  };
+
+  changeTurn = (calledByRedo = false) => {
+    if (this.state.isLoading) {
       return;
     }
-    setWarning('');
-    if (turn === Turns.DefenderFirst) {
-      if (guardCount === 0) {
+    this.setState({warning: ''});
+    if (this.state.turn === Turns.DefenderFirst) {
+      if (this.state.guardCount === 0) {
         // Saving momento.
-        if (mode !== Modes.AutoDefender && !isCalledByRedo) {
-          saveMomento();
+        if (this.props.mode != Modes.AutoDefender && !calledByRedo) {
+          this.saveMomento();
         }
-        if (mode === Modes.AutoAttacker) {
-          playAutoAttacker(isCalledByRedo);
-        } else {
-          setTurn(Turns.Attacker);
+
+        let completeMove = () => {};
+        if (this.props.mode === Modes.AutoAttacker) {
+          completeMove = () => {
+            this.guards = [];
+            this.nodesMap.forEach(element => {
+              if (element.ref.state.isGuardPresent) {
+                this.guards.push(parseInt(element.ref.props.id));
+              }
+            });
+            console.log(tupleToString(this.guards) + ';' + this.moves);
+            let toAttack = this.moveMap.get(
+              tupleToString(this.guards) + ';' + this.moves,
+            )[0];
+            this.attackedEdge = this.edgesMap.get(
+              this.edgeList[toAttack][0] + ';' + this.edgeList[toAttack][1],
+            );
+            this.onEdgePress(this.attackedEdge);
+            this.moves--;
+            this.changeTurn();
+          };
         }
+        this.setState({turn: Turns.Attacker}, completeMove);
       } else {
-        setWarning('Guards left should be 0');
+        this.setState({warning: 'Guards left should be 0'});
       }
-    } else if (turn === Turns.Attacker) {
-      checkAttack(isCalledByRedo);
-      if (mode === Modes.AutoDefender) {
-        playAutoDefender();
+    } else if (this.state.turn === Turns.Attacker) {
+      let completeMove = () => {};
+      if (this.props.mode === Modes.AutoDefender) {
+        // Automatically playing Defenders turn.
+        completeMove = () => {
+          this.moves--;
+          if (this.moves <= 0) {
+            this.finishGame(Winner.Defender);
+            return;
+          }
+          this.guards = [];
+          this.nodesMap.forEach(element => {
+            if (element.ref.state.isGuardPresent) {
+              this.guards.push(parseInt(element.ref.props.id));
+            }
+          });
+          this.guards.sort((a, b) => a - b);
+          const [node1, node2] = this.attackedEdge.props.id.split(';');
+          let edgeIndex = -1;
+          this.edgeList.forEach((value, index) => {
+            if (value[0] == node1 && value[1] == node2) {
+              edgeIndex = index;
+            }
+          });
+          const nextMove = this.moveMap.get(
+            tupleToString(this.guards) + ';' + edgeIndex + ';' + this.moves,
+          );
+          const newPos = nextMove[0];
+          const changes = nextMove[nextMove.length - 1];
+          newPos.forEach(async (value, index) => {
+            const nodeComponent1 = this.nodesMap.get(
+              String(this.guards[changes[index]]),
+            );
+            const nodeComponent2 = this.nodesMap.get(String(value));
+            this.showGuard(nodeComponent1.ref, true);
+            this.showGuard(nodeComponent2.ref, true);
+          });
+          //this.changeTurn();
+        };
       }
-    } /* turn = Turns.DefenderLater */ else {
+
+      if (this.attackedEdge === undefined) {
+        this.setState({warning: 'You have to attack an edge'});
+      } else {
+        // Saving momento.
+        if (this.props.mode !== Modes.AutoAttacker && !calledByRedo) {
+          this.saveMomento();
+        }
+        const [node1, node2] = this.attackedEdge.props.id.split(';');
+        if (
+          !this.nodesMap.get(node1).ref.state.isGuardPresent &&
+          !this.nodesMap.get(node2).ref.state.isGuardPresent
+        ) {
+          this.finishGame(Winner.Attacker);
+        } else {
+          this.setState({turn: Turns.DefenderLater}, completeMove);
+        }
+      }
+    } /* this.state.turn = Turns.DefenderLater */ else {
       const nodeGuardCounter = new Map();
-      const newNodeStateMap = new Map(nodeStateMap);
-      [...newNodeStateMap.keys()].forEach(nodeId => {
+      this.nodesMap.forEach((node, node_id) => {
         nodeGuardCounter.set(
-          nodeId,
-          newNodeStateMap.get(nodeId).isGuardPresent ? 1 : 0,
+          node_id,
+          this.nodesMap.get(node_id).ref.state.isGuardPresent ? 1 : 0,
         );
       });
-
-      const newEdgeStateMap = new Map(edgeStateMap);
-
-      newEdgeStateMap.forEach((edgeState, edgeId) => {
-        let [node1, node2] = edgeId.split(';');
-        if (edgeState.moveGuard1) {
+      this.edgesMap.forEach((edge, edge_id) => {
+        let [node1, node2] = edge_id.split(';');
+        if (edge.state.moveGuard1) {
           nodeGuardCounter.set(node1, nodeGuardCounter.get(node1) - 1);
           nodeGuardCounter.set(node2, nodeGuardCounter.get(node2) + 1);
         }
-        if (edgeState.moveGuard2) {
+        if (edge.state.moveGuard2) {
           nodeGuardCounter.set(node1, nodeGuardCounter.get(node1) + 1);
           nodeGuardCounter.set(node2, nodeGuardCounter.get(node2) - 1);
         }
       });
 
       let good = true;
-      nodeGuardCounter.forEach(value => {
+      nodeGuardCounter.forEach((value, node_id) => {
         if (value < 0 || value > 1) {
           good = false;
         }
@@ -376,391 +484,283 @@ export default function Stage({stage, mode}) {
 
       if (good) {
         // Saving momento.
-        if (mode !== Modes.AutoDefender && !isCalledByRedo) {
-          saveMomento();
+        if (this.props.mode !== Modes.AutoDefender && !calledByRedo) {
+          this.saveMomento();
         }
 
         let wasCovered = false;
         const guardExistsSet = new Set();
-        const moveGuard = (edgeId, node1, node2) => {
-          if (edgeId === attackedEdge.current) {
+        const moveGuard = (edge, node1, node2) => {
+          if (edge === this.attackedEdge) {
             wasCovered = true;
           }
           if (!guardExistsSet.has(node1)) {
-            const nodeState = newNodeStateMap.get(node1);
-            nodeState.isGuardPresent = false;
-            newNodeStateMap.set(node1, nodeState);
+            this.nodesMap.get(node1).ref.setState({isGuardPresent: false});
           }
-          const nodeState = newNodeStateMap.get(node2);
-          nodeState.isGuardPresent = true;
-          newNodeStateMap.set(node2, nodeState);
+          this.nodesMap.get(node2).ref.setState({isGuardPresent: true});
           guardExistsSet.add(node2);
         };
-
-        newEdgeStateMap.forEach((edgeState, edgeId) => {
-          const [node1, node2] = edgeId.split(';');
-          if (edgeState.moveGuard1) {
-            moveGuard(edgeId, node1, node2, guardExistsSet);
+        this.edgesMap.forEach((edge, edge_id) => {
+          const [node1, node2] = edge_id.split(';');
+          if (edge.state.moveGuard1) {
+            moveGuard(edge, node1, node2, guardExistsSet);
           }
-          if (edgeState.moveGuard2) {
-            moveGuard(edgeId, node2, node1, guardExistsSet);
+          if (edge.state.moveGuard2) {
+            moveGuard(edge, node2, node1, guardExistsSet);
           }
         });
-
-        setNodeStateMap(newNodeStateMap);
-        setEdgeStateMap(newEdgeStateMap);
-
-        const [attackedNode1, attackedNode2] = attackedEdge.current.split(';');
+        const [attackedNode1, attackedNode2] =
+          this.attackedEdge.props.id.split(';');
         if (
-          (!nodeStateMap.get(attackedNode1).isGuardPresent &&
-            !nodeStateMap.get(attackedNode2).isGuardPresent) ||
+          (!this.nodesMap.get(attackedNode1).ref.state.isGuardPresent &&
+            !this.nodesMap.get(attackedNode2).ref.state.isGuardPresent) ||
           !wasCovered
         ) {
-          setGameWinner(prev => (prev ? prev : Winner.Attacker));
+          this.finishGame(Winner.Attacker);
         } else {
-          resetEdges();
-          attackedEdge.current = null;
-          if (mode === Modes.AutoAttacker) {
-            moves.current--;
-            playAutoAttacker();
-          } else if (mode === Modes.AutoDefender) {
-            moves.current--;
+          this.resetEdges();
+          let completeMove = () => {
+            this.attackedEdge = undefined;
+          };
+          if (this.props.mode === Modes.AutoAttacker) {
+            this.moves--;
+            completeMove = () => {
+              if (this.moves === 0) {
+                this.finishGame(Winner.Defender);
+              } else {
+                this.guards = [];
+                this.nodesMap.forEach(element => {
+                  if (element.ref.state.isGuardPresent) {
+                    this.guards.push(parseInt(element.ref.props.id));
+                  }
+                });
+                const toAttack = this.moveMap.get(
+                  tupleToString(this.guards) + ';' + this.moves,
+                )[0];
+                this.attackedEdge = this.edgesMap.get(
+                  this.edgeList[toAttack][0] + ';' + this.edgeList[toAttack][1],
+                );
+                this.onEdgePress(this.attackedEdge);
+                this.moves--;
+                this.changeTurn();
+              }
+            };
+          } else if (this.props.mode === Modes.AutoDefender) {
+            this.moves--;
           }
-          setTurn(Turns.Attacker);
+          this.setState({turn: Turns.Attacker}, completeMove);
         }
       } else {
-        setWarning('Invalid move, try again.');
+        this.setState({warning: 'Invalid move, try again.'});
       }
     }
-  }
+  };
 
-  const onEdgePress = useCallback(
-    (edgeId, currTurn = null) => {
-      if (isLoading) {
-        return;
-      }
-      currTurn = currTurn === null ? turn : currTurn;
-      const newEdgeStateMap = new Map(edgeStateMap);
-      if (currTurn === Turns.Attacker) {
-        if (attackedEdge.current) {
-          const prevState = newEdgeStateMap.get(attackedEdge.current);
-          newEdgeStateMap.set(attackedEdge.current, {
-            ...prevState,
-            isAttacked: false,
-          });
-        }
-        attackedEdge.current = edgeId;
-        const prevState = newEdgeStateMap.get(edgeId);
-        newEdgeStateMap.set(edgeId, {...prevState, isAttacked: true});
-        setEdgeStateMap(newEdgeStateMap);
-      } else if (
-        currTurn === Turns.DefenderLater &&
-        mode !== Modes.AutoDefender
-      ) {
-        const prevState = newEdgeStateMap.get(edgeId);
-        newEdgeStateMap.set(edgeId, {
-          ...prevState,
-          moveGuard1: false,
-          moveGuard2: false,
-        });
-        setEdgeStateMap(newEdgeStateMap);
-      }
-    },
-    [edgeStateMap, isLoading, mode, turn],
-  );
-
-  function showGuardMovement(currEdgeStateMap, fromNodeId, toNodeId) {
-    if (fromNodeId === toNodeId) {
+  onEdgePress = edge => {
+    if (this.state.isLoading) {
       return;
     }
-    let edgeId = fromNodeId + ';' + toNodeId;
-    let edgeState = currEdgeStateMap.get(edgeId);
-    if (currEdgeStateMap.has(edgeId)) {
-      edgeState.moveGuard1 = true;
-    } else {
-      edgeId = toNodeId + ';' + fromNodeId;
-      edgeState = edgeStateMap.get(edgeId);
-      edgeState.moveGuard2 = true;
+    if (this.state.turn === Turns.Attacker) {
+      if (this.attackedEdge) {
+        this.attackedEdge.setState({isAttacked: false});
+      }
+      this.attackedEdge = edge;
+      edge.setState({isAttacked: true});
+    } else if (
+      this.state.turn === Turns.DefenderLater &&
+      this.props.mode !== Modes.AutoDefender
+    ) {
+      edge.setState({moveGuard1: false, moveGuard2: false});
     }
-    currEdgeStateMap.set(edgeId, edgeState);
-  }
+  };
 
-  function showGuard(nodeId, bySystem, currentTurn = null) {
-    if (!bySystem && (isLoading || mode === Modes.AutoDefender)) {
+  showGuard = (node, bySystem) => {
+    if (
+      !bySystem &&
+      (this.state.isLoading || this.props.mode === Modes.AutoDefender)
+    ) {
       return;
     }
-
-    currentTurn = currentTurn === null ? turn : currentTurn;
-
-    const newNodeStateMap = new Map(nodeStateMap);
-    const nodeState = newNodeStateMap.get(nodeId);
-
-    if (currentTurn === Turns.DefenderFirst) {
-      if (nodeState.isGuardPresent) {
-        setGuardCount(prev => ++prev);
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: false});
+    if (this.state.turn === Turns.DefenderFirst) {
+      if (node.state.isGuardPresent) {
+        this.setState({guardCount: this.state.guardCount + 1});
+        node.setState({isGuardPresent: false});
       } else {
-        setGuardCount(prev => --prev);
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: true});
+        this.setState({guardCount: this.state.guardCount - 1});
+        node.setState({isGuardPresent: true});
       }
-      setNodeStateMap(newNodeStateMap);
-    } else if (currentTurn === Turns.DefenderLater) {
-      if (selected.current) {
-        if (adjList.current.get(selected.current).includes(nodeId)) {
-          const newEdgeStateMap = new Map(edgeStateMap);
-          showGuardMovement(newEdgeStateMap, selected.current, nodeId);
-          setEdgeStateMap(newEdgeStateMap);
-        }
-        const selectedNodeState = newNodeStateMap.get(selected.current);
-        newNodeStateMap.set(selected.current, {
-          ...selectedNodeState,
-          isSelected: false,
-        });
-        selected.current = null;
-        setNodeStateMap(newNodeStateMap);
-      } else if (nodeState.isGuardPresent) {
-        newNodeStateMap.set(nodeId, {...nodeState, isSelected: true});
-        selected.current = nodeId;
-        setNodeStateMap(newNodeStateMap);
-      }
-    }
-  }
-
-  let buttonTitle = 'Done';
-  let headingStyle = styles.heading;
-  let headingText = '';
-
-  if (gameWinner) {
-    buttonTitle = 'Restart';
-    let winText =
-      gameWinner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
-    let textColor = {color: 'white'};
-    if (mode) {
-      const isAutoAttacker = mode === Modes.AutoAttacker;
-      const isWinnerAttacker = gameWinner === Winner.Attacker;
-      winText = isAutoAttacker === isWinnerAttacker ? 'You Lose' : 'You Won';
-      textColor =
-        isAutoAttacker === isWinnerAttacker ? styles.red : styles.green;
-    }
-    headingStyle = [styles.heading, textColor];
-    headingText = `Game Over, ${winText}`;
-  } else if (isLoading) {
-    headingText = 'Loading... Please Wait';
-  } else {
-    switch (mode) {
-      case Modes.AutoAttacker:
-        switch (turn) {
-          case Turns.Attacker:
-            headingText = "Attacker's Turn";
-            break;
-          case Turns.DefenderLater:
-            headingText = `Your turn | Turns Left: ${(moves.current + 1) / 2}`;
-            break;
-          case Turns.DefenderFirst:
-            headingText = `Guards Left: ${guardCount}`;
-            headingStyle = [
-              styles.heading,
-              {
-                color: guardCount < 0 ? 'red' : 'white',
-              },
-            ];
-            break;
-          default:
-        }
-        break;
-      case Modes.AutoDefender:
-        headingText =
-          turn === Turns.Attacker
-            ? `Your turn | Turns Left: ${(moves.current + 1) / 2}`
-            : "Defender's Turn";
-        break;
-      default:
-        switch (turn) {
-          case Turns.Attacker:
-            headingText = "Attacker's Turn";
-            break;
-          case Turns.DefenderLater:
-            headingText = "Defenders's turn";
-            break;
-          default:
-            headingText = `Guards Left: ${guardCount}`;
-            headingStyle = [
-              styles.heading,
-              {
-                color: guardCount < 0 ? 'red' : 'white',
-              },
-            ];
-        }
-    }
-  }
-
-  const construct = useCallback(() => {
-    let ast = null;
-    try {
-      ast = parse(stage.graph);
-    } catch {
-      return false;
-    }
-    if (!ast) {
-      return false;
-    }
-    adjList.current = new Map();
-    edgeList.current = [];
-    const newNodeStateMap = new Map();
-    const newEdgeStateMap = new Map();
-
-    const children = ast[0].children;
-
-    for (const element of children) {
-      if (element.type === 'node_stmt') {
-        const [x, y] = element.attr_list[0].eq.split(' ');
-        const id = String(element.node_id.id);
-        adjList.current.set(id, []);
-        let isGuardPresent = false;
+    } else if (this.state.turn === Turns.DefenderLater) {
+      if (this.selected) {
         if (
-          mode === Modes.AutoDefender &&
-          stage.guards.includes(parseInt(id, 10))
+          this.nodesMap
+            .get(this.selected.props.id)
+            .neighbours.includes(node.props.id)
         ) {
-          isGuardPresent = true;
+          const edgeId = this.selected.props.id + ';' + node.props.id;
+          if (this.edgesMap.has(edgeId)) {
+            this.edgesMap.get(edgeId).setState({moveGuard1: true});
+          } else {
+            this.edgesMap
+              .get(node.props.id + ';' + this.selected.props.id)
+              .setState({moveGuard2: true});
+          }
         }
-        newNodeStateMap.set(id, {
-          x: parseFloat(x),
-          y: parseFloat(y),
-          id: String(element.node_id.id),
-          isGuardPresent,
-        });
-      } /* edge */ else {
-        const edgeId =
-          String(element.edge_list[0].id) +
-          ';' +
-          String(element.edge_list[1].id);
-        const node1 = newNodeStateMap.get(String(element.edge_list[0].id));
-        const node2 = newNodeStateMap.get(String(element.edge_list[1].id));
-        newEdgeStateMap.set(edgeId, {
-          id: edgeId,
-          x1: node1.x,
-          y1: node1.y,
-          x2: node2.x,
-          y2: node2.y,
-          isAttacked: false,
-          moveGuard1: false,
-          moveGuard2: false,
-        });
-        if (isAutomatic(mode)) {
-          edgeList.current.push([
-            element.edge_list[0].id,
-            element.edge_list[1].id,
-          ]);
-        }
-        adjList.current
-          .get(String(element.edge_list[0].id))
-          .push(String(element.edge_list[1].id));
-        adjList.current
-          .get(String(element.edge_list[1].id))
-          .push(String(element.edge_list[0].id));
+        this.selected.setState({isSelected: false});
+        this.selected = undefined;
+      } else if (node.state.isGuardPresent) {
+        node.setState({isSelected: true});
+        this.selected = node;
       }
     }
-    setNodeStateMap(newNodeStateMap);
-    setEdgeStateMap(newEdgeStateMap);
-    return true;
-  }, [mode, stage.graph, stage.guards]);
+  };
 
-  const undoButtonStyle = [
-    styles.undo,
-    {display: currentMomentoIndex.current > 0 ? 'flex' : 'none'},
-  ];
-
-  const redoButtonStyle = [
-    styles.redo,
-    {
-      display:
-        currentMomentoIndex.current < maxMomentoIndex.current ? 'flex' : 'none',
-    },
-  ];
-
-  return (
-    <View style={styles.container}>
-      <Text style={[headingStyle]}>{headingText}</Text>
-      <Pressable onPressIn={undo} style={undoButtonStyle}>
-        <Text>Undo</Text>
-      </Pressable>
-      <Pressable onPressIn={redo} style={redoButtonStyle}>
-        <Text>Redo</Text>
-      </Pressable>
-      <View style={styles.container}>
-        {renderEdges()}
-        {renderNodes()}
+  render = () => {
+    let buttonTitle = 'Done';
+    let headingStyle = [this.styles.heading];
+    let headingText = '';
+    if (this.state.gameWinner) {
+      buttonTitle = 'Restart';
+    } else if (this.state.isLoading) {
+      headingText = 'Loading... Please Wait';
+      this.heading = <Text style={headingStyle}>{headingText}</Text>;
+    } else {
+      switch (this.props.mode) {
+        case Modes.AutoAttacker:
+          switch (this.state.turn) {
+            case Turns.Attacker:
+              headingText = "Attacker's Turn";
+              break;
+            case Turns.DefenderLater:
+              headingText = `Your turn | Turns Left: ${(this.moves + 1) / 2}`;
+              break;
+            case Turns.DefenderFirst:
+              headingText = `Guards Left: ${this.state.guardCount}`;
+              headingStyle.push({
+                color: this.state.guardCount < 0 ? 'red' : 'white',
+              });
+              break;
+            default:
+          }
+          break;
+        case Modes.AutoDefender:
+          headingText =
+            this.state.turn === Turns.Attacker
+              ? `Your turn | Turns Left: ${(this.moves + 1) / 2}`
+              : "Defender's Turn";
+          break;
+        default:
+          switch (this.state.turn) {
+            case Turns.Attacker:
+              headingText = "Attacker's Turn";
+              break;
+            case Turns.DefenderLater:
+              headingText = "Defenders's turn";
+              break;
+            default:
+              headingText = `Guards Left: ${this.state.guardCount}`;
+              headingStyle.push({
+                color: this.state.guardCount < 0 ? 'red' : 'white',
+              });
+          }
+      }
+      this.heading = <Text style={[headingStyle]}>{headingText}</Text>;
+    }
+    return (
+      <View style={this.styles.container}>
+        {this.heading}
+        <Pressable
+          onPressIn={this.undo}
+          style={[
+            this.styles.undo,
+            {display: this.currentMomentoIndex > 0 ? 'flex' : 'none'},
+          ]}>
+          <Text>Undo</Text>
+        </Pressable>
+        <Pressable
+          onPressIn={this.redo}
+          style={[
+            this.styles.redo,
+            {
+              display:
+                this.currentMomentoIndex < this.maxMomentoIndex
+                  ? 'flex'
+                  : 'none',
+            },
+          ]}>
+          <Text>Redo</Text>
+        </Pressable>
+        <View style={this.styles.container}>
+          {this.renderEdges()}
+          {this.renderNodes()}
+        </View>
+        <Text style={this.styles.warning}>{this.state.warning}</Text>
+        <Pressable onPressIn={this.onButtonPress} style={this.styles.button}>
+          <Text>{buttonTitle}</Text>
+        </Pressable>
       </View>
-      <Text style={styles.warning}>{warning}</Text>
-      <Pressable onPressIn={onButtonPress} style={styles.button}>
-        <Text>{buttonTitle}</Text>
-      </Pressable>
-    </View>
-  );
-}
+    );
+  };
 
-function isAutomatic(mode) {
-  return mode === Modes.AutoAttacker || mode === Modes.AutoDefender;
+  styles = StyleSheet.create({
+    container: {
+      flex: -1,
+      backgroundColor: 'black',
+    },
+    heading: {
+      alignSelf: 'center',
+      fontSize: 20,
+      top: 5,
+      color: 'white',
+      height: 35,
+    },
+    red: {
+      color: 'red',
+    },
+    green: {
+      color: 'green',
+    },
+    button: {
+      backgroundColor: 'grey',
+      padding: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      height: '20',
+      top: 590,
+      width: '100%',
+      alignSelf: 'center',
+    },
+    warning: {
+      padding: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 500,
+      color: 'red',
+      fontSize: 15,
+      alignSelf: 'center',
+    },
+    undo: {
+      backgroundColor: 'grey',
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 550,
+      width: '20%',
+      left: 50,
+      alignSelf: 'center',
+    },
+    redo: {
+      backgroundColor: 'grey',
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      top: 550,
+      right: 50,
+      width: '20%',
+      alignSelf: 'center',
+    },
+  });
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: -1,
-    backgroundColor: 'black',
-  },
-  heading: {
-    alignSelf: 'center',
-    fontSize: 20,
-    top: 5,
-    color: 'white',
-    height: 35,
-  },
-  red: {
-    color: 'red',
-  },
-  green: {
-    color: 'green',
-  },
-  button: {
-    backgroundColor: 'grey',
-    padding: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 600,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  warning: {
-    padding: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 500,
-    color: 'red',
-    fontSize: 15,
-    alignSelf: 'center',
-  },
-  undo: {
-    backgroundColor: 'grey',
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 550,
-    width: '20%',
-    left: 50,
-    alignSelf: 'center',
-  },
-  redo: {
-    backgroundColor: 'grey',
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 550,
-    right: 50,
-    width: '20%',
-    alignSelf: 'center',
-  },
-});

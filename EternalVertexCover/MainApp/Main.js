@@ -25,6 +25,7 @@ const MainPage = ({navigation}) => {
         title="Imported levels"
         onPress={() => navigation.navigate('Imported Levels')}
       />
+      <Button title="graphmaker" onPress={() => navigation.navigate('graphMaker')}/>
     </View>
   );
 };
