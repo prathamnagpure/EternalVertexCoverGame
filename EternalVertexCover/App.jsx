@@ -18,19 +18,19 @@ import PlayerVsPlayer from './MainApp/PlayerVsPlayer/PlayerVsPlayer';
 import Level1 from './MainApp/PlayerVsPlayer/Levels/Level1';
 import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
 import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
+import Import from './components/Import';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
   constructor(props) {
     super(props);
-
   }
 
   render() {
-    var fdata = require('./assets/graphMaps/file3.json')
-    console.log(fdata["1,2,4;6"]);
-    var mp = new Map(Object.entries(fdata))
-    console.log(mp.get("1,2,4;6")[0]);
+    var fdata = require('./assets/graphMaps/file3.json');
+    console.log(fdata['1,2,4;6']);
+    var mp = new Map(Object.entries(fdata));
+    console.log(mp.get('1,2,4;6')[0]);
     return (
       <NavigationContainer independent={true}>
         <Stack.Navigator initialRouteName="Main">
@@ -49,6 +49,11 @@ export default class App extends Component {
             style={styles.Button}
             name="PlayerVsPlayer"
             component={PlayerVsPlayer}
+          />
+          <Stack.Screen
+            style={styles.Button}
+            name="Imported Levels"
+            component={Import}
           />
           <Stack.Screen name="Level1" component={Level1} />
           <Stack.Screen name="DLevel1" component={DLevel1} />

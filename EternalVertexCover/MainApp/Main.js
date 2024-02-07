@@ -6,19 +6,24 @@ const MainPage = ({navigation}) => {
     <View style={styles.container}>
       <Text style={styles.title}>Eternal Vertex Cover</Text>
       <Button
-        style={styles.Button}
+        style={styles.button}
         title="Attacker"
         onPress={() => navigation.navigate('Attacker')}
       />
       <Button
-        style={styles.Button}
+        style={styles.button}
         title="Defender"
         onPress={() => navigation.navigate('Defender')}
       />
       <Button
-        style={styles.Button}
+        style={styles.button}
         title="Player vs Player"
         onPress={() => navigation.navigate('PlayerVsPlayer')}
+      />
+      <Button
+        style={styles.button}
+        title="Imported levels"
+        onPress={() => navigation.navigate('Imported Levels')}
       />
     </View>
   );
@@ -30,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
   },
   title: {
     fontSize: 32,
