@@ -11,13 +11,13 @@ const PlayerVsPlayer = ({navigation}) => {
   for (let i = 1; i <= numberOfLevels; i++) {
     const level = i;
     const buttonLabel = `Level ${level}`;
-    
+
     levelButtons.push(
       <Button
         key={level}
         title={buttonLabel}
-        onPress={() => navigation.navigate(`Level1`,{levelno : i-1})}
-      />
+        onPress={() => navigation.navigate('Level1', {levelno: i - 1})}
+      />,
     );
   }
   return (
@@ -25,10 +25,7 @@ const PlayerVsPlayer = ({navigation}) => {
       <View>
         <Text style={styles.title}>PlayerVsPlayer Page</Text>
       </View>
-      {
-        levelButtons
-      }
-
+      {levelButtons}
     </View>
   );
 };
