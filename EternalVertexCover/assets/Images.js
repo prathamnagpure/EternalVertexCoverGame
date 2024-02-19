@@ -1,4 +1,4 @@
-export default images = {
+const images = {
   guard: require('./images/guard.png'),
   arrow: require('./images/arrow.jpg'),
   fire: require('./images/fire.png'),
@@ -10,3 +10,5 @@ export default images = {
   farmbg: require('./images/wheatbg.jpg'),
   title: require('./images/Title.png'),
 };
+
+export default images;

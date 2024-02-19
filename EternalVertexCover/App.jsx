@@ -1,14 +1,5 @@
 import {React, Component} from 'react';
-import {
-  View,
-  Pressable,
-  Text,
-  StyleSheet,
-  Alert,
-  SafeAreaView,
-} from 'react-native';
-// import Stage from './components/Stage';
-// import stages from './assets/Stages';
+import {StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import MainPage from './MainApp/Main';
@@ -33,9 +24,25 @@ export default class App extends Component {
     console.log(fdata['1,2,4;6']);
     var mp = new Map(Object.entries(fdata));
     console.log(mp.get('1,2,4;6')[0]);
+    const config = {
+      animation: 'spring',
+      config: {
+        stiffness: 1000,
+        damping: 500,
+        mass: 3,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+      },
+    };
     return (
       <NavigationContainer independent={true}>
-        <Stack.Navigator initialRouteName="Main">
+        <Stack.Navigator
+          initialRouteName="Main"
+          screenOptions={{
+            gestureDirection: 'horizontal',
+            presentation: 'modal',
+          }}>
           <Stack.Screen name="Eternal Vertex Cover " component={MainPage} />
           <Stack.Screen
             style={styles.Button}

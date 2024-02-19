@@ -13,6 +13,10 @@ import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {readFile, writeFile, DownloadDirectoryPath} from 'react-native-fs';
 import {pickSingle} from 'react-native-document-picker';
+import ImportIcon from './icons/ImportIcon';
+import ExportIcon from './icons/ExportIcon';
+import EraserIcon from './icons/EraserIcon';
+import AddIcon from './icons/AddIcon';
 
 const windowHeight = Dimensions.get('window').height;
 const states = {
@@ -168,49 +172,67 @@ export default function GraphMaker() {
     <View style={[styles.container, {height: windowHeight}]}>
       <View style={styles.leftElement}>
         <Pressable
-          style={{backgroundColor: state === states.addButton ? 'blue' : 'red'}}
+          style={styles.button}
           onPress={() => {
             setState(states.addButton);
           }}>
-          <Text>Add Node</Text>
+          <AddIcon color={state === states.addButton ? 'black' : 'gray'} />
+          <Text
+            style={{
+              color: state === states.addButton ? 'black' : 'gray',
+            }}>
+            Node
+          </Text>
         </Pressable>
         <Pressable
-          style={{backgroundColor: state === states.addLine ? 'blue' : 'red'}}
+          style={styles.button}
           onPress={() => {
             setState(states.addLine);
           }}>
-          <Text>Add Line</Text>
+          <AddIcon color={state === states.addLine ? 'black' : 'gray'} />
+          <Text
+            style={{
+              color: state === states.addLine ? 'black' : 'gray',
+            }}>
+            Edge
+          </Text>
         </Pressable>
+
         <Pressable
-          style={{backgroundColor: state === states.remove ? 'blue' : 'red'}}
-          onPress={() => {
-            setState(states.remove);
-          }}>
-          <Text>Remove</Text>
-        </Pressable>
-        <Pressable
-          style={{backgroundColor: state === states.addGuards ? 'blue' : 'red'}}
+          style={styles.button}
           onPress={() => {
             setState(states.addGuards);
           }}>
-          <Text>addGuards</Text>
+          <AddIcon color={state === states.addGuards ? 'black' : 'gray'} />
+          <Text
+            style={{
+              color: state === states.addGuards ? 'black' : 'gray',
+            }}>
+            Guard
+          </Text>
         </Pressable>
         <Pressable
-          style={{backgroundColor: 'blue'}}
+          onPress={() => {
+            setState(states.remove);
+          }}>
+          <EraserIcon color={state === states.remove ? 'black' : 'gray'} />
+        </Pressable>
+        <Pressable
           onPress={() => {
             // forExport();
             setModalVisible(true);
             console.log('doing export');
           }}>
-          <Text>⬆️</Text>
+          <Text>
+            <ExportIcon />
+          </Text>
         </Pressable>
         <Pressable
-          style={{backgroundColor: 'blue'}}
           onPress={() => {
             forImport();
             console.log('doing import');
           }}>
-          <Text>⬇️</Text>
+          <ImportIcon />
         </Pressable>
       </View>
 
@@ -252,17 +274,19 @@ export default function GraphMaker() {
         }}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text>Enter your value:</Text>
+            <Text style={{color: '#000'}}>Export</Text>
             <TextInput
               style={styles.input}
               onChangeText={setInputValue}
               value={inputValue}
-              placeholder="Type here..."
+              placeholder="File name"
+              placeholderTextColor={'gray'}
             />
             <TextInput
               style={styles.input}
               keyboardType="numeric"
-              placeholder="Enter a number"
+              placeholder="Number of moves"
+              placeholderTextColor={'gray'}
               value={number}
               onChangeText={handleInputChange}
             />
@@ -314,8 +338,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 5,
-    width: '80%',
+    color: '#000',
+    width: 150,
     padding: 10,
     marginBottom: 10,
+  },
+  button: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
 });

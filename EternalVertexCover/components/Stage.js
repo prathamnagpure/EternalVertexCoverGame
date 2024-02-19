@@ -981,7 +981,7 @@ export default function Stage({stage, mode}) {
 
   const construct = useCallback(() => {
     let ast = null;
-
+    console.log('here', stage.name);
     try {
       ast = parse(stage.graph);
     } catch {
