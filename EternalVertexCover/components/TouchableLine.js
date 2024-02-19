@@ -28,7 +28,7 @@ const TouchableLine = memo(function TouchableLine({
     },
 
     lineColor: {
-      backgroundColor: 'green',
+      backgroundColor: '#B87333',
     },
 
     attackedLineColor: {
