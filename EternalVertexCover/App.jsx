@@ -1,5 +1,5 @@
 import {React, Component} from 'react';
-import {StyleSheet} from 'react-native';
+import {Button, StyleSheet, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import MainPage from './MainApp/Main';
@@ -11,6 +11,7 @@ import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
 import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
 import Import from './components/Import';
 import GraphMaker from './components/GraphMaker';
+import Options from './components/Options';
 const Stack = createStackNavigator();
 
 export default class App extends Component {

@@ -41,8 +41,9 @@ export default function GraphMaker() {
     // Validate input if needed
     setNumber(text);
   };
+
   function forExport(inputValue, num) {
-    let str = 'diagraph G {\n';
+    let str = 'digraph G {\n';
     points.forEach((element, index) => {
       str +=
         index + ' ' + '[label=' + '"' + element[0] + ' ' + element[1] + '"]\n';
@@ -51,7 +52,7 @@ export default function GraphMaker() {
       str += `${element[0]} -- ${element[1]}\n`;
     });
     str += '}';
-    console.log(str);
+    console.log(guards);
     const obj = {graph: str, guardCount: guards.length, moves: num, guards};
     writeFile(
       DownloadDirectoryPath + `/${inputValue}.txt`,
@@ -120,13 +121,12 @@ export default function GraphMaker() {
     }
   }
   function lineCreater(id) {
-    console.log('called');
     if (state == states.addLine) {
       setState(states.selectButton1);
       setfpoint(id);
     } else if (state === states.selectButton1) {
       if (fpoint !== id) {
-        // setState(states.addButton);
+        setState(states.addLine);
         setLines(prev => {
           return [...prev, [fpoint, id]];
         });
@@ -141,8 +141,19 @@ export default function GraphMaker() {
         });
       } else {
         setLines(prev => {
-          return prev.filter(value => {
+          console.log({prev, id});
+          const temp = prev.filter(value => {
             return value[0] !== id && value[1] !== id;
+          });
+          console.log(temp);
+          return temp.map(value => {
+            if (value[0] > id) {
+              value[0]--;
+            }
+            if (value[1] > id) {
+              value[1]--;
+            }
+            return value;
           });
         });
         setpoints(prev => {
@@ -215,7 +226,12 @@ export default function GraphMaker() {
           onPress={() => {
             setState(states.remove);
           }}>
-          <EraserIcon color={state === states.remove ? 'black' : 'gray'} />
+          <Text
+            style={{
+              color: state === states.remove ? 'black' : 'gray',
+            }}>
+            Remove
+          </Text>
         </Pressable>
         <Pressable
           onPress={() => {
@@ -223,21 +239,20 @@ export default function GraphMaker() {
             setModalVisible(true);
             console.log('doing export');
           }}>
-          <Text>
-            <ExportIcon />
-          </Text>
+          <Text style={{color: 'gray'}}>Export</Text>
         </Pressable>
         <Pressable
           onPress={() => {
             forImport();
             console.log('doing import');
           }}>
-          <ImportIcon />
+          <Text style={{color: 'gray'}}>Import</Text>
         </Pressable>
       </View>
 
       <Pressable style={styles.rightElement} onPressIn={userClick}>
         {lines.map((value, index) => {
+          console.log({points, value});
           return (
             <TouchableLine
               x1={points[value[0]][0]}
@@ -256,6 +271,7 @@ export default function GraphMaker() {
             <TouchableCircle
               x={value[0]}
               y={value[1]}
+              isSelected={index === fpoint}
               radius={30}
               id={index}
               key={index}
@@ -304,6 +320,7 @@ const styles = StyleSheet.create({
     // flexDirection: 'row', // Set flexDirection to 'row' for horizontal layout
   },
   leftElement: {
+    alignItems: 'center',
     flex: 0, // Set the left element to take up 20% of the width
     flexDirection: 'row',
     gap: 10,
