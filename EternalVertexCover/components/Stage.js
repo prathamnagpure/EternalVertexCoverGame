@@ -1214,6 +1214,7 @@ const styles = StyleSheet.create({
     color: 'black',
 
     height: 35,
+    backgroundColor: 'green',
   },
 
   red: {
