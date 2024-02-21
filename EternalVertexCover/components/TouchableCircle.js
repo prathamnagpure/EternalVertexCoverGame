@@ -1,8 +1,9 @@
 import {Image, StyleSheet, Pressable, View} from 'react-native';
 import images from '../assets/Images';
-import {React, memo} from 'react';
+import {React} from 'react';
+import Animated, {useSharedValue, withTiming} from 'react-native-reanimated';
 
-const TouchableCircle = memo(function TouchableCircle({
+function TouchableCircle({
   x,
   y,
   radius,
@@ -10,7 +11,21 @@ const TouchableCircle = memo(function TouchableCircle({
   isGuardPresent,
   isSelected,
   id,
+  shouldAnimate,
+  toX,
+  toY,
 }) {
+  const transX = useSharedValue(0);
+  const transY = useSharedValue(0);
+
+  let content = null;
+
+  if (shouldAnimate) {
+    const config = {duration: 5000};
+    transX.value = withTiming(toX - x, config);
+    transY.value = withTiming(toY - y, config);
+  }
+
   const styles = StyleSheet.create({
     circleContainer: {
       position: 'absolute',
@@ -30,12 +45,18 @@ const TouchableCircle = memo(function TouchableCircle({
       height: radius * 3,
       resizeMode: 'stretch',
     },
+    animated: {
+      transform: [{translateX: transX}, {translateY: transY}],
+    },
   });
 
-  let content = null;
-
   if (isGuardPresent) {
-    content = <Image source={images.guard} style={styles.image} />;
+    content = (
+      <Animated.Image
+        source={images.guard}
+        style={[styles.image, shouldAnimate ? styles.animated : {}]}
+      />
+    );
   }
 
   return (
@@ -43,6 +64,6 @@ const TouchableCircle = memo(function TouchableCircle({
       <View style={styles.circleContainer}>{content}</View>
     </Pressable>
   );
-});
+}
 
 export default TouchableCircle;

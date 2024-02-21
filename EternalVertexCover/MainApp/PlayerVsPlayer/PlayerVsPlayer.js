@@ -7,6 +7,9 @@ import {
   FlatList,
   Pressable,
 } from 'react-native';
+import GraphPreview from '../../components/GraphPreview';
+import stages from '../../assets/Stages';
+const pvplevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
 const PlayerVsPlayer = ({navigation}) => {
   const numberOfLevels = 16;
@@ -22,20 +25,26 @@ const PlayerVsPlayer = ({navigation}) => {
     levelButtons.push(
       <Pressable
         style={{
-          backgroundColor: 'white',
-          borderWidth: 10,
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderColor: 'red',
-          marginLeft: 20,
-          width: 200,
+          borderWidth: 1,
+          width: 310,
         }}
         key={level}
         onPress={() => navigation.navigate('Level1', {levelno: i - 1})}>
-        {/* //absolute karna he */}
-        <Text style={{position: 'relative', left: 20, fontWeight: 'bold'}}>
+        <Text
+          style={{
+            alignSelf: 'center',
+            position: 'relative',
+            fontWeight: 'bold',
+            color: '#888',
+            fontSize: 20,
+          }}>
           {buttonLabel}
         </Text>
+        <GraphPreview
+          stage={stages[pvplevels[i - 1]]}
+          height={300}
+          width={300}
+        />
       </Pressable>,
     );
   }
@@ -44,7 +53,13 @@ const PlayerVsPlayer = ({navigation}) => {
       <View style={{marginTop: 100}}>
         <Text style={styles.title}>PlayerVsPlayer Page</Text>
       </View>
-      <View style={{height: 200, marginTop: 50, justifyContent: 'center'}}>
+      <View
+        style={{
+          marginTop: 50,
+          justifyContent: 'center',
+          width: 320,
+          height: 400,
+        }}>
         <FlatList
           horizontal
           data={levelButtons}

@@ -12,7 +12,7 @@ import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
 import Import from './components/Import';
 import GraphMaker from './components/GraphMaker';
 import Options from './components/Options';
-import fortest from './components/fortest';
+import ForTest from './components/fortest';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
@@ -65,11 +65,29 @@ export default class App extends Component {
             name="Imported Levels"
             component={Import}
           />
-          <Stack.Screen name="Level1" component={Level1} />
-          <Stack.Screen name="DLevel1" component={DLevel1} />
-          <Stack.Screen name="ALevel" component={ALevel} />
+          <Stack.Screen
+            name="Level1"
+            component={Level1}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
+          <Stack.Screen
+            name="DLevel1"
+            component={DLevel1}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
+          <Stack.Screen
+            name="ALevel"
+            component={ALevel}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
           <Stack.Screen name="graphMaker" component={GraphMaker} />
-          <Stack.Screen name="testarea" component={fortest} />
+          <Stack.Screen name="testarea" component={ForTest} />
         </Stack.Navigator>
       </NavigationContainer>
     );
