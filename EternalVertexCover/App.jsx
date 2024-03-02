@@ -6,13 +6,14 @@ import MainPage from './MainApp/Main';
 import Attacker from './MainApp/Attacker/Attacker';
 import Defender from './MainApp/Defender/Defender';
 import PlayerVsPlayer from './MainApp/PlayerVsPlayer/PlayerVsPlayer';
-import Level1 from './MainApp/PlayerVsPlayer/Levels/Level1';
+import Level from './MainApp/PlayerVsPlayer/Levels/Level';
 import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
 import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
 import Import from './components/Import';
 import GraphMaker from './components/GraphMaker';
 import Options from './components/Options';
 import ForTest from './components/fortest';
+import LevelLayout from './components/LevelLayout';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
@@ -44,7 +45,11 @@ export default class App extends Component {
             gestureDirection: 'horizontal',
             presentation: 'modal',
           }}>
-          <Stack.Screen name="Eternal Vertex Cover " component={MainPage} />
+          <Stack.Screen
+            name="Eternal Vertex Cover "
+            component={MainPage}
+            options={{headerShown: false}}
+          />
           <Stack.Screen
             style={styles.Button}
             name="Attacker"
@@ -62,14 +67,22 @@ export default class App extends Component {
           />
           <Stack.Screen
             style={styles.Button}
+            name="LevelLayout"
+            component={LevelLayout}
+            options={({route}) => ({
+              title: route.params.title,
+            })}
+          />
+          <Stack.Screen
+            style={styles.Button}
             name="Imported Levels"
             component={Import}
           />
           <Stack.Screen
-            name="Level1"
-            component={Level1}
+            name="Level"
+            component={Level}
             options={({route}) => ({
-              title: 'Level ' + (route.params.levelno + 1),
+              title: 'Level ' + (route.params.index + 1),
             })}
           />
           <Stack.Screen

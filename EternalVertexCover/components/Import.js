@@ -128,7 +128,7 @@ export default function Import({navigation}) {
   }
 
   function goToLevel(stage) {
-    navigation.navigate('Level1', {stage});
+    navigation.navigate('Level', {stage});
   }
 
   function handleListItemPress(stage, index) {

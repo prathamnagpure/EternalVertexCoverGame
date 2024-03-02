@@ -1,37 +1,31 @@
 import React from 'react';
-import {
-  Button,
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Pressable,
-} from 'react-native';
-import GraphPreview from '../../components/GraphPreview';
-import stages from '../../assets/Stages';
-const pvplevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+import {View, Text, StyleSheet, FlatList, Pressable} from 'react-native';
+import GraphPreview from './GraphPreview';
+import stages from '../assets/Stages';
 
-const PlayerVsPlayer = ({navigation}) => {
-  const numberOfLevels = 16;
+const PlayerVsPlayer = ({navigation, route}) => {
+  const {levels, title} = route.params;
+  let mode = null;
+  if (title === 'Attacker') {
+    mode = 'autoDefender';
+  } else if (title === 'Defender') {
+    mode = 'autoAttacker';
+  }
+  const levelButtons = levels.map((level, index) => {
+    const buttonLabel = `Level ${index + 1}`;
 
-  // Create an array to store buttons
-  const levelButtons = [];
-
-  // Use a loop to create buttons for each level
-  for (let i = 1; i <= numberOfLevels; i++) {
-    const level = i;
-    const buttonLabel = `Level ${level}`;
-
-    levelButtons.push(
+    return (
       <Pressable
         style={{
           borderWidth: 1,
           borderColor: 'gray',
-          padding: "3%",
+          padding: '3%',
           width: 310,
         }}
         key={level}
-        onPress={() => navigation.navigate('Level', {levelno: i - 1})}>
+        onPress={() =>
+          navigation.navigate('Level', {levelno: level, mode, index})
+        }>
         <Text
           style={{
             alignSelf: 'center',
@@ -42,14 +36,11 @@ const PlayerVsPlayer = ({navigation}) => {
           }}>
           {buttonLabel}
         </Text>
-        <GraphPreview
-          stage={stages[pvplevels[i - 1]]}
-          height={300}
-          width={300}
-        />
-      </Pressable>,
+        <GraphPreview stage={stages[level]} height={300} width={300} />
+      </Pressable>
     );
-  }
+  });
+
   return (
     <View style={styles.container}>
       <View

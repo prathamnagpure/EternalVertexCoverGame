@@ -17,6 +17,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import images from '../assets/Images';
+const attackerLevels = [7, 8, 9, 10, 11, 12, 13];
+const defenderLevels = [2, 3, 4, 5, 6, 14, 15];
+const pvpLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
 const positions = [
   [0, 400],
@@ -70,19 +73,34 @@ const MainPage = ({navigation}) => {
         <Pressable
           style={styles.button}
           title=""
-          onPress={() => navigation.navigate('Attacker')}>
+          onPress={() =>
+            navigation.navigate('LevelLayout', {
+              levels: attackerLevels,
+              title: 'Attacker',
+            })
+          }>
           <Text style={styles.text}>Attacker</Text>
         </Pressable>
         <Pressable
           style={styles.button}
           title=""
-          onPress={() => navigation.navigate('Defender')}>
+          onPress={() =>
+            navigation.navigate('LevelLayout', {
+              levels: defenderLevels,
+              title: 'Defender',
+            })
+          }>
           <Text style={styles.text}>Defender</Text>
         </Pressable>
         <Pressable
           style={styles.button}
           title=""
-          onPress={() => navigation.navigate('PlayerVsPlayer')}>
+          onPress={() =>
+            navigation.navigate('LevelLayout', {
+              levels: pvpLevels,
+              title: 'Player Vs Player',
+            })
+          }>
           <Text style={styles.text}>Player vs Player</Text>
         </Pressable>
         <Pressable
@@ -97,12 +115,14 @@ const MainPage = ({navigation}) => {
           onPress={() => navigation.navigate('graphMaker')}>
           <Text style={styles.text}>graphmaker</Text>
         </Pressable>
-        <Pressable
-          style={styles.button}
-          title=""
-          onPress={() => navigation.navigate('testarea')}>
-          <Text style={styles.text}>testarea</Text>
-        </Pressable>
+        {
+          // <Pressable
+          //   style={styles.button}
+          //   title=""
+          //   onPress={() => navigation.navigate('testarea')}>
+          //   <Text style={styles.text}>testarea</Text>
+          // </Pressable>
+        }
       </View>
     </ImageBackground>
   );
