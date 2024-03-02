@@ -9,8 +9,48 @@ import {
   ImageBackground,
   Image,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import images from '../assets/Images';
 
+const positions = [
+  [0, 400],
+  [250, 200],
+  [0, 200],
+  [250, 400],
+];
+const countPos = 4;
+let angleSt = 1;
 const MainPage = ({navigation}) => {
+  const position = useSharedValue(0);
+  const rotation = useSharedValue(0);
+  const width = useSharedValue(1);
+  // const image = useSharedValue(Images.naugtypig);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      left: withTiming(positions[position.value][0], {duration: 3000}),
+      top: withTiming(positions[position.value][1], {duration: 3000}, () => {
+        position.value = (position.value + 1) % countPos;
+        rotation.value += 360;
+        width.value = width.value === 1 ? 0.8 : 1;
+        // image.value = Images.guard;
+      }),
+      // width: withRepeat(withSpring(400), -1),
+      transform: [
+        {
+          rotate: withTiming(`${rotation.value}deg`, {duration: 1500}),
+        },
+        {
+          scale: withTiming(width.value, {duration: 3000}),
+        },
+      ],
+    };
+  });
   return (
     <ImageBackground
       source={Images.farmbg}
@@ -21,6 +61,10 @@ const MainPage = ({navigation}) => {
         // justifyContent: 'center',
       }}>
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
+      <Animated.Image
+        source={images.naugtypig}
+        style={[{position: 'absolute'}, animatedStyle]}
+      />
       <Image style={{marginBottom: 0}} source={Images.title} />
       <View style={styles.container}>
         <Pressable

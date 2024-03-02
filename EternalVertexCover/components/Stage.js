@@ -1291,6 +1291,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     height: 35,
+    backgroundColor: 'green',
   },
 
   red: {
