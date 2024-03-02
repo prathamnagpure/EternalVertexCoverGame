@@ -1,11 +1,6 @@
-import React, {
-  View,
-  StyleSheet,
-  Pressable,
-  Text,
-  Button,
-  Image,
-} from 'react-native';
+import React, {useState} from 'react';
+import {View, StyleSheet, Pressable, Text, Button, Image} from 'react-native';
+
 import Animated, {withTiming} from 'react-native-reanimated';
 import {
   useSharedValue,
@@ -15,12 +10,16 @@ import {
 } from 'react-native-reanimated';
 import Images from '../assets/Images';
 import Sound from 'react-native-sound';
-import TouchableCircle from './TouchableCircle';
+import Guard from './Guard';
 export default function ForTest() {
   const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
   const opacity = useSharedValue(0);
   const butwidth = useSharedValue(100);
+  const [top, setTop] = useState(200);
+  const [left, setLeft] = useState(200);
+  const [shouldAnimate, setShouldAnimate] = useState(true);
+
   const sound = new Sound('fart.mp3', Sound.MAIN_BUNDLE, error => {
     if (error) {
       console.log('failed to load the sound', error);
@@ -127,15 +126,22 @@ export default function ForTest() {
         onPress={handlePress}>
         <Text>click me</Text>
       </Pressable>
-      <TouchableCircle
-        showGuard={() => {}}
-        x={100}
-        y={200}
-        radius={30}
-        isGuardPresent={true}
-        shouldAnimate={true}
-        toX={200}
-        toY={100}
+      <Guard
+        top={top}
+        left={left}
+        width={70}
+        height={70}
+        id="1"
+        onPress={() => console.log('hello')}
+        shouldAnimate={shouldAnimate}
+        leftAfterAnimation={100}
+        topAfterAnimation={100}
+        runAfterAnimation={() => {
+          console.log('Ran 100 100');
+          setShouldAnimate(false);
+          setTop(100);
+          setLeft(100);
+        }}
       />
       {/* </View> */}
     </View>

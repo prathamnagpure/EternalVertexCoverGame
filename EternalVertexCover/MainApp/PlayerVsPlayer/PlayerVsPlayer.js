@@ -26,6 +26,8 @@ const PlayerVsPlayer = ({navigation}) => {
       <Pressable
         style={{
           borderWidth: 1,
+          borderColor: 'gray',
+          padding: "3%",
           width: 310,
         }}
         key={level}
@@ -50,18 +52,15 @@ const PlayerVsPlayer = ({navigation}) => {
   }
   return (
     <View style={styles.container}>
-      <View style={{marginTop: 100}}>
-        <Text style={styles.title}>PlayerVsPlayer Page</Text>
-      </View>
       <View
         style={{
           marginTop: 50,
           justifyContent: 'center',
           width: 320,
-          height: 400,
+          height: 600,
         }}>
         <FlatList
-          horizontal
+          //horizontal
           data={levelButtons}
           // initialScrollIndex={5}
           renderItem={({item}) => item}

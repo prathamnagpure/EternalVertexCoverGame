@@ -1,9 +1,16 @@
 import Images from '../assets/Images';
 import React, {useEffect} from 'react';
-import Animated from 'react-native-reanimated';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 export default function Poop({poopX, poopY, animatedStylesPoop}) {
   console.log('poopppp');
   console.log('inside poop ', poopX.value, poopY.value);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      left: poopX.value,
+      top: poopY.value,
+    };
+  });
 
   return (
     <Animated.Image
@@ -13,10 +20,9 @@ export default function Poop({poopX, poopY, animatedStylesPoop}) {
           width: 70,
           height: 70,
           position: 'absolute',
-          left: poopX,
-          top: poopY,
           // transform: [{rotate: `${Math.atan(angle)}deg`}],
         },
+        animatedStyle,
         animatedStylesPoop,
       ]}
     />

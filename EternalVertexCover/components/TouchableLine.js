@@ -24,6 +24,7 @@ const TouchableLine = memo(function TouchableLine({
       top: (y1 + y2) / 2,
       width: length,
       height: thickness,
+      flex: 1,
       transform: [{rotate: `${angle}deg`}],
     },
 
@@ -91,6 +92,7 @@ const TouchableLine = memo(function TouchableLine({
     <Pressable
       onPressIn={() => {
         onEdgePress(id);
+        console.log('Touchable line is pressed');
       }}>
       <View
         style={[

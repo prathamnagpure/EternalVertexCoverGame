@@ -1,30 +1,9 @@
 import {Image, StyleSheet, Pressable, View} from 'react-native';
 import images from '../assets/Images';
 import {React} from 'react';
-import Animated, {useSharedValue, withTiming} from 'react-native-reanimated';
 
-function TouchableCircle({
-  x,
-  y,
-  radius,
-  showGuard,
-  isGuardPresent,
-  isSelected,
-  id,
-  shouldAnimate,
-  toX,
-  toY,
-}) {
-  const transX = useSharedValue(0);
-  const transY = useSharedValue(0);
-
+function TouchableCircle({x, y, radius, showGuard, isSelected, id}) {
   let content = null;
-
-  if (shouldAnimate) {
-    const config = {duration: 5000};
-    transX.value = withTiming(toX - x, config);
-    transY.value = withTiming(toY - y, config);
-  }
 
   const styles = StyleSheet.create({
     circleContainer: {
@@ -45,19 +24,16 @@ function TouchableCircle({
       height: radius * 3,
       resizeMode: 'stretch',
     },
-    animated: {
-      transform: [{translateX: transX}, {translateY: transY}],
-    },
   });
 
-  if (isGuardPresent) {
-    content = (
-      <Animated.Image
-        source={images.guard}
-        style={[styles.image, shouldAnimate ? styles.animated : {}]}
-      />
-    );
-  }
+  // if (isGuardPresent) {
+  //   content = (
+  //     <Animated.Image
+  //       source={images.guard}
+  //       style={[styles.image, shouldAnimate ? styles.animated : {}]}
+  //     />
+  //   );
+  // }
 
   return (
     <Pressable onPressIn={() => showGuard(id)}>

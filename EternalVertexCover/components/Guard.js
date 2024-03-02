@@ -1,52 +1,52 @@
-import React, {useEffect} from 'react';
-import Animated, {useSharedValue, withTiming} from 'react-native-reanimated';
+import React from 'react';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import images from '../assets/Images';
-import {StyleSheet, Image} from 'react-native';
+import {StyleSheet, Image, Pressable} from 'react-native';
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function Guard({
-  top,
-  left,
-  width,
-  height,
-  shouldAnimate,
-  leftAfterAnimation,
-  topAfterAnimation,
-}) {
-  const leftVal = useSharedValue(left);
-  const topVal = useSharedValue(top);
+function Guard({top, left, width, height, id, onPress, animateRef}) {
+  const leftSV = useSharedValue(left - width / 2);
+  const topSV = useSharedValue(top - height / 2);
 
-  if (shouldAnimate) {
-    const duration = {duration: 5000};
-    leftVal.value = withTiming(leftAfterAnimation, duration);
-    topVal.value = withTiming(topAfterAnimation, duration);
-  } else {
-    topVal.value = top;
-    leftVal.value = left;
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      position: 'absolute',
+      top: topSV.value,
+      left: leftSV.value,
+    };
+  });
+
+  function animate(newLeft, newTop) {
+    console.log({left, newLeft, top, newTop});
+    const config = {duration: 5000};
+    leftSV.value = withTiming(newLeft - width / 2, config);
+    topSV.value = withTiming(newTop - height / 2, config);
   }
-  console.log(topVal.value, leftVal.value, top, left);
+
+  animateRef(animate);
 
   const styles = StyleSheet.create({
-    container: {
-      position: 'absolute',
-
-      top,
-      left,
-    },
     image: {
       height,
       width,
-    },
-    animatedContainer: {
-      position: 'absolute',
-      top: topVal,
-      left: leftVal,
+      flex: 1,
     },
   });
 
   return (
-    <Animated.View
-      style={shouldAnimate ? styles.animatedContainer : styles.container}>
+    <AnimatedPressable
+      style={[animatedStyle]}
+      onPressIn={() => {
+        onPress(id);
+        console.log('Guard got pressed');
+      }}>
       <Image source={images.guard} style={styles.image} />
-    </Animated.View>
+    </AnimatedPressable>
   );
 }
+
+export default Guard;

@@ -48,6 +48,7 @@ export default function GraphPreview({stage, width, height}) {
   function renderNodes() {
     return nodes.map(node => (
       <TouchableCircle
+        key={node[0] + ' ' + node[1]}
         x={node[0]}
         y={node[1]}
         radius={5}
@@ -62,6 +63,7 @@ export default function GraphPreview({stage, width, height}) {
       let [x2, y2] = nodes[edge[1]];
       return (
         <TouchableLine
+          key={x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' '}
           {...{x1, y1, x2, y2}}
           thickness={5}
           onEdgePress={() => {}}
