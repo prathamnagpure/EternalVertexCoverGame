@@ -1,10 +1,24 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View, Button, StyleSheet, Pressable, Text} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View, StyleSheet, Pressable, Text, Modal, Button} from 'react-native';
 import {pickSingle} from 'react-native-document-picker';
-import {readDir, DocumentDirectoryPath, readFile} from 'react-native-fs';
+import {
+  readDir,
+  DocumentDirectoryPath,
+  readFile,
+  unlink,
+} from 'react-native-fs';
+import ImportHeader from './ImportHeader';
+import LeftArrowIcon from './icons/LeftArrowIcon';
+import DeleteButton from './DeleteButton';
+import CancelDeleteButton from './CancelDeleteButton';
 
 export default function Import({navigation}) {
   const [levels, setLevels] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isMultiSelectEnabled, setIsMultiSelectEnabled] = useState(false);
+  const [isSearchClicked, setIsSearchClicked] = useState(false);
+  const [itemsToDelete, setItemsToDelete] = useState([]);
+  const [filterString, setFilterString] = useState('');
 
   const process = useCallback(async function () {
     const files = await readDir(DocumentDirectoryPath);
@@ -12,16 +26,20 @@ export default function Import({navigation}) {
     for (const file of files) {
       if (file.isDirectory()) {
         const innerFiles = await readDir(file.path);
+
         for (const innerFile of innerFiles) {
+          const level = {};
+          level.fullName = innerFile.path;
           const parts = innerFile.path.split('/');
           const name = parts.pop() || parts.pop();
-          const content = await readFile(innerFile.path);
-          const stage = JSON.parse(content);
-          console.log(stage);
-          newLevels.push({
-            name: name.replace(/\.[^/.]+$/, ''),
-            stage,
-          });
+          level.name = name.replace(/\.[^/.]+$/, '');
+          try {
+            const content = await readFile(innerFile.path);
+            level.stage = JSON.parse(content);
+          } catch (err) {
+            console.log({err, path: innerFile.path});
+          }
+          newLevels.push(level);
         }
       }
     }
@@ -33,9 +51,70 @@ export default function Import({navigation}) {
     return () => {};
   }, [process]);
 
+  const showInitialIcons = useCallback(
+    function () {
+      navigation.setOptions({
+        headerLeft: undefined,
+        headerRight: () =>
+          ImportHeader(
+            setIsModalVisible,
+            isSearchClicked,
+            filterString,
+            setFilterString,
+            setIsSearchClicked,
+          ),
+        title: isSearchClicked ? '' : 'Imported levels',
+      });
+    },
+    [navigation, isSearchClicked, filterString],
+  );
+
+  const handleDeletePress = useCallback(function () {
+    setItemsToDelete(prevItems => {
+      setLevels(prevLevels => {
+        prevItems.forEach(value => {
+          const parts = prevLevels[value].fullName.split('/');
+          parts.pop() || parts.pop();
+          const folderName = parts.join('/');
+          unlink(folderName);
+        });
+
+        return prevLevels.filter((_, index) => !prevItems.includes(index));
+      });
+      return [];
+    });
+
+    setIsMultiSelectEnabled(false);
+  }, []);
+
+  const cancelDelete = useCallback(function () {
+    setItemsToDelete([]);
+    setIsMultiSelectEnabled(false);
+  }, []);
+
+  const showDeleteIcon = useCallback(
+    function () {
+      navigation.setOptions({
+        title: `Selected ${itemsToDelete.length}`,
+        headerRight: () => DeleteButton(handleDeletePress),
+        headerLeft: () => CancelDeleteButton(cancelDelete),
+        headerBackVisible: false,
+      });
+    },
+    [navigation, itemsToDelete.length, cancelDelete],
+  );
+
+  useEffect(() => {
+    if (isMultiSelectEnabled) {
+      showDeleteIcon();
+    } else {
+      showInitialIcons();
+    }
+  }, [showInitialIcons, isMultiSelectEnabled, showDeleteIcon]);
+
   async function onImportClick() {
     try {
-      const result = await pickSingle({copyTo: 'documentDirectory'});
+      await pickSingle({copyTo: 'documentDirectory'});
       const files = await readDir(DocumentDirectoryPath);
       for (const file of files) {
         if (file.isDirectory()) {
@@ -48,33 +127,86 @@ export default function Import({navigation}) {
     }
   }
 
+  function goToLevel(stage) {
+    navigation.navigate('Level1', {stage});
+  }
+
+  function handleListItemPress(stage, index) {
+    if (isMultiSelectEnabled) {
+      setItemsToDelete(prev => {
+        if (prev.includes(index)) {
+          return prev.filter(value => value !== index);
+        } else {
+          return [...prev, index];
+        }
+      });
+    } else {
+      goToLevel(stage);
+    }
+  }
+
+  const levelsToShow = levels.filter(level =>
+    level.name.includes(filterString),
+  );
+
   return (
     <View style={styles.container}>
-      <Button title="import" onPress={onImportClick} />
-      {levels.map((level, index) => (
+      {levelsToShow.map((level, index) => (
         <Pressable
           key={'level' + index}
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Level1', {stage: levels[index].stage})
-          }>
+          style={
+            itemsToDelete.includes(index)
+              ? [styles.button, styles.pinkBackground]
+              : styles.button
+          }
+          onPress={() => handleListItemPress(levels[index].stage, index)}>
           <Text style={styles.text}>{level.name}</Text>
         </Pressable>
       ))}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setIsModalVisible(false);
+        }}>
+        <Pressable
+          style={styles.modalBackground}
+          onPressOut={() => setIsModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <Pressable
+              onPress={onImportClick}
+              style={[styles.bottomBorder, styles.modalButton]}>
+              <Text style={styles.text}>Import</Text>
+            </Pressable>
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => {
+                showDeleteIcon();
+                setIsModalVisible(false);
+                setIsMultiSelectEnabled(true);
+              }}>
+              <Text style={styles.text}>Select multiple items</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    padding: 5,
+    padding: '2%',
+    paddingLeft: '10%',
     backgroundColor: '#ccc',
     color: '#000',
-    top: 10,
+    top: '2%',
+    margin: '2%',
+    marginLeft: '3%',
     alignContent: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    margin: 2,
+    borderRadius: 10,
   },
 
   text: {
@@ -82,6 +214,48 @@ const styles = StyleSheet.create({
   },
 
   container: {
+    display: 'flex',
     flex: 1,
+  },
+
+  modalBackground: {
+    flex: 1,
+    display: 'flex',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  modalButton: {
+    padding: 5,
+  },
+
+  pinkBackground: {
+    backgroundColor: 'pink',
+  },
+
+  lineThrough: {
+    textDecorationLine: 'line-through',
+  },
+
+  importButton: {
+    backgroundColor: '#cba',
+    borderRadius: 0,
+  },
+
+  modalContainer: {
+    backgroundColor: '#fff',
+    alignContent: 'center',
+    padding: 5,
+    top: '7%',
+    left: '50%',
+    alignSelf: 'flex-start',
+    justifyContent: 'flex-end',
+    borderColor: '#000',
+    borderWidth: 2,
+    borderRadius: 10,
+  },
+
+  bottomBorder: {
+    borderBottomWidth: 1,
+    borderColor: '#aaa',
   },
 });

@@ -1,5 +1,5 @@
 import {React, Component} from 'react';
-import {StyleSheet} from 'react-native';
+import {Button, StyleSheet, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import MainPage from './MainApp/Main';
@@ -11,7 +11,8 @@ import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
 import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
 import Import from './components/Import';
 import GraphMaker from './components/GraphMaker';
-import fortest from './components/fortest';
+import Options from './components/Options';
+import ForTest from './components/fortest';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
@@ -64,11 +65,29 @@ export default class App extends Component {
             name="Imported Levels"
             component={Import}
           />
-          <Stack.Screen name="Level1" component={Level1} />
-          <Stack.Screen name="DLevel1" component={DLevel1} />
-          <Stack.Screen name="ALevel" component={ALevel} />
+          <Stack.Screen
+            name="Level1"
+            component={Level1}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
+          <Stack.Screen
+            name="DLevel1"
+            component={DLevel1}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
+          <Stack.Screen
+            name="ALevel"
+            component={ALevel}
+            options={({route}) => ({
+              title: 'Level ' + (route.params.levelno + 1),
+            })}
+          />
           <Stack.Screen name="graphMaker" component={GraphMaker} />
-          <Stack.Screen name="testarea" component={fortest} />
+          <Stack.Screen name="testarea" component={ForTest} />
         </Stack.Navigator>
       </NavigationContainer>
     );

@@ -1,6 +1,5 @@
-import {React, useState, useEffect, useRef, useCallback} from 'react';
+import { React, useState, useEffect, useRef, useCallback } from 'react';
 import Images from '../assets/Images';
-
 import {
   View,
   Pressable,
@@ -17,7 +16,7 @@ import TouchableLine from './TouchableLine';
 import parse from 'dotparser';
 
 import Sound from 'react-native-sound';
-import {tupleToString} from '../MainApp/MainAlgoBruteForce';
+import { tupleToString } from '../MainApp/MainAlgoBruteForce';
 import {
   Gesture,
   GestureHandlerRootView,
@@ -30,6 +29,8 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import Poop from './Poop';
+import Guard from './Guard';
+
 let showAnimation = false;
 const Turns = {
   DefenderFirst: 1,
@@ -51,10 +52,12 @@ const Modes = {
   AutoDefender: 'autoDefender',
 };
 
-export default function Stage({stage, mode}) {
+export default function Stage({ stage, mode }) {
   const [pigImage, setPigImage] = useState(Images.naugtypig);
   const [poop, setPoop] = useState(false);
   const [guardCount, setGuardCount] = useState(stage.guardCount);
+  const animateRef = useRef(null);
+  const [guardStates, setGuardStates] = useState(new Map());
 
   const [turn, setTurn] = useState(Turns.DefenderFirst);
 
@@ -87,6 +90,7 @@ export default function Stage({stage, mode}) {
   const moves = useRef(stage.moves);
 
   const selected = useRef(null);
+
   // const [showAnimation, setShowAnimation] = useState(false);
   const pressed = useSharedValue(false);
   const offset = useSharedValue(0);
@@ -108,9 +112,9 @@ export default function Stage({stage, mode}) {
     // loaded successfully
     console.log(
       'duration in seconds: ' +
-        sound.getDuration() +
-        'number of channels: ' +
-        sound.getNumberOfChannels(),
+      sound.getDuration() +
+      'number of channels: ' +
+      sound.getNumberOfChannels(),
     );
 
     // Play the sound with an onEnd callback
@@ -134,15 +138,15 @@ export default function Stage({stage, mode}) {
 
   const animatedStyles = useAnimatedStyle(() => ({
     transform: [
-      {translateX: offset.value},
-      {translateY: offsety.value},
-      {scale: withTiming(pressed.value ? 1.2 : 1)},
+      { translateX: offset.value },
+      { translateY: offsety.value },
+      { scale: withTiming(pressed.value ? 1.2 : 1) },
     ],
     left: inX.value,
     top: inY.value,
   }));
   const animatedStylesPoop = useAnimatedStyle(() => {
-    // console.log('ran poop style');
+    console.log('ran poop style', translateX.value, translateY.value);
     return {
       transform: [
         {
@@ -172,8 +176,8 @@ export default function Stage({stage, mode}) {
     if (showAnimation) {
       showAnimation = false;
       // setShowAnimation(false);
-      opacity.value = withTiming(1, {duration: 2000}, () => {
-        opacity.value = withTiming(0, {duration: 1000});
+      opacity.value = withTiming(1, { duration: 2000 }, () => {
+        opacity.value = withTiming(0, { duration: 1000 });
       });
       console.log('attack edge is ', attackedEdge.current);
       // const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
@@ -186,12 +190,12 @@ export default function Stage({stage, mode}) {
       // console.log('m,c is ', m.current, c.current);
       translateX.value = withTiming(
         translateX.value +
-          (edgeStateMap.get(attackedEdge.current).x1 +
-            edgeStateMap.get(attackedEdge.current).x2) /
-            2 -
-          inX.value -
-          35,
-        {duration: 3000},
+        (edgeStateMap.get(attackedEdge.current).x1 +
+          edgeStateMap.get(attackedEdge.current).x2) /
+        2 -
+        inX.value -
+        35,
+        { duration: 3000 },
         () => {
           console.log('x value ');
           poopX.value = translateX.value + poopX.value;
@@ -200,23 +204,23 @@ export default function Stage({stage, mode}) {
       );
       translateY.value = withTiming(
         translateY.value +
-          (edgeStateMap.get(attackedEdge.current).y1 +
-            edgeStateMap.get(attackedEdge.current).y2) /
-            2 -
-          inY.value,
-        {duration: 3000},
+        (edgeStateMap.get(attackedEdge.current).y1 +
+          edgeStateMap.get(attackedEdge.current).y2) /
+        2 -
+        inY.value,
+        { duration: 3000 },
         () => {
           console.log('y value ');
           poopY.value = translateY.value + poopY.value;
           translateY.value = 0;
         },
       );
-      rotation.value = withTiming(rotation.value + 720, {duration: 3000});
+      rotation.value = withTiming(rotation.value + 720, { duration: 3000 });
       butwidth.value = withSpring(
         butwidth.value + 100,
-        {duration: 1000},
+        { duration: 1000 },
         () => {
-          butwidth.value = withSpring(butwidth.value - 100, {duration: 1000});
+          butwidth.value = withSpring(butwidth.value - 100, { duration: 1000 });
         },
       );
     }
@@ -273,7 +277,7 @@ export default function Stage({stage, mode}) {
   }, [construct, mode, stage.guards, stage.map]);
 
   const saveMomento = useCallback(
-    function (calledByUndo = false) {
+    function(calledByUndo = false) {
       const momento = {
         nodes: [],
 
@@ -415,6 +419,16 @@ export default function Stage({stage, mode}) {
       });
   }
 
+  function renderGuards() {
+    console.log('heres ', guardStates);
+    return [...guardStates.keys()]
+      .map(key => [key, guardStates.get(key)])
+      .map(element => {
+        const [key, value] = element;
+        return <Guard {...value} width={40} height={40} key={key + ' Guard'} />;
+      });
+  }
+
   function resetNodes() {
     const newNodeStateMap = new Map();
 
@@ -473,7 +487,7 @@ export default function Stage({stage, mode}) {
         const value = nodeStateMap.get(key);
 
         if (stage.guards.includes(parseInt(key, 10))) {
-          newNodeStateMap.set(key, {...value, isGuardPresent: true});
+          newNodeStateMap.set(key, { ...value, isGuardPresent: true });
         }
       });
 
@@ -633,7 +647,6 @@ export default function Stage({stage, mode}) {
         setWarning('Guards left should be 0');
       }
     } else if (turn === Turns.Attacker) {
-      // come here
       pooperPrakat();
 
       checkAttack(isCalledByRedo);
@@ -641,7 +654,7 @@ export default function Stage({stage, mode}) {
       if (mode === Modes.AutoDefender) {
         playAutoDefender();
       }
-    } /* turn = Turns.DefenderLater */ else {
+    } /* turn === Turns.DefenderLater */ else {
       const nodeGuardCounter = new Map();
 
       const newNodeStateMap = new Map(nodeStateMap);
@@ -649,7 +662,6 @@ export default function Stage({stage, mode}) {
       [...newNodeStateMap.keys()].forEach(nodeId => {
         nodeGuardCounter.set(
           nodeId,
-
           newNodeStateMap.get(nodeId).isGuardPresent ? 1 : 0,
         );
       });
@@ -783,7 +795,7 @@ export default function Stage({stage, mode}) {
 
         const prevState = newEdgeStateMap.get(edgeId);
 
-        newEdgeStateMap.set(edgeId, {...prevState, isAttacked: true});
+        newEdgeStateMap.set(edgeId, { ...prevState, isAttacked: true });
 
         setEdgeStateMap(newEdgeStateMap);
       } else if (
@@ -840,18 +852,22 @@ export default function Stage({stage, mode}) {
 
     const nodeState = newNodeStateMap.get(nodeId);
 
+    const newGuardStates = new Map(guardStates);
     if (currentTurn === Turns.DefenderFirst) {
-      if (nodeState.isGuardPresent) {
+      if (newGuardStates.has(nodeId)) {
         setGuardCount(prev => ++prev);
-
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: false});
+        newGuardStates.delete(nodeId);
+        newNodeStateMap.set(nodeId, { ...nodeState, isGuardPresent: false });
       } else {
         setGuardCount(prev => --prev);
-
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: true});
+        const { x, y } = nodeStateMap.get(nodeId);
+        newGuardStates.set(nodeId, { top: y, left: x });
+        newNodeStateMap.set(nodeId, { ...nodeState, isGuardPresent: true });
       }
 
       setNodeStateMap(newNodeStateMap);
+      setGuardStates(newGuardStates);
+      console.log('new states', newGuardStates.keys());
     } else if (currentTurn === Turns.DefenderLater) {
       if (selected.current) {
         if (adjList.current.get(selected.current).includes(nodeId)) {
@@ -874,7 +890,7 @@ export default function Stage({stage, mode}) {
 
         setNodeStateMap(newNodeStateMap);
       } else if (nodeState.isGuardPresent) {
-        newNodeStateMap.set(nodeId, {...nodeState, isSelected: true});
+        newNodeStateMap.set(nodeId, { ...nodeState, isSelected: true });
 
         selected.current = nodeId;
 
@@ -895,7 +911,7 @@ export default function Stage({stage, mode}) {
     let winText =
       gameWinner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
 
-    let textColor = {color: 'white'};
+    let textColor = { color: 'white' };
 
     if (mode) {
       const isAutoAttacker = mode === Modes.AutoAttacker;
@@ -981,7 +997,6 @@ export default function Stage({stage, mode}) {
 
   const construct = useCallback(() => {
     let ast = null;
-    console.log('here', stage.name);
     try {
       ast = parse(stage.graph);
     } catch {
@@ -1088,7 +1103,7 @@ export default function Stage({stage, mode}) {
   const undoButtonStyle = [
     styles.undo,
 
-    {display: currentMomentoIndex.current > 0 ? 'flex' : 'none'},
+    { display: currentMomentoIndex.current > 0 ? 'flex' : 'none' },
   ];
 
   const redoButtonStyle = [
@@ -1101,8 +1116,8 @@ export default function Stage({stage, mode}) {
   ];
   let angle = 0;
   if (attackedEdge.current) {
-    const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
-    console.log({x1, x2, y1, y2});
+    const { x1, x2, y1, y2 } = edgeStateMap.get(attackedEdge.current);
+    console.log({ x1, x2, y1, y2 });
     console.log(edgeStateMap.get(attackedEdge.current));
     angle = ((y1 + y2) / 2 - inY.value) / ((x1 + x2) / 2 - inX.value);
   }
@@ -1110,6 +1125,10 @@ export default function Stage({stage, mode}) {
   console.log(poop, showAnimation);
   console.log('in values is ', inX.value, inY.value);
   console.log('translate x, y ', translateX.value, translateY.value);
+  if (animateRef.current) {
+    animateRef.current();
+  }
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <ImageBackground
@@ -1130,7 +1149,6 @@ export default function Stage({stage, mode}) {
 
         <View style={styles.container}>
           {renderEdges()}
-
           {renderNodes()}
         </View>
 
@@ -1174,7 +1192,7 @@ export default function Stage({stage, mode}) {
                     width: 100,
                     height: 100,
                     transform: [
-                      {rotate: `-${(2 * Math.PI) / 2 + Math.atan(angle)}rad`},
+                      { rotate: `-${(2 * Math.PI) / 2 + Math.atan(angle)}rad` },
                     ],
                   }}
                 />
@@ -1182,7 +1200,7 @@ export default function Stage({stage, mode}) {
             )}
             {poop && (
               <>
-                <Poop {...{poopX, poopY, animatedStylesPoop}} />
+                <Poop {...{ poopX, poopY, animatedStylesPoop }} />
               </>
             )}
           </>
@@ -1211,6 +1229,7 @@ const styles = StyleSheet.create({
 
     top: 5,
 
+    fontWeight: 'bold',
     color: 'black',
 
     height: 35,

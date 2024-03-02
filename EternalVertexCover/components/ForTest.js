@@ -15,7 +15,8 @@ import {
 } from 'react-native-reanimated';
 import Images from '../assets/Images';
 import Sound from 'react-native-sound';
-export default function fortest() {
+import TouchableCircle from './TouchableCircle';
+export default function ForTest() {
   const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -126,6 +127,16 @@ export default function fortest() {
         onPress={handlePress}>
         <Text>click me</Text>
       </Pressable>
+      <TouchableCircle
+        showGuard={() => {}}
+        x={100}
+        y={200}
+        radius={30}
+        isGuardPresent={true}
+        shouldAnimate={true}
+        toX={200}
+        toY={100}
+      />
       {/* </View> */}
     </View>
   );
