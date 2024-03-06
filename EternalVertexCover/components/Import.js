@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, StyleSheet, Pressable, Text, Modal, Button} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, StyleSheet, Pressable, Text, Modal} from 'react-native';
 import {pickSingle} from 'react-native-document-picker';
 import {
   readDir,
@@ -8,7 +8,6 @@ import {
   unlink,
 } from 'react-native-fs';
 import ImportHeader from './ImportHeader';
-import LeftArrowIcon from './icons/LeftArrowIcon';
 import DeleteButton from './DeleteButton';
 import CancelDeleteButton from './CancelDeleteButton';
 
@@ -19,6 +18,8 @@ export default function Import({navigation}) {
   const [isSearchClicked, setIsSearchClicked] = useState(false);
   const [itemsToDelete, setItemsToDelete] = useState([]);
   const [filterString, setFilterString] = useState('');
+  const [isModeModalVisible, setIsModeModalVisible] = useState(false);
+  const [selectedStage, setSelectedStage] = useState(null);
 
   const process = useCallback(async function () {
     const files = await readDir(DocumentDirectoryPath);
@@ -101,7 +102,7 @@ export default function Import({navigation}) {
         headerBackVisible: false,
       });
     },
-    [navigation, itemsToDelete.length, cancelDelete],
+    [navigation, itemsToDelete.length, cancelDelete, handleDeletePress],
   );
 
   useEffect(() => {
@@ -127,8 +128,13 @@ export default function Import({navigation}) {
     }
   }
 
-  function goToLevel(stage) {
-    navigation.navigate('Level', {stage});
+  function goToLevel(mode) {
+    setIsModeModalVisible(false);
+    let stage = selectedStage;
+    if (mode === 'autoDefender' && selectedStage.moves % 2 === 0) {
+      stage = {...selectedStage, moves: selectedStage.moves - 1};
+    }
+    navigation.navigate('Level', {stage, mode});
   }
 
   function handleListItemPress(stage, index) {
@@ -141,7 +147,8 @@ export default function Import({navigation}) {
         }
       });
     } else {
-      goToLevel(stage);
+      setSelectedStage(stage);
+      setIsModeModalVisible(true);
     }
   }
 
@@ -163,6 +170,35 @@ export default function Import({navigation}) {
           <Text style={styles.text}>{level.name}</Text>
         </Pressable>
       ))}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModeModalVisible}
+        onRequestClose={() => {
+          setIsModeModalVisible(false);
+        }}>
+        <Pressable
+          style={styles.modalBackground}
+          onPressOut={() => setIsModeModalVisible(false)}>
+          <View style={styles.modeModalContainer}>
+            <Pressable
+              onPress={() => goToLevel(null)}
+              style={[styles.bottomBorder, styles.modalButton]}>
+              <Text style={styles.text}>PvP</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => goToLevel('autoDefender')}
+              style={[styles.bottomBorder, styles.modalButton]}>
+              <Text style={styles.text}>Attacker</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => goToLevel('autoAttacker')}
+              style={[styles.modalButton]}>
+              <Text style={styles.text}>Defender</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
       <Modal
         animationType="fade"
         transparent={true}
@@ -254,6 +290,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
+  modeModalContainer: {
+    top: '10%',
+    backgroundColor: '#fff',
+    alignContent: 'center',
+    padding: 5,
+    alignSelf: 'center',
+    justifyContent: 'flex-end',
+    borderColor: '#000',
+    borderWidth: 2,
+    borderRadius: 10,
+  },
   bottomBorder: {
     borderBottomWidth: 1,
     borderColor: '#aaa',

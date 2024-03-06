@@ -8,15 +8,15 @@ import {
   Button,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import {readFile, writeFile, DownloadDirectoryPath} from 'react-native-fs';
 import {pickSingle} from 'react-native-document-picker';
-import ImportIcon from './icons/ImportIcon';
-import ExportIcon from './icons/ExportIcon';
-import EraserIcon from './icons/EraserIcon';
 import AddIcon from './icons/AddIcon';
+import Guard from './Guard';
+import RadioButton from './RadioButton';
 
 const windowHeight = Dimensions.get('window').height;
 const states = {
@@ -42,7 +42,7 @@ export default function GraphMaker() {
     setNumber(text);
   };
 
-  function forExport(inputValue, num) {
+  function forExport(fileName, num) {
     let str = 'digraph G {\n';
     points.forEach((element, index) => {
       str +=
@@ -53,11 +53,9 @@ export default function GraphMaker() {
     });
     str += '}';
     console.log(guards);
-    const obj = {graph: str, guardCount: guards.length, moves: num, guards};
-    writeFile(
-      DownloadDirectoryPath + `/${inputValue}.txt`,
-      JSON.stringify(obj),
-    );
+    const obj = {graph: str, guardCount: guards.length, moves: parseInt(num)*2, guards};
+    writeFile(DownloadDirectoryPath + `/${fileName}.txt`, JSON.stringify(obj));
+    Alert.alert("Exported");
   }
   async function forImport() {
     try {
@@ -89,8 +87,8 @@ export default function GraphMaker() {
           ]);
         } else {
           llines.push([
-            parseInt(element.edge_list[0].id),
-            parseInt(element.edge_list[1].id),
+            parseInt(element.edge_list[0].id, 10),
+            parseInt(element.edge_list[1].id, 10),
           ]);
         }
       }
@@ -112,7 +110,7 @@ export default function GraphMaker() {
   useEffect(() => console.log({lines, points}), [lines, points]);
   //   function changeState({locationX, locationY}) {}
   function lineRemove(id) {
-    if (state == states.remove) {
+    if (state === states.remove) {
       setLines(prev => {
         return prev.filter((value, index) => {
           return index !== id;
@@ -121,7 +119,7 @@ export default function GraphMaker() {
     }
   }
   function lineCreater(id) {
-    if (state == states.addLine) {
+    if (state === states.addLine) {
       setState(states.selectButton1);
       setfpoint(id);
     } else if (state === states.selectButton1) {
@@ -157,7 +155,7 @@ export default function GraphMaker() {
           });
         });
         setpoints(prev => {
-          return prev.filter((value, index) => {
+          return prev.filter((_, index) => {
             return index !== id;
           });
         });
@@ -171,7 +169,7 @@ export default function GraphMaker() {
   function userClick(event) {
     const {locationX, locationY} = event.nativeEvent;
     console.log('userClicked');
-    if (state == states.addButton) {
+    if (state === states.addButton) {
       setpoints(prev => {
         return [...prev, [locationX, locationY]];
       });
@@ -179,6 +177,7 @@ export default function GraphMaker() {
     // changeState({locationX, locationY});
     console.log(points);
   }
+
   return (
     <View style={[styles.container, {height: windowHeight}]}>
       <View style={styles.leftElement}>
@@ -280,6 +279,17 @@ export default function GraphMaker() {
             />
           );
         })}
+        {guards.map(value => (
+          <Guard
+            key={'Guard' + value}
+            id={value}
+            left={points[value][0]}
+            top={points[value][1]}
+            onPress={lineCreater}
+            height={70}
+            width={70}
+          />
+        ))}
       </Pressable>
       <Modal
         animationType="slide"

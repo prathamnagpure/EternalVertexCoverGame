@@ -12,8 +12,6 @@ import {
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import images from '../assets/Images';
@@ -28,8 +26,8 @@ const positions = [
   [250, 400],
 ];
 const countPos = 4;
-let angleSt = 1;
-const MainPage = ({navigation}) => {
+// let angleSt = 1;
+function MainPage({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
@@ -76,7 +74,7 @@ const MainPage = ({navigation}) => {
           onPress={() =>
             navigation.navigate('LevelLayout', {
               levels: attackerLevels,
-              title: 'Attacker',
+              mode: 'autoDefender',
             })
           }>
           <Text style={styles.text}>Attacker</Text>
@@ -87,7 +85,7 @@ const MainPage = ({navigation}) => {
           onPress={() =>
             navigation.navigate('LevelLayout', {
               levels: defenderLevels,
-              title: 'Defender',
+              mode: 'autoAttacker'
             })
           }>
           <Text style={styles.text}>Defender</Text>
@@ -126,7 +124,7 @@ const MainPage = ({navigation}) => {
       </View>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

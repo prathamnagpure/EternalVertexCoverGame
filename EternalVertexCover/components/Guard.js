@@ -27,7 +27,9 @@ function Guard({top, left, width, height, id, onPress, animateRef}) {
     topSV.value = withTiming(newTop - height / 2, config);
   }
 
-  animateRef(animate);
+  if (animateRef) {
+    animateRef(animate);
+  }
 
   const styles = StyleSheet.create({
     image: {
@@ -41,8 +43,9 @@ function Guard({top, left, width, height, id, onPress, animateRef}) {
     <AnimatedPressable
       style={[animatedStyle]}
       onPressIn={() => {
-        onPress(id);
-        console.log('Guard got pressed');
+        if (onPress) {
+          onPress(id);
+        }
       }}>
       <Image source={images.guard} style={styles.image} />
     </AnimatedPressable>

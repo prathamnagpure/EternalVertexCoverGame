@@ -1,20 +1,19 @@
 import {React, useState, useEffect, useRef, useCallback} from 'react';
 import Images from '../assets/Images';
+import {giveMap as giveMapA} from '../MainApp/MainAlgoBruteForce';
+import {giveMap as giveMapD} from '../MainApp/MainAlgoBruteForceD';
 import {
   View,
   Pressable,
   StyleSheet,
   Text,
   Image,
+  useWindowDimensions,
   ImageBackground,
 } from 'react-native';
-
 import TouchableCircle from './TouchableCircle';
-
 import TouchableLine from './TouchableLine';
-
 import parse from 'dotparser';
-
 import Sound from 'react-native-sound';
 import {tupleToString} from '../MainApp/MainAlgoBruteForce';
 import {
@@ -30,25 +29,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import Poop from './Poop';
 import Guard from './Guard';
-
 let showAnimation = false;
 const Turns = {
   DefenderFirst: 1,
-
   DefenderLater: 2,
-
   Attacker: 3,
 };
-
 const Winner = {
   Defender: 1,
-
   Attacker: 2,
 };
-
 const Modes = {
   AutoAttacker: 'autoAttacker',
-
   AutoDefender: 'autoDefender',
 };
 
@@ -59,38 +51,23 @@ export default function Stage({stage, mode}) {
   const [guardStateMap, setGuardStateMap] = useState(new Map());
   const [turn, setTurn] = useState(Turns.DefenderFirst);
   const [isLoading, setIsLoading] = useState(true);
-
+  const {height, width} = useWindowDimensions();
   const [gameWinner, setGameWinner] = useState(null);
-
   const [warning, setWarning] = useState('');
-
   const [nodeStateMap, setNodeStateMap] = useState(new Map());
-
   const [edgeStateMap, setEdgeStateMap] = useState(new Map());
-
   const nodeIdToGuardIdMap = useRef(new Map());
   const guardIdToNodeIdMap = useRef(new Map());
-
   const adjList = useRef(null);
-
   const edgeList = useRef([]);
-
   const moveMap = useRef(null);
-
   const momentoes = useRef([]);
-
   const currentMomentoIndex = useRef(0);
-
   const maxMomentoIndex = useRef(0);
-
   const attackedEdge = useRef(null);
-
   const guards = useRef([]);
-
   const moves = useRef(stage.moves);
-
   const selected = useRef(null);
-
   // const [showAnimation, setShowAnimation] = useState(false);
   const pressed = useSharedValue(false);
   const offset = useSharedValue(0);
@@ -105,23 +82,14 @@ export default function Stage({stage, mode}) {
   const opacity = useSharedValue(0);
   const poopOpacity = useSharedValue(1);
   const butwidth = useSharedValue(100);
-
   const sound = new Sound('fart.mp3', Sound.MAIN_BUNDLE, error => {
     if (error) {
-      console.log('failed to load the sound', error);
       return;
     }
     // loaded successfully
-    console.log(
-      'duration in seconds: ' +
-        sound.getDuration() +
-        'number of channels: ' +
-        sound.getNumberOfChannels(),
-    );
-
     // Play the sound with an onEnd callback
   });
-
+  console.log('moves', stage.moves, moves.current);
   const pan = Gesture.Pan()
     .onBegin(() => {
       pressed.value = true;
@@ -137,7 +105,6 @@ export default function Stage({stage, mode}) {
       offset.value = 0;
       offsety.value = 0;
     });
-
   const animatedStyles = useAnimatedStyle(() => ({
     transform: [
       {translateX: offset.value},
@@ -149,7 +116,6 @@ export default function Stage({stage, mode}) {
     width: butwidth.value,
     height: butwidth.value,
   }));
-
   const animatedStylesPoop = useAnimatedStyle(() => {
     return {
       opacity: poopOpacity.value,
@@ -166,7 +132,6 @@ export default function Stage({stage, mode}) {
       ],
     };
   });
-
   const animatedStylesFire = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
@@ -217,7 +182,6 @@ export default function Stage({stage, mode}) {
           inY.value,
         {duration: 3000},
         () => {
-          console.log('y value ');
           poopY.value = translateY.value + poopY.value;
           translateY.value = 0;
         },
@@ -241,108 +205,80 @@ export default function Stage({stage, mode}) {
     pigImage,
     showAnimation,
   ]);
-
   function pooperPrakat() {
-    console.log('pahunch gaya');
     setPigImage(Images.pigpoop);
     // set poop
     showAnimation = true;
     // setShowAnimation(true);
-
-    sound.play(error => {
-      console.log('some error', error);
-    });
+    sound.play(error => {});
     setPoop(true);
     poopX.value = inX.value;
     poopY.value = inY.value;
     // set shared location
     //setpoop fire angle
-
     // set pig naugty
-
     //
   }
 
   // Initializer
-
   useEffect(() => {
-    if (construct()) {
+    const status = construct();
+    if (status === 'ok') {
       if (mode === Modes.AutoDefender) {
         stage.guards.sort((a, b) => a - b);
-
         moveMap.current = new Map(Object.entries(stage.map));
-
         setTurn(Turns.Attacker);
       } else if (mode === Modes.AutoAttacker) {
         moveMap.current = new Map(Object.entries(stage.map));
       }
-    } else {
+      setIsLoading(false);
+    } else if (status === 'error') {
       setWarning('An error occurred');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, [construct, mode, stage.guards, stage.map]);
 
   const saveMomento = useCallback(
     function (calledByUndo = false) {
       const momento = {
         nodes: [],
-
         edges: [],
-
         moves: moves.current,
-
         attackedEdge: attackedEdge.current,
-
         turn,
-
         gameWinner,
       };
-
       [...nodeStateMap.keys()].forEach(key => {
         const nodeState = nodeStateMap.get(key);
-
         momento.nodes.push({
           ...nodeState,
         });
       });
-
       [...edgeStateMap.keys()].forEach(key => {
         const edgeState = edgeStateMap.get(key);
-
         momento.edges.push({
           ...edgeState,
         });
       });
-
       momentoes.current.slice(0, currentMomentoIndex.current);
-
       momentoes.current.push(momento);
-
       if (!calledByUndo) {
         maxMomentoIndex.current = currentMomentoIndex.current + 1;
       }
-
       currentMomentoIndex.current = maxMomentoIndex.current;
     },
-
     [edgeStateMap, gameWinner, nodeStateMap, turn],
   );
-
   function undo() {
     if (currentMomentoIndex.current === 0) {
       return;
     }
-
     if (currentMomentoIndex.current === maxMomentoIndex.current) {
       saveMomento(true);
     }
-
     currentMomentoIndex.current--;
-
     applyMomento(momentoes.current[currentMomentoIndex.current]);
   }
-
   function isHumanPlaying() {
     return (
       (mode === Modes.AutoDefender && turn === Turns.Attacker) ||
@@ -351,53 +287,37 @@ export default function Stage({stage, mode}) {
       !mode
     );
   }
-
   function redo() {
     if (currentMomentoIndex.current === maxMomentoIndex.current) {
       return;
     }
-
     currentMomentoIndex.current++;
-
     if (isHumanPlaying()) {
       applyMomento(currentMomentoIndex.current);
     }
   }
-
   function applyMomento(momento) {
     const newNodeStateMap = new Map();
-
     momento.nodes.forEach(value => {
       newNodeStateMap.set(value.id, value);
     });
-
     setNodeStateMap(newNodeStateMap);
-
     const newEdgeStateMap = new Map();
-
     momento.edges.forEach(value => {
       newEdgeStateMap.set(value.id, value);
     });
-
     setEdgeStateMap(newEdgeStateMap);
-
     attackedEdge.current = momento.attackedEdge;
-
     moves.current = momento.moves;
-
     setTurn(momento.turn);
     if (momento.turn === Turns.Attacker) {
-      setPigImage(Images.naugtypig)
+      setPigImage(Images.naugtypig);
     }
-
     setGameWinner(momento.gameWinner);
   }
-
   function renderNodes() {
     return [...nodeStateMap.keys()]
-
       .map(key => nodeStateMap.get(key))
-
       .map(value => {
         return (
           <TouchableCircle
@@ -409,15 +329,11 @@ export default function Stage({stage, mode}) {
         );
       });
   }
-
   function renderEdges() {
     return [...edgeStateMap.keys()]
-
       .map(key => [key, edgeStateMap.get(key)])
-
       .map(element => {
         const [key, value] = element;
-
         return (
           <TouchableLine
             key={key}
@@ -428,12 +344,9 @@ export default function Stage({stage, mode}) {
         );
       });
   }
-
   function onGuardPress(guardId) {
-    console.log('On guard Press: ', guardIdToNodeIdMap.current.get(guardId));
     showGuard(guardIdToNodeIdMap.current.get(guardId));
   }
-
   function renderGuards() {
     return [...guardStateMap.keys()]
       .map(key => [key, guardStateMap.get(key)])
@@ -454,84 +367,55 @@ export default function Stage({stage, mode}) {
         );
       });
   }
-
   function resetNodes() {
     const newNodeStateMap = new Map();
-
     [...nodeStateMap.keys()].forEach(key => {
       const value = nodeStateMap.get(key);
-
       newNodeStateMap.set(key, {
         ...value,
-
         isGuardPresent: false,
-
         isSelected: false,
       });
     });
-
     setNodeStateMap(newNodeStateMap);
   }
-
   function resetEdges() {
     const newEdgeStateMap = new Map();
-
     [...edgeStateMap.keys()].forEach(key => {
       const value = edgeStateMap.get(key);
-
       value.moveGuard1 = false;
-
       value.moveGuard2 = false;
-
       value.isAttacked = false;
-
       newEdgeStateMap.set(key, value);
     });
-
     setEdgeStateMap(newEdgeStateMap);
   }
-
   function restartGame() {
     currentMomentoIndex.current = 0;
-
     maxMomentoIndex.current = 0;
-
     momentoes.current = [];
-
     attackedEdge.current = null;
-
     moves.current = stage.moves;
-
     resetNodes();
-
     resetEdges();
-
     if (mode === Modes.AutoDefender) {
       const newNodeStateMap = new Map(nodeStateMap);
-
       [...nodeStateMap.keys()].forEach(key => {
         const value = nodeStateMap.get(key);
-
         if (stage.guards.includes(parseInt(key, 10))) {
           newNodeStateMap.set(key, {...value, isGuardPresent: true});
         }
       });
-
       setTurn(Turns.Attacker);
       setPigImage(Images.naugtypig);
-
       setGameWinner(null);
-
       setNodeStateMap(newNodeStateMap);
     } else {
       setTurn(Turns.DefenderFirst);
-
       setGameWinner(null);
-
       setGuardCount(stage.guardCount);
     }
   }
-
   function onButtonPress() {
     if (gameWinner) {
       restartGame();
@@ -539,110 +423,83 @@ export default function Stage({stage, mode}) {
       changeTurn();
     }
   }
-
   function isGuardOnEdge(edgeId) {
     const [node1, node2] = edgeId.split(';');
-
     return (
       nodeStateMap.get(node1).isGuardPresent ||
       nodeStateMap.get(node2).isGuardPresent
     );
   }
-
   function playAutoAttacker(isCalledByRedo) {
     if (moves.current === 0) {
       setGameWinner(prev => (prev ? prev : Winner.Defender));
-
       return;
     }
-
     guards.current = [];
-
     const newNodeStateMap = new Map(nodeStateMap);
-
     newNodeStateMap.forEach(nodeState => {
       if (nodeState.isGuardPresent) {
         guards.current.push(parseInt(nodeState.id, 10));
       }
     });
-
+    console.log('here', moveMap.current);
     let toAttack = moveMap.current.get(
       tupleToString(guards.current) + ';' + moves.current,
     )[0];
-
     attackedEdge.current =
       edgeList.current[toAttack][0] + ';' + edgeList.current[toAttack][1];
-
     onEdgePress(attackedEdge.current, Turns.Attacker);
-
     moves.current--;
-
     checkAttack(isCalledByRedo);
+    pooperPrakat();
   }
-
   function playAutoDefender() {
     --moves.current;
-
     if (moves.current <= 0) {
       setGameWinner(prev => (prev ? prev : Winner.Defender));
-
       return;
     }
-
     guards.current = [];
-
     const newNodeStateMap = new Map(nodeStateMap);
-
     newNodeStateMap.forEach(nodeState => {
       if (nodeState.isGuardPresent) {
         guards.current.push(parseInt(nodeState.id, 10));
       }
     });
-
     guards.current.sort((a, b) => a - b);
-
     const [node1, node2] = attackedEdge.current.split(';');
-
     let edgeIndex = -1;
-
     edgeList.current.forEach((value, index) => {
       if (String(value[0]) === node1 && String(value[1]) === node2) {
         edgeIndex = index;
       }
     });
-
     const nextMove = moveMap.current.get(
       tupleToString(guards.current) + ';' + edgeIndex + ';' + moves.current,
     );
-
+    console.log(
+      'this val',
+      tupleToString(guards.current) + ';' + edgeIndex + ';' + moves.current,
+    );
     const newPos = nextMove[0];
-
     const changes = nextMove[nextMove.length - 1];
-
     const newEdgeStateMap = new Map(edgeStateMap);
-
     newPos.forEach((value, index) => {
       const nodeId1 = String(guards.current[changes[index]]);
-
       const nodeId2 = String(value);
-
       showGuardMovement(newEdgeStateMap, nodeId1, nodeId2);
     });
-
     setEdgeStateMap(newEdgeStateMap);
   }
-
   function checkAttack(isCalledByRedo = false) {
     if (!attackedEdge.current) {
       setWarning('You have to attack an edge');
       return false;
     } else {
       // Saving momento.
-
       if (mode !== Modes.AutoAttacker && !isCalledByRedo) {
         saveMomento();
       }
-
       if (isGuardOnEdge(attackedEdge.current)) {
         setTurn(Turns.DefenderLater);
       } else {
@@ -651,22 +508,17 @@ export default function Stage({stage, mode}) {
     }
     return true;
   }
-
   function changeTurn(isCalledByRedo = false) {
     if (isLoading) {
       return;
     }
-
     setWarning('');
-
     if (turn === Turns.DefenderFirst) {
       if (guardCount === 0) {
         // Saving momento.
-
         if (mode !== Modes.AutoDefender && !isCalledByRedo) {
           saveMomento();
         }
-
         if (mode === Modes.AutoAttacker) {
           playAutoAttacker(isCalledByRedo);
         } else {
@@ -685,55 +537,39 @@ export default function Stage({stage, mode}) {
       }
     } /* turn === Turns.DefenderLater */ else {
       const nodeGuardCounter = new Map();
-
       const newNodeStateMap = new Map(nodeStateMap);
-
       [...newNodeStateMap.keys()].forEach(nodeId => {
         nodeGuardCounter.set(
           nodeId,
           newNodeStateMap.get(nodeId).isGuardPresent ? 1 : 0,
         );
       });
-
       const newEdgeStateMap = new Map(edgeStateMap);
-
       newEdgeStateMap.forEach((edgeState, edgeId) => {
         let [node1, node2] = edgeId.split(';');
-
         if (edgeState.moveGuard1) {
           nodeGuardCounter.set(node1, nodeGuardCounter.get(node1) - 1);
-
           nodeGuardCounter.set(node2, nodeGuardCounter.get(node2) + 1);
         }
-
         if (edgeState.moveGuard2) {
           nodeGuardCounter.set(node1, nodeGuardCounter.get(node1) + 1);
-
           nodeGuardCounter.set(node2, nodeGuardCounter.get(node2) - 1);
         }
       });
-
       let good = true;
-
       nodeGuardCounter.forEach(value => {
         if (value < 0 || value > 1) {
           good = false;
         }
       });
-
       if (good) {
         // Saving momento.
-
         if (mode !== Modes.AutoDefender && !isCalledByRedo) {
           saveMomento();
         }
-
         let wasCovered = false;
-
         const guardExistsSet = new Set();
-
         const moveGuard = (edgeId, nodeId1, nodeId2) => {
-          console.log('Before move map', nodeIdToGuardIdMap.current);
           if (edgeId === attackedEdge.current) {
             wasCovered = true;
           }
@@ -754,21 +590,16 @@ export default function Stage({stage, mode}) {
           }
           guardIdToNodeIdMap.current.set(guardId, nodeId2);
           guardState.animateRef(x, y);
-
           if (!guardExistsSet.has(nodeId1)) {
             const nodeState = newNodeStateMap.get(nodeId1);
-
             nodeState.isGuardPresent = false;
-
             newNodeStateMap.set(nodeId1, nodeState);
           }
           const nodeState = newNodeStateMap.get(nodeId2);
           nodeState.isGuardPresent = true;
           newNodeStateMap.set(nodeId2, nodeState);
           guardExistsSet.add(nodeId2);
-          console.log('move guard move map', nodeIdToGuardIdMap.current);
         };
-
         newEdgeStateMap.forEach((edgeState, edgeId) => {
           const [node1, node2] = edgeId.split(';');
           if (edgeState.moveGuard1) {
@@ -778,16 +609,10 @@ export default function Stage({stage, mode}) {
             moveGuard(edgeId, node2, node1);
           }
         });
-        console.log('After movement', nodeIdToGuardIdMap.current);
-
         setGuardStateMap(new Map(guardStateMap));
-
         setNodeStateMap(newNodeStateMap);
-
         setEdgeStateMap(newEdgeStateMap);
-
         const [attackedNode1, attackedNode2] = attackedEdge.current.split(';');
-
         if (
           (!nodeStateMap.get(attackedNode1).isGuardPresent &&
             !nodeStateMap.get(attackedNode2).isGuardPresent) ||
@@ -797,20 +622,15 @@ export default function Stage({stage, mode}) {
         } else {
           setTimeout(() => {
             setPoop(false);
-            console.log('poop gone');
           }, 2500);
           resetEdges();
-
           attackedEdge.current = null;
-
           if (mode === Modes.AutoAttacker) {
             moves.current--;
-
-            playAutoAttacker();
+            setTimeout(playAutoAttacker, 5000);
           } else if (mode === Modes.AutoDefender) {
             moves.current--;
           }
-
           setTurn(Turns.Attacker);
           setPigImage(Images.naugtypig);
         }
@@ -819,89 +639,62 @@ export default function Stage({stage, mode}) {
       }
     }
   }
-
   const onEdgePress = useCallback(
     (edgeId, currTurn = null) => {
       if (isLoading) {
         return;
       }
-
       currTurn = currTurn === null ? turn : currTurn;
-
       const newEdgeStateMap = new Map(edgeStateMap);
-
       if (currTurn === Turns.Attacker) {
         if (attackedEdge.current) {
           const prevState = newEdgeStateMap.get(attackedEdge.current);
-
           newEdgeStateMap.set(attackedEdge.current, {
             ...prevState,
-
             isAttacked: false,
           });
         }
-
         attackedEdge.current = edgeId;
-
         const prevState = newEdgeStateMap.get(edgeId);
-
         newEdgeStateMap.set(edgeId, {...prevState, isAttacked: true});
-
         setEdgeStateMap(newEdgeStateMap);
       } else if (
         currTurn === Turns.DefenderLater &&
         mode !== Modes.AutoDefender
       ) {
         const prevState = newEdgeStateMap.get(edgeId);
-
         newEdgeStateMap.set(edgeId, {
           ...prevState,
-
           moveGuard1: false,
-
           moveGuard2: false,
         });
-
         setEdgeStateMap(newEdgeStateMap);
       }
     },
-
     [edgeStateMap, isLoading, mode, turn],
   );
-
   function showGuardMovement(currEdgeStateMap, fromNodeId, toNodeId) {
     if (fromNodeId === toNodeId) {
       return;
     }
-
     let edgeId = fromNodeId + ';' + toNodeId;
-
     let edgeState = currEdgeStateMap.get(edgeId);
-
     if (currEdgeStateMap.has(edgeId)) {
       edgeState.moveGuard1 = true;
     } else {
       edgeId = toNodeId + ';' + fromNodeId;
-
       edgeState = edgeStateMap.get(edgeId);
-
       edgeState.moveGuard2 = true;
     }
-
     currEdgeStateMap.set(edgeId, edgeState);
   }
-
   function showGuard(nodeId, bySystem = false, currentTurn = null) {
     if (!bySystem && (isLoading || mode === Modes.AutoDefender)) {
       return;
     }
-
     currentTurn = currentTurn === null ? turn : currentTurn;
-
     const newNodeStateMap = new Map(nodeStateMap);
-
     const nodeState = newNodeStateMap.get(nodeId);
-
     const newGuardStates = new Map(guardStateMap);
     if (currentTurn === Turns.DefenderFirst) {
       if (nodeIdToGuardIdMap.current.has(nodeId)) {
@@ -919,68 +712,46 @@ export default function Stage({stage, mode}) {
         guardIdToNodeIdMap.current.set(nodeId, nodeId);
         newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: true});
       }
-
       setNodeStateMap(newNodeStateMap);
       setGuardStateMap(newGuardStates);
     } else if (currentTurn === Turns.DefenderLater) {
       if (selected.current) {
         if (adjList.current.get(selected.current).includes(nodeId)) {
           const newEdgeStateMap = new Map(edgeStateMap);
-
           showGuardMovement(newEdgeStateMap, selected.current, nodeId);
-
           setEdgeStateMap(newEdgeStateMap);
         }
-
         const selectedNodeState = newNodeStateMap.get(selected.current);
-
         newNodeStateMap.set(selected.current, {
           ...selectedNodeState,
-
           isSelected: false,
         });
-
         selected.current = null;
-
         setNodeStateMap(newNodeStateMap);
       } else if (nodeState.isGuardPresent) {
         newNodeStateMap.set(nodeId, {...nodeState, isSelected: true});
-
         selected.current = nodeId;
-
         setNodeStateMap(newNodeStateMap);
       }
     }
   }
-
   let buttonTitle = 'Done';
-
   let headingStyle = styles.heading;
-
   let headingText = '';
-
   if (gameWinner) {
     buttonTitle = 'Restart';
-
     let winText =
       gameWinner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
-
     let textColor = {color: 'white'};
-
     if (mode) {
       const isAutoAttacker = mode === Modes.AutoAttacker;
-
       const isWinnerAttacker = gameWinner === Winner.Attacker;
-
       winText = isAutoAttacker === isWinnerAttacker ? 'You Lose' : 'You Won';
-
       textColor =
         isAutoAttacker === isWinnerAttacker ? styles.red : styles.green;
     }
-
     headingStyle = [styles.heading, textColor];
-
-    headingText = `Game Over, ${winText}`;
+    headingText = `${winText}!`;
   } else if (isLoading) {
     headingText = 'Loading... Please Wait';
   } else {
@@ -989,99 +760,77 @@ export default function Stage({stage, mode}) {
         switch (turn) {
           case Turns.Attacker:
             headingText = "Attacker's Turn";
-
             break;
-
           case Turns.DefenderLater:
             headingText = `Your turn | Turns Left: ${(moves.current + 1) / 2}`;
-
             break;
-
           case Turns.DefenderFirst:
             headingText = `Guards Left: ${guardCount}`;
-
             headingStyle = [
               styles.heading,
-
               {
                 color: guardCount < 0 ? 'red' : 'white',
               },
             ];
-
             break;
-
           default:
         }
-
         break;
-
       case Modes.AutoDefender:
         headingText =
           turn === Turns.Attacker
             ? `Your turn | Turns Left: ${(moves.current + 1) / 2}`
             : "Defender's Turn";
-
         break;
-
       default:
         switch (turn) {
           case Turns.Attacker:
             headingText = "Attacker's Turn";
-
             break;
-
           case Turns.DefenderLater:
             headingText = "Defenders's turn";
-
             break;
-
           default:
             headingText = `Guards Left: ${guardCount}`;
-
             headingStyle = [
               styles.heading,
-
               {
                 color: guardCount < 0 ? 'red' : 'white',
               },
             ];
         }
     }
+    console.log('now', moves.current);
   }
-
   const construct = useCallback(
     function construct() {
       let ast = null;
       try {
         ast = parse(stage.graph);
       } catch {
-        return false;
+        return 'error';
       }
-
       if (!ast) {
-        return false;
+        return 'error';
       }
-
       adjList.current = new Map();
-
       edgeList.current = [];
-
       const newNodeStateMap = new Map();
       const newEdgeStateMap = new Map();
       const newGuardStateMap = new Map();
-
       const children = ast[0].children;
-
+      let maxX = 0,
+        maxY = 0;
+      let adjListForMap = [];
       for (const element of children) {
         if (element.type === 'node_stmt') {
           const [x, y] = element.attr_list[0].eq.split(' ');
-
+          maxX = Math.max(x, maxX);
+          maxY = Math.max(y, maxY);
           const id = String(element.node_id.id);
-
           adjList.current.set(id, []);
-
+          adjListForMap.push([]);
           let isGuardPresent = false;
-
           if (
             mode === Modes.AutoDefender &&
             stage.guards.includes(parseInt(id, 10))
@@ -1097,14 +846,10 @@ export default function Stage({stage, mode}) {
             nodeIdToGuardIdMap.current.set(id, [id]);
             guardIdToNodeIdMap.current.set(id, id);
           }
-
           newNodeStateMap.set(id, {
             x: parseFloat(x),
-
             y: parseFloat(y),
-
             id: String(element.node_id.id),
-
             isGuardPresent,
           });
         } /* edge */ else {
@@ -1112,69 +857,94 @@ export default function Stage({stage, mode}) {
             String(element.edge_list[0].id) +
             ';' +
             String(element.edge_list[1].id);
-
           const node1 = newNodeStateMap.get(String(element.edge_list[0].id));
-
           const node2 = newNodeStateMap.get(String(element.edge_list[1].id));
-
           newEdgeStateMap.set(edgeId, {
             id: edgeId,
-
             x1: node1.x,
-
             y1: node1.y,
-
             x2: node2.x,
-
             y2: node2.y,
-
             isAttacked: false,
-
             moveGuard1: false,
-
             moveGuard2: false,
           });
-
           if (isAutomatic(mode)) {
             edgeList.current.push([
               element.edge_list[0].id,
-
               element.edge_list[1].id,
             ]);
           }
-
           adjList.current
-
             .get(String(element.edge_list[0].id))
-
             .push(String(element.edge_list[1].id));
-
           adjList.current
-
             .get(String(element.edge_list[1].id))
-
             .push(String(element.edge_list[0].id));
         }
       }
-
+      let returnVal = 'ok';
+      if (!stage.map) {
+        if (mode === Modes.AutoAttacker) {
+          returnVal = 'loading';
+          setTimeout(() => {
+            stage.map = Object.fromEntries(
+              giveMapA(
+                stage.guardCount,
+                adjListForMap,
+                edgeList.current,
+                stage.moves,
+              ),
+            );
+            moveMap.current = new Map(Object.entries(stage.map));
+            setIsLoading(false);
+          }, 0);
+        } else if (mode === Modes.AutoDefender) {
+          stage.guards.sort((a, b) => a - b);
+          returnVal = 'loading';
+          setTimeout(() => {
+            stage.map = Object.fromEntries(
+              giveMapD(
+                stage.guardCount,
+                stage.guards,
+                adjListForMap,
+                edgeList.current,
+                stage.moves - 1,
+              ),
+            );
+            console.log('I am here', stage.map);
+            moveMap.current = new Map(Object.entries(stage.map));
+            setIsLoading(false);
+            setTurn(Turns.Attacker);
+          });
+        }
+      }
+      function resize(x, y) {
+        return [(x / maxX) * width * 0.85, (y / maxY) * height * 0.7];
+      }
+      newNodeStateMap.forEach(value => {
+        [value.x, value.y] = resize(value.x, value.y);
+      });
+      newEdgeStateMap.forEach(value => {
+        [value.x1, value.y1] = resize(value.x1, value.y1);
+        [value.x2, value.y2] = resize(value.x2, value.y2);
+      });
+      newGuardStateMap.forEach(value => {
+        [value.left, value.top] = resize(value.left, value.top);
+      });
       setNodeStateMap(newNodeStateMap);
       setEdgeStateMap(newEdgeStateMap);
       setGuardStateMap(newGuardStateMap);
-
-      return true;
+      return returnVal;
     },
-    [mode, stage.graph, stage.guards],
+    [mode, stage.graph, stage.guards, height, width],
   );
-
   const undoButtonStyle = [
     styles.undo,
-
     {display: currentMomentoIndex.current > 0 ? 'flex' : 'none'},
   ];
-
   const redoButtonStyle = [
     styles.redo,
-
     {
       display:
         currentMomentoIndex.current < maxMomentoIndex.current ? 'flex' : 'none',
@@ -1183,11 +953,8 @@ export default function Stage({stage, mode}) {
   let angle = 0;
   if (attackedEdge.current) {
     const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
-    console.log({x1, x2, y1, y2});
-    console.log(edgeStateMap.get(attackedEdge.current));
     angle = ((y1 + y2) / 2 - inY.value) / ((x1 + x2) / 2 - inX.value);
   }
-
   return (
     <GestureHandlerRootView style={styles.container}>
       <ImageBackground
@@ -1196,25 +963,24 @@ export default function Stage({stage, mode}) {
         style={{
           flex: 1,
         }}>
-        <Text style={[headingStyle]}>{headingText}</Text>
-
+        <Text
+          allowFontScaling={true}
+          adjustsFontSizeToFit={true}
+          style={[headingStyle]}>
+          {headingText}
+        </Text>
         <Pressable onPressIn={undo} style={undoButtonStyle}>
           <Text>Undo</Text>
         </Pressable>
-
         <Pressable onPressIn={redo} style={redoButtonStyle}>
           <Text>Redo</Text>
         </Pressable>
-
         <View style={styles.container}>
           {renderEdges()}
           {renderNodes()}
           {renderGuards()}
-          {console.log('after render guards', guardStateMap)}
         </View>
-
         <Text style={styles.warning}>{warning}</Text>
-
         <Pressable onPressIn={onButtonPress} style={styles.button}>
           <Text>{buttonTitle}</Text>
         </Pressable>
@@ -1268,113 +1034,74 @@ export default function Stage({stage, mode}) {
     </GestureHandlerRootView>
   );
 }
-
 function isAutomatic(mode) {
   return mode === Modes.AutoAttacker || mode === Modes.AutoDefender;
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: 30,
-
     // backgroundColor: 'yellow',
   },
-
   heading: {
+    padding: 5,
     alignSelf: 'center',
-
     fontSize: 20,
-
     top: 5,
-
+    alignItems: 'center',
+    justifyContent: 'center',
     fontWeight: 'bold',
     color: 'white',
-    height: 35,
-    backgroundColor: 'green',
+    height: 33,
+    backgroundColor: 'black',
+    borderRadius: 10,
   },
-
   red: {
     color: 'red',
   },
-
   green: {
     color: 'green',
   },
-
   button: {
     backgroundColor: 'grey',
-
     padding: 15,
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     position: 'absolute',
-
     top: 600,
-
     width: '100%',
-
     alignSelf: 'center',
   },
-
   warning: {
     padding: 15,
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     position: 'absolute',
-
     top: 500,
-
     color: 'red',
-
     fontSize: 15,
-
     alignSelf: 'center',
   },
-
   undo: {
     backgroundColor: 'grey',
-
     padding: 8,
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     position: 'absolute',
-
     top: 550,
-
     width: '20%',
-
     left: 50,
-
     alignSelf: 'center',
   },
-
   redo: {
     backgroundColor: 'grey',
-
     padding: 8,
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     position: 'absolute',
-
     top: 550,
-
     right: 50,
-
     width: '20%',
-
     alignSelf: 'center',
   },
 });

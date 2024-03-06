@@ -3,14 +3,8 @@ import {View, Text, StyleSheet, FlatList, Pressable} from 'react-native';
 import GraphPreview from './GraphPreview';
 import stages from '../assets/Stages';
 
-const PlayerVsPlayer = ({navigation, route}) => {
-  const {levels, title} = route.params;
-  let mode = null;
-  if (title === 'Attacker') {
-    mode = 'autoDefender';
-  } else if (title === 'Defender') {
-    mode = 'autoAttacker';
-  }
+const LevelLayout = ({navigation, route}) => {
+  const {levels, mode} = route.params;
   const levelButtons = levels.map((level, index) => {
     const buttonLabel = `Level ${index + 1}`;
 
@@ -86,4 +80,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PlayerVsPlayer;
+export default LevelLayout;

@@ -70,7 +70,8 @@ export default class App extends Component {
             name="LevelLayout"
             component={LevelLayout}
             options={({route}) => ({
-              title: route.params.title,
+              title:
+                route.params.mode === 'autoAttacker' ? 'Defender' : 'Attacker',
             })}
           />
           <Stack.Screen
