@@ -1,0 +1,85 @@
+import {Modal} from 'react-native';
+import React, {useState} from 'react';
+import {View, StyleSheet, Pressable, Text, Button, Image} from 'react-native';
+export default function MyModal({
+  text,
+  modalVisible,
+  onClickNext,
+  x,
+  y,
+  goBack,
+}) {
+  return (
+    // <View style={[styles.centeredView, {top: y, left: x}]}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => {
+        // Alert.alert('Modal has been closed.');
+        goBack();
+      }}>
+      <View style={[styles.centeredView, {top: y, left: x}]}>
+        <View style={styles.modalView}>
+          <Text style={styles.modalText}>{text}</Text>
+          <Pressable
+            style={[styles.button, styles.buttonOpen]}
+            onPress={() => onClickNext()}>
+            <Text style={styles.textStyle}>Next</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+    // </View>
+  );
+}
+const styles = StyleSheet.create({
+  centeredView: {
+    // flex: 1,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    // borderColor: 'black',
+    // borderWidth: 20,
+    // marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 10,
+    width: 300,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    color: 'black',
+    fontWeight: 'bold',
+  },
+});

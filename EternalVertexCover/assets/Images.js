@@ -9,6 +9,7 @@ const images = {
   farm: require('./images/farm.jpg'),
   farmbg: require('./images/wheatbg.jpg'),
   title: require('./images/Title.png'),
+  pinkArrow: require('./images/pinkArrow.png'),
 };
 
 export default images;

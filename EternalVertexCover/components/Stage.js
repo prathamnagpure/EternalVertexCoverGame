@@ -29,6 +29,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Poop from './Poop';
 import Guard from './Guard';
+import TutorialStep from './TutorialStep';
+import PinkArrow from './PinkArrow';
 let showAnimation = false;
 const Turns = {
   DefenderFirst: 1,
@@ -44,7 +46,12 @@ const Modes = {
   AutoDefender: 'autoDefender',
 };
 
-export default function Stage({stage, mode}) {
+export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
+  // const []
+  const [atTutStage, setAtTutStage] = useState(1);
+  const [tutVisible, setTutVisible] = useState(
+    isAttackerTutorial ? true : false,
+  );
   const [pigImage, setPigImage] = useState(Images.naugtypig);
   const [poop, setPoop] = useState(false);
   const [guardCount, setGuardCount] = useState(stage.guardCount);
@@ -144,6 +151,28 @@ export default function Stage({stage, mode}) {
     ],
   }));
 
+  const atNextFunc = () => {
+    switch (atTutStage) {
+      case 1:
+        setAtTutStage(2);
+        break;
+      case 2:
+        setTutVisible(false);
+        break;
+      case 3:
+        setTutVisible(false);
+        break;
+      case 4:
+        setTutVisible(false);
+        break;
+      case 5:
+        setTutVisible(false);
+        setAtTutStage(4);
+        // setAtTutStage(4);
+        break;
+    }
+  };
+
   useEffect(() => {
     if (showAnimation) {
       showAnimation = false;
@@ -241,25 +270,16 @@ export default function Stage({stage, mode}) {
   const saveMomento = useCallback(
     function (calledByUndo = false) {
       const momento = {
-        nodes: [],
-        edges: [],
         moves: moves.current,
         attackedEdge: attackedEdge.current,
         turn,
         gameWinner,
+        guardStateMap: new Map(guardStateMap),
+        nodeStateMap: new Map(nodeStateMap),
+        edgeStateMap: new Map(edgeStateMap),
+        poop,
+        tutVisible,
       };
-      [...nodeStateMap.keys()].forEach(key => {
-        const nodeState = nodeStateMap.get(key);
-        momento.nodes.push({
-          ...nodeState,
-        });
-      });
-      [...edgeStateMap.keys()].forEach(key => {
-        const edgeState = edgeStateMap.get(key);
-        momento.edges.push({
-          ...edgeState,
-        });
-      });
       momentoes.current.slice(0, currentMomentoIndex.current);
       momentoes.current.push(momento);
       if (!calledByUndo) {
@@ -297,16 +317,9 @@ export default function Stage({stage, mode}) {
     }
   }
   function applyMomento(momento) {
-    const newNodeStateMap = new Map();
-    momento.nodes.forEach(value => {
-      newNodeStateMap.set(value.id, value);
-    });
-    setNodeStateMap(newNodeStateMap);
-    const newEdgeStateMap = new Map();
-    momento.edges.forEach(value => {
-      newEdgeStateMap.set(value.id, value);
-    });
-    setEdgeStateMap(newEdgeStateMap);
+    setNodeStateMap(momento.nodeStateMap);
+    setGuardStateMap(momento.guardStateMap);
+    setEdgeStateMap(momento.edgeStateMap);
     attackedEdge.current = momento.attackedEdge;
     moves.current = momento.moves;
     setTurn(momento.turn);
@@ -314,6 +327,8 @@ export default function Stage({stage, mode}) {
       setPigImage(Images.naugtypig);
     }
     setGameWinner(momento.gameWinner);
+    setPoop(momento.poop);
+    setTutVisible(momento.tutVisible);
   }
   function renderNodes() {
     return [...nodeStateMap.keys()]
@@ -501,6 +516,10 @@ export default function Stage({stage, mode}) {
         saveMomento();
       }
       if (isGuardOnEdge(attackedEdge.current)) {
+        if (atTutStage === 4) {
+          setTutVisible(true);
+          setAtTutStage(5);
+        }
         setTurn(Turns.DefenderLater);
       } else {
         setGameWinner(prev => (prev ? prev : Winner.Attacker));
@@ -533,9 +552,18 @@ export default function Stage({stage, mode}) {
         pooperPrakat();
         if (mode === Modes.AutoDefender) {
           playAutoDefender();
+          if (atTutStage === 2) {
+            setAtTutStage(3);
+            setTutVisible(true);
+          }
+          if (atTutStage === 4) {
+            console.log('reached in at 4');
+          }
         }
       }
     } /* turn === Turns.DefenderLater */ else {
+      setAtTutStage(4);
+      setTutVisible(true);
       const nodeGuardCounter = new Map();
       const newNodeStateMap = new Map(nodeStateMap);
       [...newNodeStateMap.keys()].forEach(nodeId => {
@@ -1030,6 +1058,22 @@ export default function Stage({stage, mode}) {
             )}
           </>
         </GestureDetector>
+        {tutVisible && (
+          <TutorialStep
+            tutorialState={atTutStage}
+            pigX={inX.value}
+            j
+            pigY={inY.value}
+            nextFunction={() => {
+              atNextFunc();
+            }}
+            goBack={() => {
+              navigation.goBack();
+            }}
+          />
+        )}
+
+        {/* <PinkArrow x1={100} y1={100} x2={400} y2={200} /> */}
       </ImageBackground>
     </GestureHandlerRootView>
   );

@@ -14,6 +14,7 @@ import graph13 from './graphs/graph13';
 import graph14 from './graphs/graph14';
 import graph15 from './graphs/graph15';
 import graph16 from './graphs/graph16';
+import graph17 from './graphs/graph17';
 const stages = [
   {graph: graph1, guardCount: 2, graphNum: 1},
   {graph: graph2, guardCount: 3, graphNum: 2},
@@ -123,6 +124,14 @@ const stages = [
     guards: [0, 1, 4, 5, 12, 10, 8],
     graphNum: 16,
     map: require('./graphMaps/file' + 16 + '.json'),
+  },
+  {
+    graph: graph17,
+    guardCount: 1,
+    moves: 3,
+    guards: [1],
+    graphNum: 17,
+    // map: require('./graphMaps/file' + 17 + '.json'),
   },
   //{graph: graph1, guardCount: 2,graphNum: 1,map:require('./graphMaps/file'+ 1+'.json')},
   //{graph: graph2, guardCount: 3,graphNum: 2,map:require('./graphMaps/file'+ 2+'.json')},

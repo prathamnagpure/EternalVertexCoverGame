@@ -15,6 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import images from '../assets/Images';
+import stages from '../assets/Stages';
 const attackerLevels = [7, 8, 9, 10, 11, 12, 13];
 const defenderLevels = [2, 3, 4, 5, 6, 14, 15];
 const pvpLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -72,6 +73,18 @@ function MainPage({navigation}) {
           style={styles.button}
           title=""
           onPress={() =>
+            navigation.navigate('Level', {
+              mode: 'autoDefender',
+              isAttackerTutorial: true,
+              stage: stages[16],
+            })
+          }>
+          <Text style={styles.text}>Tutorial </Text>
+        </Pressable>
+        <Pressable
+          style={styles.button}
+          title=""
+          onPress={() =>
             navigation.navigate('LevelLayout', {
               levels: attackerLevels,
               mode: 'autoDefender',
@@ -85,7 +98,7 @@ function MainPage({navigation}) {
           onPress={() =>
             navigation.navigate('LevelLayout', {
               levels: defenderLevels,
-              mode: 'autoAttacker'
+              mode: 'autoAttacker',
             })
           }>
           <Text style={styles.text}>Defender</Text>
@@ -114,12 +127,12 @@ function MainPage({navigation}) {
           <Text style={styles.text}>graphmaker</Text>
         </Pressable>
         {
-          // <Pressable
-          //   style={styles.button}
-          //   title=""
-          //   onPress={() => navigation.navigate('testarea')}>
-          //   <Text style={styles.text}>testarea</Text>
-          // </Pressable>
+          <Pressable
+            style={styles.button}
+            title=""
+            onPress={() => navigation.navigate('testarea')}>
+            <Text style={styles.text}>testarea</Text>
+          </Pressable>
         }
       </View>
     </ImageBackground>

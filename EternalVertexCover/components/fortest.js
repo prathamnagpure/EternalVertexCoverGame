@@ -11,11 +11,14 @@ import {
 import Images from '../assets/Images';
 import Sound from 'react-native-sound';
 import Guard from './Guard';
+import MyModal from './Modal';
+import PinkArrow from './PinkArrow';
 export default function ForTest() {
   const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
   const opacity = useSharedValue(0);
   const butwidth = useSharedValue(100);
+  const [modalVisible, setModalVisible] = useState(true);
   const [top, setTop] = useState(200);
   const [left, setLeft] = useState(200);
   const [shouldAnimate, setShouldAnimate] = useState(true);
@@ -80,7 +83,8 @@ export default function ForTest() {
       },
     ],
   }));
-
+  const startx = 100;
+  const starty = 100;
   return (
     <View style={{height: 500, flex: 1, flexDirection: 'column'}}>
       {/* <View>
@@ -88,7 +92,16 @@ export default function ForTest() {
           <Text>Poop</Text>
         </Pressable>
       </View> */}
-      <Animated.View
+      <PinkArrow x1={10} y1={400} x2={100} y2={100} />
+      <MyModal
+        modalVisible={modalVisible}
+        onClickNext={() => setModalVisible(false)}
+        x={600}
+        y={400}
+        text={'these are the steps\n step1. \n step2 \n step3 '}
+      />
+
+      {/* <Animated.View
         style={[
           {
             position: 'absolute',
@@ -114,21 +127,25 @@ export default function ForTest() {
       </Animated.View>
       <Animated.View style={[styles.box, animatedStyles]}>
         <Image style={styles.image} source={Images.poop} />
-      </Animated.View>
+      </Animated.View> */}
       {/* //adding garbage. */}
       {/* <Pressable /> */}
       {/* <View style={styles.container}> */}
       {/* <Image style={styles.image} source={Images.garbage} /> */}
-      <Pressable
+      {/* <Pressable
         style={{
+          borderColor: 'red',
+          borderWidth: 50,
+          top: 300,
+          left: 500,
           alignSelf: 'flex-end',
         }}
         onPress={handlePress}>
         <Text>click me</Text>
       </Pressable>
       <Guard
-        top={top}
-        left={left}
+        top={300}
+        left={500}
         width={70}
         height={70}
         id="1"
@@ -142,7 +159,8 @@ export default function ForTest() {
           setTop(100);
           setLeft(100);
         }}
-      />
+      /> */}
+
       {/* </View> */}
     </View>
   );
