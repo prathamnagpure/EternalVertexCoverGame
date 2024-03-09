@@ -45,6 +45,13 @@ const Modes = {
   AutoAttacker: 'autoAttacker',
   AutoDefender: 'autoDefender',
 };
+const mainBGM = new Sound('mainbgm.mp3', Sound.MAIN_BUNDLE, error => {
+  if (error) {
+    console.log('error in creating mainBGM', error);
+    return;
+  }
+  console.log('sound successfully created ');
+});
 
 export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   // const []
@@ -96,6 +103,27 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     // loaded successfully
     // Play the sound with an onEnd callback
   });
+  sound.setVolume(2);
+  console.log('was the sound file loaded ', mainBGM.isLoaded());
+  mainBGM.setNumberOfLoops(-1);
+  mainBGM.setVolume(0.8);
+  mainBGM.play(success => {
+    if (success) {
+      console.log('successfully finished playing');
+    } else {
+      console.log('playback failed due to audio decoding errors');
+    }
+  });
+
+  // const funcPlayForever = () => {
+  //   console.log('playing sound bgm');
+  //   mainBGM.play(success => {
+  //     if (success) {
+  //       funcPlayForever();
+  //     }
+  //   });
+  // };
+  // funcPlayForever();
   console.log('moves', stage.moves, moves.current);
   const pan = Gesture.Pan()
     .onBegin(() => {
