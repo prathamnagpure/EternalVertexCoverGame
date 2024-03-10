@@ -8,11 +8,9 @@ import {
   withSpring,
   withRepeat,
 } from 'react-native-reanimated';
-import Images from '../assets/Images';
 import Sound from 'react-native-sound';
-import Guard from './Guard';
-import MyModal from './Modal';
-import PinkArrow from './PinkArrow';
+import {MyModal, PinkArrow} from '../components'
+
 export default function ForTest() {
   const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
@@ -92,15 +90,16 @@ export default function ForTest() {
           <Text>Poop</Text>
         </Pressable>
       </View> */}
-      <PinkArrow x1={10} y1={400} x2={100} y2={100} />
-      <MyModal
-        modalVisible={modalVisible}
-        onClickNext={() => setModalVisible(false)}
-        x={600}
-        y={400}
-        text={'these are the steps\n step1. \n step2 \n step3 '}
-      />
-
+      {
+        // <PinkArrow x1={10} y1={400} x2={100} y2={100} />
+        // <MyModal
+        //   modalVisible={modalVisible}
+        //   onClickNext={() => setModalVisible(false)}
+        //   x={600}
+        //   y={400}
+        //   text={'these are the steps\n step1. \n step2 \n step3 '}
+        // />
+      }
       {/* <Animated.View
         style={[
           {

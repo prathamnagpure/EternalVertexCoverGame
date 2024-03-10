@@ -8,9 +8,9 @@ import images from '../assets/Images';
 import {StyleSheet, Image, Pressable} from 'react-native';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function Guard({top, left, width, height, id, onPress, animateRef}) {
-  const leftSV = useSharedValue(left - width / 2);
-  const topSV = useSharedValue(top - height / 2);
+function Guard({cx, cy, width, height, id, onPress, animateRef}) {
+  const leftSV = useSharedValue(cx - width / 2);
+  const topSV = useSharedValue(cy - height / 2);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -21,7 +21,6 @@ function Guard({top, left, width, height, id, onPress, animateRef}) {
   });
 
   function animate(newLeft, newTop) {
-    console.log({left, newLeft, top, newTop});
     const config = {duration: 5000};
     leftSV.value = withTiming(newLeft - width / 2, config);
     topSV.value = withTiming(newTop - height / 2, config);

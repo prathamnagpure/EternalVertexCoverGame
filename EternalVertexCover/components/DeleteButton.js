@@ -1,6 +1,6 @@
 import React from 'react';
-import {Pressable, View} from 'react-native';
-import DeleteIcon from './icons/DeleteIcon';
+import {Pressable} from 'react-native';
+import {DeleteIcon} from './icons';
 
 export default function DeleteButton(handleDeletePress) {
   return (

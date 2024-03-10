@@ -1,37 +1,34 @@
 import React from 'react';
 import {
-  Button,
   View,
   Text,
   StyleSheet,
   FlatList,
   Pressable,
+  ImageBackground,
 } from 'react-native';
-import GraphPreview from '../../components/GraphPreview';
-import stages from '../../assets/Stages';
-const pvplevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+import {GraphPreview} from '../components';
+import stages from '../assets/Stages';
+import Images from '../assets/Images';
 
-const PlayerVsPlayer = ({navigation}) => {
-  const numberOfLevels = 16;
+const LevelLayout = ({navigation, route}) => {
+  const {levels, mode} = route.params;
+  const levelButtons = levels.map((level, index) => {
+    const buttonLabel = `Level ${index + 1}`;
+    const navigate = () =>
+      navigation.navigate('Level', {levelno: level, mode, index});
 
-  // Create an array to store buttons
-  const levelButtons = [];
-
-  // Use a loop to create buttons for each level
-  for (let i = 1; i <= numberOfLevels; i++) {
-    const level = i;
-    const buttonLabel = `Level ${level}`;
-
-    levelButtons.push(
+    return (
       <Pressable
         style={{
           borderWidth: 1,
           borderColor: 'gray',
-          padding: "3%",
+          padding: '3%',
           width: 310,
+          alignItems: 'center',
         }}
         key={level}
-        onPress={() => navigation.navigate('Level', {levelno: i - 1})}>
+        onPress={navigate}>
         <Text
           style={{
             alignSelf: 'center',
@@ -43,15 +40,27 @@ const PlayerVsPlayer = ({navigation}) => {
           {buttonLabel}
         </Text>
         <GraphPreview
-          stage={stages[pvplevels[i - 1]]}
-          height={300}
-          width={300}
+          stage={stages[level]}
+          height={200}
+          width={200}
+          onPress={navigate}
         />
-      </Pressable>,
+      </Pressable>
     );
-  }
+  });
+
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={Images.levellayoutgif}
+      resizeMode="cover"
+      style={[
+        styles.container,
+        {
+          flex: 1,
+          // alignItems: 'center',
+          // justifyContent: 'center',
+        },
+      ]}>
       <View
         style={{
           marginTop: 50,
@@ -66,7 +75,7 @@ const PlayerVsPlayer = ({navigation}) => {
           renderItem={({item}) => item}
         />
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
@@ -75,6 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'black',
     alignItems: 'center',
+    transform: [{scale: 1}],
     // justifyContent: 'center',
   },
   title: {
@@ -86,13 +96,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
   },
-  button: {
-    backgroundColor: 'orange',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-    marginVertical: 20,
-  },
 });
 
-export default PlayerVsPlayer;
+export default LevelLayout;

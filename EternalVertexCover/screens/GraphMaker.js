@@ -3,22 +3,18 @@ import {
   View,
   Pressable,
   Text,
-  Dimensions,
   StyleSheet,
   Button,
   Modal,
   TextInput,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
-import TouchableCircle from './TouchableCircle';
-import TouchableLine from './TouchableLine';
+import {TouchableLine, TouchableCircle, Guard} from '../components';
+import {AddIcon} from '../components/icons';
 import {readFile, writeFile, DownloadDirectoryPath} from 'react-native-fs';
 import {pickSingle} from 'react-native-document-picker';
-import AddIcon from './icons/AddIcon';
-import Guard from './Guard';
-import RadioButton from './RadioButton';
 
-const windowHeight = Dimensions.get('window').height;
 const states = {
   addButton: 1,
   addLine: 2,
@@ -27,6 +23,7 @@ const states = {
   remove: 5,
   addGuards: 6,
 };
+
 export default function GraphMaker() {
   const [state, setState] = useState(states.addButton);
   const [fpoint, setfpoint] = useState(null);
@@ -36,6 +33,7 @@ export default function GraphMaker() {
   const [modalVisible, setModalVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [number, setNumber] = useState('');
+  const {height: windowHeight} = useWindowDimensions();
 
   const handleInputChange = text => {
     // Validate input if needed
@@ -53,9 +51,14 @@ export default function GraphMaker() {
     });
     str += '}';
     console.log(guards);
-    const obj = {graph: str, guardCount: guards.length, moves: parseInt(num)*2, guards};
+    const obj = {
+      graph: str,
+      guardCount: guards.length,
+      moves: parseInt(num, 10) * 2,
+      guards,
+    };
     writeFile(DownloadDirectoryPath + `/${fileName}.txt`, JSON.stringify(obj));
-    Alert.alert("Exported");
+    Alert.alert('Exported');
   }
   async function forImport() {
     try {
@@ -260,7 +263,7 @@ export default function GraphMaker() {
               y1={points[value[0]][1]}
               thickness={17}
               id={index}
-              onEdgePress={lineRemove}
+              onPress={lineRemove}
               key={index + 'line'}
             />
           );
@@ -268,13 +271,13 @@ export default function GraphMaker() {
         {points.map((value, index) => {
           return (
             <TouchableCircle
-              x={value[0]}
-              y={value[1]}
+              cx={value[0]}
+              cy={value[1]}
               isSelected={index === fpoint}
-              radius={30}
+              r={30}
               id={index}
               key={index}
-              showGuard={lineCreater}
+              onPress={lineCreater}
               isGuardPresent={guards.includes(index)}
             />
           );
@@ -283,8 +286,8 @@ export default function GraphMaker() {
           <Guard
             key={'Guard' + value}
             id={value}
-            left={points[value][0]}
-            top={points[value][1]}
+            cx={points[value][0]}
+            cy={points[value][1]}
             onPress={lineCreater}
             height={70}
             width={70}

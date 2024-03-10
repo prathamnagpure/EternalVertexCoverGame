@@ -1,21 +1,7 @@
-import {React, Component, useRef} from 'react';
-import {Button, StyleSheet, Text, View} from 'react-native';
+import React, {useRef} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import MainPage from './MainApp/Main';
-import Attacker from './MainApp/Attacker/Attacker';
-import Defender from './MainApp/Defender/Defender';
-import PlayerVsPlayer from './MainApp/PlayerVsPlayer/PlayerVsPlayer';
-import Level from './MainApp/PlayerVsPlayer/Levels/Level';
-import DLevel1 from './MainApp/PlayerVsPlayer/Levels/DLevel1';
-import ALevel from './MainApp/PlayerVsPlayer/Levels/ALevel';
-import Import from './components/Import';
-import GraphMaker from './components/GraphMaker';
-import Options from './components/Options';
-import ForTest from './components/fortest';
-import LevelLayout from './components/LevelLayout';
 import Sound from 'react-native-sound';
-const Stack = createStackNavigator();
+import MainNavigator from './navigation/MainNavigator';
 
 export default function App() {
   const toPlay = useRef({val: 0});
@@ -60,81 +46,7 @@ export default function App() {
 
   return (
     <NavigationContainer independent={true}>
-      <Stack.Navigator
-        initialRouteName="Main"
-        screenOptions={{
-          gestureDirection: 'horizontal',
-          presentation: 'modal',
-        }}>
-        <Stack.Screen
-          name="Eternal Vertex Cover "
-          component={MainPage}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          style={styles.Button}
-          name="Attacker"
-          component={Attacker}
-        />
-        <Stack.Screen
-          style={styles.Button}
-          name="Defender"
-          component={Defender}
-        />
-        <Stack.Screen
-          style={styles.Button}
-          name="PlayerVsPlayer"
-          component={PlayerVsPlayer}
-        />
-        <Stack.Screen
-          style={styles.Button}
-          name="LevelLayout"
-          component={LevelLayout}
-          options={({route}) => ({
-            title:
-              route.params.mode === 'autoAttacker' ? 'Defender' : 'Attacker',
-          })}
-        />
-        <Stack.Screen
-          style={styles.Button}
-          name="Imported Levels"
-          component={Import}
-        />
-        <Stack.Screen
-          name="Level"
-          component={Level}
-          options={({route}) => ({
-            title: 'Level ' + (route.params.index + 1),
-          })}
-        />
-        <Stack.Screen
-          name="DLevel1"
-          component={DLevel1}
-          options={({route}) => ({
-            title: 'Level ' + (route.params.levelno + 1),
-          })}
-        />
-        <Stack.Screen
-          name="ALevel"
-          component={ALevel}
-          options={({route}) => ({
-            title: 'Level ' + (route.params.levelno + 1),
-          })}
-        />
-        <Stack.Screen name="graphMaker" component={GraphMaker} />
-        <Stack.Screen name="testarea" component={ForTest} />
-      </Stack.Navigator>
+      <MainNavigator />
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {},
-  Button: {
-    backgroundColor: 'orange',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-    marginVertical: 20,
-  },
-});

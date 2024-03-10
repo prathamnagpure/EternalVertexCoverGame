@@ -1,7 +1,5 @@
 import {React, useState, useEffect, useRef, useCallback} from 'react';
 import Images from '../assets/Images';
-import {giveMap as giveMapA} from '../MainApp/MainAlgoBruteForce';
-import {giveMap as giveMapD} from '../MainApp/MainAlgoBruteForceD';
 import {
   View,
   Pressable,
@@ -15,7 +13,6 @@ import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import parse from 'dotparser';
 import Sound from 'react-native-sound';
-import {tupleToString} from '../MainApp/MainAlgoBruteForce';
 import {
   Gesture,
   GestureHandlerRootView,
@@ -83,12 +80,7 @@ export default function Tutorial({stage, mode}) {
 function renderNodes() {
   return circleCords.map((value, index) => {
     return (
-      <TouchableCircle
-        key={index}
-        radius={30}
-        showGuard={showGuard}
-        {...value}
-      />
+      <TouchableCircle key={index} r={30} onPress={showGuard} {...value} />
     );
   });
 }
@@ -98,7 +90,7 @@ function renderEdges() {
       <TouchableLine
         key={index}
         thickness={17}
-        onEdgePress={onEdgePress}
+        onPress={onEdgePress}
         {...value}
       />
     );

@@ -3,7 +3,6 @@ import Images from '../assets/Images';
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Pressable,
   ImageBackground,
@@ -16,9 +15,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import images from '../assets/Images';
 import stages from '../assets/Stages';
-const attackerLevels = [7, 8, 9, 10, 11, 12, 13];
-const defenderLevels = [2, 3, 4, 5, 6, 14, 15];
-const pvpLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+import {
+  ATTACKER_LEVELS,
+  PVP_LEVELS,
+  DEFENDER_LEVELS,
+  MODES,
+} from '../constants';
 
 const positions = [
   [0, 400],
@@ -26,8 +28,7 @@ const positions = [
   [0, 200],
   [250, 400],
 ];
-const countPos = 4;
-// let angleSt = 1;
+
 function MainPage({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
@@ -35,9 +36,10 @@ function MainPage({navigation}) {
   // const image = useSharedValue(Images.naugtypig);
   const animatedStyle = useAnimatedStyle(() => {
     return {
+      position: 'absolute',
       left: withTiming(positions[position.value][0], {duration: 3000}),
       top: withTiming(positions[position.value][1], {duration: 3000}, () => {
-        position.value = (position.value + 1) % countPos;
+        position.value = (position.value + 1) % positions.length;
         rotation.value += 360;
         width.value = width.value === 1 ? 0.8 : 1;
         // image.value = Images.guard;
@@ -53,25 +55,18 @@ function MainPage({navigation}) {
       ],
     };
   });
+
   return (
     <ImageBackground
       source={Images.farmbg}
       resizeMode="cover"
-      style={{
-        flex: 1,
-        // alignItems: 'center',
-        // justifyContent: 'center',
-      }}>
+      style={styles.imageBackground}>
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
-      <Animated.Image
-        source={images.naugtypig}
-        style={[{position: 'absolute'}, animatedStyle]}
-      />
-      <Image style={{marginBottom: 0}} source={Images.title} />
+      <Animated.Image source={images.naugtypig} style={animatedStyle} />
+      <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
         <Pressable
           style={styles.button}
-          title=""
           onPress={() =>
             navigation.navigate('Level', {
               mode: 'autoDefender',
@@ -83,32 +78,31 @@ function MainPage({navigation}) {
         </Pressable>
         <Pressable
           style={styles.button}
-          title=""
           onPress={() =>
             navigation.navigate('LevelLayout', {
-              levels: attackerLevels,
-              mode: 'autoDefender',
+              levels: ATTACKER_LEVELS,
+              mode: MODES.AUTO_DEFENDER,
+              title: 'Attacker',
             })
           }>
           <Text style={styles.text}>Attacker</Text>
         </Pressable>
         <Pressable
           style={styles.button}
-          title=""
           onPress={() =>
             navigation.navigate('LevelLayout', {
-              levels: defenderLevels,
-              mode: 'autoAttacker',
+              levels: DEFENDER_LEVELS,
+              mode: MODES.AUTO_ATTACKER,
+              title: 'Defender',
             })
           }>
           <Text style={styles.text}>Defender</Text>
         </Pressable>
         <Pressable
           style={styles.button}
-          title=""
           onPress={() =>
             navigation.navigate('LevelLayout', {
-              levels: pvpLevels,
+              levels: PVP_LEVELS,
               title: 'Player Vs Player',
             })
           }>
@@ -116,30 +110,28 @@ function MainPage({navigation}) {
         </Pressable>
         <Pressable
           style={styles.button}
-          title=""
           onPress={() => navigation.navigate('Imported Levels')}>
           <Text style={styles.text}>Imported levels</Text>
         </Pressable>
         <Pressable
           style={styles.button}
-          title=""
-          onPress={() => navigation.navigate('graphMaker')}>
-          <Text style={styles.text}>graphmaker</Text>
+          onPress={() => navigation.navigate('Graph Maker')}>
+          <Text style={styles.text}>Graph Maker</Text>
         </Pressable>
-        {
-          <Pressable
-            style={styles.button}
-            title=""
-            onPress={() => navigation.navigate('testarea')}>
-            <Text style={styles.text}>testarea</Text>
-          </Pressable>
-        }
+        <Pressable
+          style={styles.button}
+          onPress={() => navigation.navigate('testarea')}>
+          <Text style={styles.text}>testarea</Text>
+        </Pressable>
       </View>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  imageBackground: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     // backgroundColor: '#90EE90',
@@ -154,8 +146,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     // color: '', // Set the title color to white in dark mode
   },
+  titleImage: {
+    marginBottom: 0,
+  },
   button: {
-    backgroundColor: 'pink',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 193, 204, 0.9)',
     paddingTop: 10,
     paddingBottom: 10,
     paddingLeft: 20,
@@ -163,6 +159,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 10,
     marginVertical: 10,
+    width: '55%',
   },
   text: {
     color: '#AA336A',

@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import MyModal from './Modal';
 import PinkArrow from './PinkArrow';
 

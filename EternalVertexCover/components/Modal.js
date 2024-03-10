@@ -1,6 +1,7 @@
 import {Modal} from 'react-native';
-import React, {useState} from 'react';
-import {View, StyleSheet, Pressable, Text, Button, Image} from 'react-native';
+import React from 'react';
+import {View, StyleSheet, Pressable, Text} from 'react-native';
+
 export default function MyModal({
   text,
   modalVisible,

@@ -1,24 +1,26 @@
 import React from 'react';
-import {StyleSheet, View, Text} from 'react-native';
-import TouchableCircle from './TouchableCircle';
-import TouchableLine from './TouchableLine';
+import {StyleSheet, View} from 'react-native';
+import {TouchableCircle, TouchableLine} from '.';
 import parse from 'dotparser';
 
-export default function GraphPreview({stage, width, height}) {
+export default function GraphPreview({stage, width, height, onPress}) {
   let ast = null;
   try {
     ast = parse(stage.graph);
   } catch {
-    return false;
+    return null;
   }
 
   if (!ast) {
-    return false;
+    return null;
   }
+
   const nodes = [];
   const edges = [];
-  let maxWidth = 0;
-  let maxHeight = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let minX = 1e9;
+  let minY = 1e9;
 
   const children = ast[0].children;
   for (const element of children) {
@@ -26,33 +28,39 @@ export default function GraphPreview({stage, width, height}) {
       let [x, y] = element.attr_list[0].eq.split(' ');
       x = parseFloat(x);
       y = parseFloat(y);
-      maxWidth = Math.max(maxWidth, x);
-      maxHeight = Math.max(maxHeight, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
       nodes.push([x, y]);
     } /* edge */ else {
       edges.push([element.edge_list[0].id, element.edge_list[1].id]);
     }
   }
 
-  maxHeight += 10;
-  maxWidth += 10;
+  maxY += 10;
+  maxX += 10;
 
-  const factorX = width / maxWidth;
-  const factorY = height / maxHeight;
+  const factorX = (width * 0.9) / maxX;
+  const factorY = (height * 0.9) / maxY;
+  const minXResized = minX * factorX;
+  const minYResized = minY * factorY;
+  const shiftX = (minXResized + 0.1 * width) / 2 - minXResized;
+  const shiftY = (minYResized + 0.1 * height) / 2 - minYResized;
 
-  for (let node of nodes) {
-    node[0] *= factorX;
-    node[1] *= factorY;
+  for (const node of nodes) {
+    node[0] = node[0] * factorX + shiftX;
+    node[1] = node[1] * factorY + shiftY;
   }
 
   function renderNodes() {
     return nodes.map(node => (
       <TouchableCircle
         key={node[0] + ' ' + node[1]}
-        x={node[0]}
-        y={node[1]}
-        radius={5}
-        showGuard={() => {}}
+        cx={node[0]}
+        cy={node[1]}
+        r={10}
+        onPress={onPress}
       />
     ));
   }
@@ -63,10 +71,10 @@ export default function GraphPreview({stage, width, height}) {
       let [x2, y2] = nodes[edge[1]];
       return (
         <TouchableLine
-          key={x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' '}
+          key={`${x1} ${y1} ${x2} ${y2}`}
           {...{x1, y1, x2, y2}}
-          thickness={5}
-          onEdgePress={() => {}}
+          thickness={10}
+          onPress={onPress}
         />
       );
     });
@@ -74,16 +82,9 @@ export default function GraphPreview({stage, width, height}) {
 
   const style = {width, height};
   return (
-    <View style={[styles.container, style]}>
+    <View style={style}>
       {renderEdges()}
       {renderNodes()}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: 300,
-    height: 300,
-  },
-});

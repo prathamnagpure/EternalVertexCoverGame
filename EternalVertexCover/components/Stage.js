@@ -1,21 +1,19 @@
 import {React, useState, useEffect, useRef, useCallback} from 'react';
 import Images from '../assets/Images';
-import {giveMap as giveMapA} from '../MainApp/MainAlgoBruteForce';
-import {giveMap as giveMapD} from '../MainApp/MainAlgoBruteForceD';
+import {giveMap as giveMapA, tupleToString} from '../util/MainAlgoBruteForce';
+import {giveMap as giveMapD} from '../util/MainAlgoBruteForceD';
 import {
   View,
   Pressable,
   StyleSheet,
   Text,
   Image,
-  useWindowDimensions,
   ImageBackground,
+  useWindowDimensions,
 } from 'react-native';
-import TouchableCircle from './TouchableCircle';
-import TouchableLine from './TouchableLine';
+import {TouchableCircle, TouchableLine, Poop, Guard, TutorialStep} from '.';
 import parse from 'dotparser';
 import Sound from 'react-native-sound';
-import {tupleToString} from '../MainApp/MainAlgoBruteForce';
 import {
   Gesture,
   GestureHandlerRootView,
@@ -27,24 +25,19 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import Poop from './Poop';
-import Guard from './Guard';
-import TutorialStep from './TutorialStep';
-import PinkArrow from './PinkArrow';
+import {MODES} from '../constants';
+
 let showAnimation = false;
-const Turns = {
-  DefenderFirst: 1,
-  DefenderLater: 2,
-  Attacker: 3,
+const turns = {
+  defenderFirst: 1,
+  defenderLater: 2,
+  attacker: 3,
 };
-const Winner = {
-  Defender: 1,
-  Attacker: 2,
+const winner = {
+  defender: 1,
+  attacker: 2,
 };
-const Modes = {
-  AutoAttacker: 'autoAttacker',
-  AutoDefender: 'autoDefender',
-};
+
 export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   // const []
   const [atTutStage, setAtTutStage] = useState(1);
@@ -55,7 +48,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const [poop, setPoop] = useState(false);
   const [guardCount, setGuardCount] = useState(stage.guardCount);
   const [guardStateMap, setGuardStateMap] = useState(new Map());
-  const [turn, setTurn] = useState(Turns.DefenderFirst);
+  const [turn, setTurn] = useState(turns.defenderFirst);
   const [isLoading, setIsLoading] = useState(true);
   const {height, width} = useWindowDimensions();
   const [gameWinner, setGameWinner] = useState(null);
@@ -242,8 +235,14 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     translateY,
     poop,
     pigImage,
-    showAnimation,
+    edgeStateMap,
+    inX.value,
+    inY.value,
+    poopX,
+    poopY,
+    poopOpacity,
   ]);
+
   function pooperPrakat() {
     setPigImage(Images.pigpoop);
     // set poop
@@ -263,11 +262,11 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   useEffect(() => {
     const status = construct();
     if (status === 'ok') {
-      if (mode === Modes.AutoDefender) {
+      if (mode === MODES.AUTO_DEFENDER) {
         stage.guards.sort((a, b) => a - b);
         moveMap.current = new Map(Object.entries(stage.map));
-        setTurn(Turns.Attacker);
-      } else if (mode === Modes.AutoAttacker) {
+        setTurn(turns.attacker);
+      } else if (mode === MODES.AUTO_ATTACKER) {
         moveMap.current = new Map(Object.entries(stage.map));
       }
       setIsLoading(false);
@@ -311,9 +310,9 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   }
   function isHumanPlaying() {
     return (
-      (mode === Modes.AutoDefender && turn === Turns.Attacker) ||
-      (mode === Modes.AutoAttacker &&
-        (turn === Turns.DefenderFirst || turn === Turns.DefenderLater)) ||
+      (mode === MODES.AUTO_DEFENDER && turn === turns.attacker) ||
+      (mode === MODES.AUTO_ATTACKER &&
+        (turn === turns.defenderFirst || turn === turns.defenderLater)) ||
       !mode
     );
   }
@@ -333,7 +332,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     attackedEdge.current = momento.attackedEdge;
     moves.current = momento.moves;
     setTurn(momento.turn);
-    if (momento.turn === Turns.Attacker) {
+    if (momento.turn === turns.attacker) {
       setPigImage(Images.naugtypig);
     }
     setGameWinner(momento.gameWinner);
@@ -347,8 +346,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         return (
           <TouchableCircle
             key={value.id}
-            radius={30}
-            showGuard={showGuard}
+            r={30}
+            onPress={showGuard}
             {...value}
           />
         );
@@ -363,7 +362,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           <TouchableLine
             key={key}
             thickness={17}
-            onEdgePress={onEdgePress}
+            onPress={onEdgePress}
             {...value}
           />
         );
@@ -423,7 +422,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     moves.current = stage.moves;
     resetNodes();
     resetEdges();
-    if (mode === Modes.AutoDefender) {
+    if (mode === MODES.AUTO_DEFENDER) {
       const newNodeStateMap = new Map(nodeStateMap);
       [...nodeStateMap.keys()].forEach(key => {
         const value = nodeStateMap.get(key);
@@ -431,12 +430,12 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           newNodeStateMap.set(key, {...value, isGuardPresent: true});
         }
       });
-      setTurn(Turns.Attacker);
+      setTurn(turns.attacker);
       setPigImage(Images.naugtypig);
       setGameWinner(null);
       setNodeStateMap(newNodeStateMap);
     } else {
-      setTurn(Turns.DefenderFirst);
+      setTurn(turns.defenderFirst);
       setGameWinner(null);
       setGuardCount(stage.guardCount);
     }
@@ -457,7 +456,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   }
   function playAutoAttacker(isCalledByRedo) {
     if (moves.current === 0) {
-      setGameWinner(prev => (prev ? prev : Winner.Defender));
+      setGameWinner(prev => (prev ? prev : winner.defender));
       return;
     }
     guards.current = [];
@@ -473,7 +472,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     )[0];
     attackedEdge.current =
       edgeList.current[toAttack][0] + ';' + edgeList.current[toAttack][1];
-    onEdgePress(attackedEdge.current, Turns.Attacker);
+    onEdgePress(attackedEdge.current, turns.attacker);
     moves.current--;
     checkAttack(isCalledByRedo);
     pooperPrakat();
@@ -481,7 +480,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   function playAutoDefender() {
     --moves.current;
     if (moves.current <= 0) {
-      setGameWinner(prev => (prev ? prev : Winner.Defender));
+      setGameWinner(prev => (prev ? prev : winner.defender));
       return;
     }
     guards.current = [];
@@ -522,7 +521,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       return false;
     } else {
       // Saving momento.
-      if (mode !== Modes.AutoAttacker && !isCalledByRedo) {
+      if (mode !== MODES.AUTO_ATTACKER && !isCalledByRedo) {
         saveMomento();
       }
       if (isGuardOnEdge(attackedEdge.current)) {
@@ -530,9 +529,9 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           setTutVisible(true);
           setAtTutStage(5);
         }
-        setTurn(Turns.DefenderLater);
+        setTurn(turns.defenderLater);
       } else {
-        setGameWinner(prev => (prev ? prev : Winner.Attacker));
+        setGameWinner(prev => (prev ? prev : winner.attacker));
       }
     }
     return true;
@@ -542,25 +541,25 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       return;
     }
     setWarning('');
-    if (turn === Turns.DefenderFirst) {
+    if (turn === turns.defenderFirst) {
       if (guardCount === 0) {
         // Saving momento.
-        if (mode !== Modes.AutoDefender && !isCalledByRedo) {
+        if (mode !== MODES.AUTO_DEFENDER && !isCalledByRedo) {
           saveMomento();
         }
-        if (mode === Modes.AutoAttacker) {
+        if (mode === MODES.AUTO_ATTACKER) {
           playAutoAttacker(isCalledByRedo);
         } else {
-          setTurn(Turns.Attacker);
+          setTurn(turns.attacker);
           setPigImage(Images.naugtypig);
         }
       } else {
         setWarning('Guards left should be 0');
       }
-    } else if (turn === Turns.Attacker) {
+    } else if (turn === turns.attacker) {
       if (checkAttack(isCalledByRedo)) {
         pooperPrakat();
-        if (mode === Modes.AutoDefender) {
+        if (mode === MODES.AUTO_DEFENDER) {
           playAutoDefender();
           if (atTutStage === 2) {
             setAtTutStage(3);
@@ -602,7 +601,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       });
       if (good) {
         // Saving momento.
-        if (mode !== Modes.AutoDefender && !isCalledByRedo) {
+        if (mode !== MODES.AUTO_DEFENDER && !isCalledByRedo) {
           saveMomento();
         }
         let wasCovered = false;
@@ -611,7 +610,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           if (edgeId === attackedEdge.current) {
             wasCovered = true;
           }
-          const {x, y} = nodeStateMap.get(nodeId2);
+          const {cx, cy} = nodeStateMap.get(nodeId2);
           const guardIds = nodeIdToGuardIdMap.current.get(nodeId1);
           const [guardId] = guardIds;
           const guardState = guardStateMap.get(guardId);
@@ -627,7 +626,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             nodeIdToGuardIdMap.current.set(nodeId2, [guardId]);
           }
           guardIdToNodeIdMap.current.set(guardId, nodeId2);
-          guardState.animateRef(x, y);
+          guardState.animateRef(cx, cy);
           if (!guardExistsSet.has(nodeId1)) {
             const nodeState = newNodeStateMap.get(nodeId1);
             nodeState.isGuardPresent = false;
@@ -656,20 +655,20 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             !nodeStateMap.get(attackedNode2).isGuardPresent) ||
           !wasCovered
         ) {
-          setGameWinner(prev => (prev ? prev : Winner.Attacker));
+          setGameWinner(prev => (prev ? prev : winner.attacker));
         } else {
           setTimeout(() => {
             setPoop(false);
           }, 2500);
           resetEdges();
           attackedEdge.current = null;
-          if (mode === Modes.AutoAttacker) {
+          if (mode === MODES.AUTO_ATTACKER) {
             moves.current--;
             setTimeout(playAutoAttacker, 5000);
-          } else if (mode === Modes.AutoDefender) {
+          } else if (mode === MODES.AUTO_DEFENDER) {
             moves.current--;
           }
-          setTurn(Turns.Attacker);
+          setTurn(turns.attacker);
           setPigImage(Images.naugtypig);
         }
       } else {
@@ -684,7 +683,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
       currTurn = currTurn === null ? turn : currTurn;
       const newEdgeStateMap = new Map(edgeStateMap);
-      if (currTurn === Turns.Attacker) {
+      if (currTurn === turns.attacker) {
         if (attackedEdge.current) {
           const prevState = newEdgeStateMap.get(attackedEdge.current);
           newEdgeStateMap.set(attackedEdge.current, {
@@ -697,8 +696,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         newEdgeStateMap.set(edgeId, {...prevState, isAttacked: true});
         setEdgeStateMap(newEdgeStateMap);
       } else if (
-        currTurn === Turns.DefenderLater &&
-        mode !== Modes.AutoDefender
+        currTurn === turns.defenderLater &&
+        mode !== MODES.AUTO_DEFENDER
       ) {
         const prevState = newEdgeStateMap.get(edgeId);
         newEdgeStateMap.set(edgeId, {
@@ -727,14 +726,14 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     currEdgeStateMap.set(edgeId, edgeState);
   }
   function showGuard(nodeId, bySystem = false, currentTurn = null) {
-    if (!bySystem && (isLoading || mode === Modes.AutoDefender)) {
+    if (!bySystem && (isLoading || mode === MODES.AUTO_DEFENDER)) {
       return;
     }
     currentTurn = currentTurn === null ? turn : currentTurn;
     const newNodeStateMap = new Map(nodeStateMap);
     const nodeState = newNodeStateMap.get(nodeId);
     const newGuardStates = new Map(guardStateMap);
-    if (currentTurn === Turns.DefenderFirst) {
+    if (currentTurn === turns.defenderFirst) {
       if (nodeIdToGuardIdMap.current.has(nodeId)) {
         setGuardCount(prev => ++prev);
         const [guardId] = nodeIdToGuardIdMap.current.get(nodeId);
@@ -744,15 +743,15 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: false});
       } else {
         setGuardCount(prev => --prev);
-        const {x, y} = nodeStateMap.get(nodeId);
-        newGuardStates.set(nodeId, {top: y, left: x});
+        const {cx, cy} = nodeStateMap.get(nodeId);
+        newGuardStates.set(nodeId, {cy, cx});
         nodeIdToGuardIdMap.current.set(nodeId, [nodeId]);
         guardIdToNodeIdMap.current.set(nodeId, nodeId);
         newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: true});
       }
       setNodeStateMap(newNodeStateMap);
       setGuardStateMap(newGuardStates);
-    } else if (currentTurn === Turns.DefenderLater) {
+    } else if (currentTurn === turns.defenderLater) {
       if (selected.current) {
         if (adjList.current.get(selected.current).includes(nodeId)) {
           const newEdgeStateMap = new Map(edgeStateMap);
@@ -779,11 +778,11 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   if (gameWinner) {
     buttonTitle = 'Restart';
     let winText =
-      gameWinner === Winner.Attacker ? 'Attacker Won' : 'Defender Won';
+      gameWinner === winner.attacker ? 'Attacker Won' : 'Defender Won';
     let textColor = {color: 'white'};
     if (mode) {
-      const isAutoAttacker = mode === Modes.AutoAttacker;
-      const isWinnerAttacker = gameWinner === Winner.Attacker;
+      const isAutoAttacker = mode === MODES.AUTO_ATTACKER;
+      const isWinnerAttacker = gameWinner === winner.attacker;
       winText = isAutoAttacker === isWinnerAttacker ? 'You Lose' : 'You Won';
       textColor =
         isAutoAttacker === isWinnerAttacker ? styles.red : styles.green;
@@ -794,15 +793,15 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     headingText = 'Loading... Please Wait';
   } else {
     switch (mode) {
-      case Modes.AutoAttacker:
+      case MODES.AUTO_ATTACKER:
         switch (turn) {
-          case Turns.Attacker:
+          case turns.attacker:
             headingText = "Attacker's Turn";
             break;
-          case Turns.DefenderLater:
+          case turns.defenderLater:
             headingText = `Your turn | Turns Left: ${(moves.current + 1) / 2}`;
             break;
-          case Turns.DefenderFirst:
+          case turns.defenderFirst:
             headingText = `Guards Left: ${guardCount}`;
             headingStyle = [
               styles.heading,
@@ -814,18 +813,18 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           default:
         }
         break;
-      case Modes.AutoDefender:
+      case MODES.AUTO_DEFENDER:
         headingText =
-          turn === Turns.Attacker
+          turn === turns.attacker
             ? `Your turn | Turns Left: ${(moves.current + 1) / 2}`
             : "Defender's Turn";
         break;
       default:
         switch (turn) {
-          case Turns.Attacker:
+          case turns.attacker:
             headingText = "Attacker's Turn";
             break;
-          case Turns.DefenderLater:
+          case turns.defenderLater:
             headingText = "Defenders's turn";
             break;
           default:
@@ -870,13 +869,13 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           adjListForMap.push([]);
           let isGuardPresent = false;
           if (
-            mode === Modes.AutoDefender &&
+            mode === MODES.AUTO_DEFENDER &&
             stage.guards.includes(parseInt(id, 10))
           ) {
             isGuardPresent = true;
             const guardState = {
-              top: parseFloat(y),
-              left: parseFloat(x),
+              cy: parseFloat(y),
+              cx: parseFloat(x),
               id: String(id),
               shouldAnimate: false,
             };
@@ -885,8 +884,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             guardIdToNodeIdMap.current.set(id, id);
           }
           newNodeStateMap.set(id, {
-            x: parseFloat(x),
-            y: parseFloat(y),
+            cx: parseFloat(x),
+            cy: parseFloat(y),
             id: String(element.node_id.id),
             isGuardPresent,
           });
@@ -899,10 +898,10 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           const node2 = newNodeStateMap.get(String(element.edge_list[1].id));
           newEdgeStateMap.set(edgeId, {
             id: edgeId,
-            x1: node1.x,
-            y1: node1.y,
-            x2: node2.x,
-            y2: node2.y,
+            x1: node1.cx,
+            y1: node1.cy,
+            x2: node2.cx,
+            y2: node2.cy,
             isAttacked: false,
             moveGuard1: false,
             moveGuard2: false,
@@ -923,7 +922,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
       let returnVal = 'ok';
       if (!stage.map) {
-        if (mode === Modes.AutoAttacker) {
+        if (mode === MODES.AUTO_ATTACKER) {
           returnVal = 'loading';
           setTimeout(() => {
             stage.map = Object.fromEntries(
@@ -937,7 +936,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             moveMap.current = new Map(Object.entries(stage.map));
             setIsLoading(false);
           }, 0);
-        } else if (mode === Modes.AutoDefender) {
+        } else if (mode === MODES.AUTO_DEFENDER) {
           stage.guards.sort((a, b) => a - b);
           returnVal = 'loading';
           setTimeout(() => {
@@ -953,7 +952,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             console.log('I am here', stage.map);
             moveMap.current = new Map(Object.entries(stage.map));
             setIsLoading(false);
-            setTurn(Turns.Attacker);
+            setTurn(turns.attacker);
           });
         }
       }
@@ -961,21 +960,21 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         return [(x / maxX) * width * 0.85, (y / maxY) * height * 0.7];
       }
       newNodeStateMap.forEach(value => {
-        [value.x, value.y] = resize(value.x, value.y);
+        [value.cx, value.cy] = resize(value.cx, value.cy);
       });
       newEdgeStateMap.forEach(value => {
         [value.x1, value.y1] = resize(value.x1, value.y1);
         [value.x2, value.y2] = resize(value.x2, value.y2);
       });
       newGuardStateMap.forEach(value => {
-        [value.left, value.top] = resize(value.left, value.top);
+        [value.cx, value.cy] = resize(value.cx, value.cy);
       });
       setNodeStateMap(newNodeStateMap);
       setEdgeStateMap(newEdgeStateMap);
       setGuardStateMap(newGuardStateMap);
       return returnVal;
     },
-    [mode, stage.graph, stage.guards, height, width],
+    [mode, height, width, stage],
   );
   const undoButtonStyle = [
     styles.undo,
@@ -998,9 +997,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       <ImageBackground
         source={Images.farm}
         resizeMode="cover"
-        style={{
-          flex: 1,
-        }}>
+        style={styles.imageBackground}>
         <Text
           allowFontScaling={true}
           adjustsFontSizeToFit={true}
@@ -1026,15 +1023,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           <>
             <Animated.Image
               source={pigImage}
-              style={[
-                {
-                  position: 'absolute',
-                  top: 100,
-                  left: 100,
-                },
-                animatedStyles,
-                // pooperStyle,
-              ]}
+              style={[styles.pig, animatedStyles]}
             />
             {pigImage !== Images.naugtypig && (
               <Animated.View
@@ -1046,7 +1035,6 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
                     left: poopX,
                     top: poopY,
                   },
-                  {},
                   animatedStylesFire,
                 ]}>
                 <Image
@@ -1082,20 +1070,21 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
             }}
           />
         )}
-
-        {/* <PinkArrow x1={100} y1={100} x2={400} y2={200} /> */}
       </ImageBackground>
     </GestureHandlerRootView>
   );
 }
 function isAutomatic(mode) {
-  return mode === Modes.AutoAttacker || mode === Modes.AutoDefender;
+  return mode === MODES.AUTO_ATTACKER || mode === MODES.AUTO_DEFENDER;
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: 30,
     // backgroundColor: 'yellow',
+  },
+  imageBackground: {
+    flex: 1,
   },
   heading: {
     padding: 5,
@@ -1157,5 +1146,10 @@ const styles = StyleSheet.create({
     right: 50,
     width: '20%',
     alignSelf: 'center',
+  },
+  pig: {
+    position: 'absolute',
+    top: 100,
+    left: 100,
   },
 });

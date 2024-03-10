@@ -1,13 +1,13 @@
 import {StyleSheet, Pressable, View} from 'react-native';
-import {React, memo} from 'react';
+import React from 'react';
 
-const TouchableLine = memo(function TouchableLine({
+function TouchableLine({
   x1,
   y1,
   x2,
   y2,
   thickness,
-  onEdgePress,
+  onPress,
   isAttacked,
   moveGuard1,
   moveGuard2,
@@ -25,6 +25,8 @@ const TouchableLine = memo(function TouchableLine({
       width: length,
       height: thickness,
       flex: 1,
+      borderWidth: 3,
+      borderColor: '#5C4033',
       transform: [{rotate: `${angle}deg`}],
     },
 
@@ -91,7 +93,7 @@ const TouchableLine = memo(function TouchableLine({
   return (
     <Pressable
       onPressIn={() => {
-        onEdgePress(id);
+        onPress?.(id);
         console.log('Touchable line is pressed');
       }}>
       <View
@@ -104,6 +106,6 @@ const TouchableLine = memo(function TouchableLine({
       <View style={moveGuard2 ? styles.head2 : styles.headNone} />
     </Pressable>
   );
-});
+}
 
 export default TouchableLine;

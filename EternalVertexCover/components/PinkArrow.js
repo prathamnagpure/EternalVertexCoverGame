@@ -1,6 +1,7 @@
 import Images from '../assets/Images';
-import {Image, View} from 'react-native';
+import {Image} from 'react-native';
 import {StyleSheet} from 'react-native';
+
 export default function PinkArrow({x1, y1, x2, y2, diffx, diffy}) {
   console.log('inside pinkArrow');
   const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));

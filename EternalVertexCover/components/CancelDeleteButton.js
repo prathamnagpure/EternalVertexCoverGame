@@ -1,11 +1,17 @@
 import React from 'react';
-import {Pressable} from 'react-native';
-import LeftArrowIcon from './icons/LeftArrowIcon';
+import {Pressable, StyleSheet} from 'react-native';
+import {LeftArrowIcon} from './icons';
 
 export default function CancelDeleteButton(cancelDelete) {
   return (
-    <Pressable style={{padding: 5}} onPress={cancelDelete}>
+    <Pressable style={styles.container} onPress={cancelDelete}>
       <LeftArrowIcon size={23} />
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 5,
+  },
+});

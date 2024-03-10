@@ -1,8 +1,6 @@
 import React from 'react';
 import {View, Pressable, StyleSheet, TextInput} from 'react-native';
-import KebabMenuIcon from './icons/KebabMenuIcon';
-import SearchIcon from './icons/SearchIcon';
-import CloseIcon from './icons/CloseIcon';
+import {KebabMenuIcon, SearchIcon, CloseIcon} from './icons';
 
 export default function ImportHeader(
   setIsModalVisible,

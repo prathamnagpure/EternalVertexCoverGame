@@ -1,0 +1,47 @@
+import React from 'react';
+import {createStackNavigator} from '@react-navigation/stack';
+import {
+  MainPage,
+  LevelLayout,
+  Level,
+  GraphMaker,
+  ForTest,
+  Import,
+} from '../screens';
+
+const Stack = createStackNavigator();
+
+function MainNavigator() {
+  return (
+    <Stack.Navigator
+      initialRouteName="MainPage"
+      screenOptions={{
+        gestureDirection: 'horizontal',
+        presentation: 'modal',
+      }}>
+      <Stack.Screen
+        name="MainPage"
+        component={MainPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="LevelLayout"
+        component={LevelLayout}
+        options={({route}) => ({
+          title: route.params.title,
+        })}
+      />
+      <Stack.Screen name="Imported Levels" component={Import} />
+      <Stack.Screen
+        name="Level"
+        component={Level}
+        options={({route}) => ({
+          title: 'Level ' + (route.params.index + 1),
+        })}
+      />
+      <Stack.Screen name="Graph Maker" component={GraphMaker} />
+      <Stack.Screen name="testarea" component={ForTest} />
+    </Stack.Navigator>
+  );
+}
+export default MainNavigator;

@@ -7,9 +7,8 @@ import {
   readFile,
   unlink,
 } from 'react-native-fs';
-import ImportHeader from './ImportHeader';
-import DeleteButton from './DeleteButton';
-import CancelDeleteButton from './CancelDeleteButton';
+import {ImportHeader, DeleteButton, CancelDeleteButton} from '../components';
+import { MODES } from '../constants';
 
 export default function Import({navigation}) {
   const [levels, setLevels] = useState([]);
@@ -131,7 +130,7 @@ export default function Import({navigation}) {
   function goToLevel(mode) {
     setIsModeModalVisible(false);
     let stage = selectedStage;
-    if (mode === 'autoDefender' && selectedStage.moves % 2 === 0) {
+    if (mode === MODES.AUTO_DEFENDER && selectedStage.moves % 2 === 0) {
       stage = {...selectedStage, moves: selectedStage.moves - 1};
     }
     navigation.navigate('Level', {stage, mode});
@@ -187,12 +186,12 @@ export default function Import({navigation}) {
               <Text style={styles.text}>PvP</Text>
             </Pressable>
             <Pressable
-              onPress={() => goToLevel('autoDefender')}
+              onPress={() => goToLevel(MODES.AUTO_DEFENDER)}
               style={[styles.bottomBorder, styles.modalButton]}>
               <Text style={styles.text}>Attacker</Text>
             </Pressable>
             <Pressable
-              onPress={() => goToLevel('autoAttacker')}
+              onPress={() => goToLevel(MODES.AUTO_ATTACKER)}
               style={[styles.modalButton]}>
               <Text style={styles.text}>Defender</Text>
             </Pressable>

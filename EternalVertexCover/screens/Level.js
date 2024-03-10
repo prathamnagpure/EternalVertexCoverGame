@@ -1,8 +1,7 @@
 import {React} from 'react';
 import {StyleSheet, SafeAreaView} from 'react-native';
-
-import Stage from '../../../components/Stage';
-import stages from '../../../assets/Stages';
+import {Stage} from '../components';
+import stages from '../assets/Stages';
 
 export default function Level({route, navigation}) {
   const stage = route.params.stage
