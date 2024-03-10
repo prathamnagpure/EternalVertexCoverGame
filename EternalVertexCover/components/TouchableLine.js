@@ -12,6 +12,7 @@ function TouchableLine({
   moveGuard1,
   moveGuard2,
   id,
+  disabled,
 }) {
   const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -92,6 +93,7 @@ function TouchableLine({
 
   return (
     <Pressable
+      disabled={disabled}
       onPressIn={() => {
         onPress?.(id);
         console.log('Touchable line is pressed');

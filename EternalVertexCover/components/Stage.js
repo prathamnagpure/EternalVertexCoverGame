@@ -1,7 +1,7 @@
 import {React, useState, useEffect, useRef, useCallback} from 'react';
 import Images from '../assets/Images';
-import {giveMap as giveMapA, tupleToString} from '../util/MainAlgoBruteForce';
-import {giveMap as giveMapD} from '../util/MainAlgoBruteForceD';
+import {giveMap as giveMapA, tupleToString} from '../utils/MainAlgoBruteForce';
+import {giveMap as giveMapD} from '../utils/MainAlgoBruteForceD';
 import {
   View,
   Pressable,
@@ -27,7 +27,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import {MODES} from '../constants';
 
-let showAnimation = false;
 const turns = {
   defenderFirst: 1,
   defenderLater: 2,
@@ -44,6 +43,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const [tutVisible, setTutVisible] = useState(
     isAttackerTutorial ? true : false,
   );
+  const showAnimation = useRef({value: false});
   const [pigImage, setPigImage] = useState(Images.naugtypig);
   const [poop, setPoop] = useState(false);
   const [guardCount, setGuardCount] = useState(stage.guardCount);
@@ -177,8 +177,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   };
 
   useEffect(() => {
-    if (showAnimation) {
-      showAnimation = false;
+    if (showAnimation.value) {
+      showAnimation.value = false;
       // setShowAnimation(false);
       poopOpacity.value = 1;
       opacity.value = withTiming(1, {duration: 2000}, () => {
@@ -246,7 +246,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   function pooperPrakat() {
     setPigImage(Images.pigpoop);
     // set poop
-    showAnimation = true;
+    showAnimation.value = true;
     // setShowAnimation(true);
     sound.play(error => {});
     setPoop(true);
@@ -296,7 +296,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
       currentMomentoIndex.current = maxMomentoIndex.current;
     },
-    [edgeStateMap, gameWinner, nodeStateMap, turn],
+    [edgeStateMap, gameWinner, nodeStateMap, turn, guardStateMap],
   );
   function undo() {
     if (currentMomentoIndex.current === 0) {

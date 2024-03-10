@@ -1,7 +1,7 @@
 import {StyleSheet, Pressable, View} from 'react-native';
 import {React} from 'react';
 
-function TouchableCircle({cx, cy, r, onPress, isSelected, id}) {
+function TouchableCircle({cx, cy, r, onPress, isSelected, id, disabled}) {
   const dynamicStyle = StyleSheet.create({
     circleContainer: {
       top: cy - r,
@@ -14,7 +14,7 @@ function TouchableCircle({cx, cy, r, onPress, isSelected, id}) {
   });
 
   return (
-    <Pressable onPressIn={() => onPress?.(id)}>
+    <Pressable onPressIn={() => onPress?.(id)} disabled={disabled}>
       <View
         style={[staticStyle.circleContainer, dynamicStyle.circleContainer]}
       />

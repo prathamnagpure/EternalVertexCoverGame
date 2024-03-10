@@ -7,6 +7,7 @@ import {
   GraphMaker,
   ForTest,
   Import,
+  Settings,
 } from '../screens';
 
 const Stack = createStackNavigator();
@@ -41,6 +42,7 @@ function MainNavigator() {
       />
       <Stack.Screen name="Graph Maker" component={GraphMaker} />
       <Stack.Screen name="testarea" component={ForTest} />
+      <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
   );
 }

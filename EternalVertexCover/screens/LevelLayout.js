@@ -39,12 +39,7 @@ const LevelLayout = ({navigation, route}) => {
           }}>
           {buttonLabel}
         </Text>
-        <GraphPreview
-          stage={stages[level]}
-          height={200}
-          width={200}
-          onPress={navigate}
-        />
+        <GraphPreview stage={stages[level]} height={200} width={200} />
       </Pressable>
     );
   });

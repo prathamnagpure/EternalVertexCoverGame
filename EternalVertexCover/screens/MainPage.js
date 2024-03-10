@@ -120,6 +120,11 @@ function MainPage({navigation}) {
         </Pressable>
         <Pressable
           style={styles.button}
+          onPress={() => navigation.navigate('Settings')}>
+          <Text style={styles.text}>Settings</Text>
+        </Pressable>
+        <Pressable
+          style={styles.button}
           onPress={() => navigation.navigate('testarea')}>
           <Text style={styles.text}>testarea</Text>
         </Pressable>

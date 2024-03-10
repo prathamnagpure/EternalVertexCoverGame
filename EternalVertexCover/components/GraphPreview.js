@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {TouchableCircle, TouchableLine} from '.';
 import parse from 'dotparser';
 
-export default function GraphPreview({stage, width, height, onPress}) {
+export default function GraphPreview({stage, width, height}) {
   let ast = null;
   try {
     ast = parse(stage.graph);
@@ -60,7 +60,7 @@ export default function GraphPreview({stage, width, height, onPress}) {
         cx={node[0]}
         cy={node[1]}
         r={10}
-        onPress={onPress}
+        disabled={true}
       />
     ));
   }
@@ -74,7 +74,7 @@ export default function GraphPreview({stage, width, height, onPress}) {
           key={`${x1} ${y1} ${x2} ${y2}`}
           {...{x1, y1, x2, y2}}
           thickness={10}
-          onPress={onPress}
+          disabled={true}
         />
       );
     });
