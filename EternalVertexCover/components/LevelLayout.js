@@ -1,7 +1,15 @@
 import React from 'react';
-import {View, Text, StyleSheet, FlatList, Pressable} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ImageBackground,
+} from 'react-native';
 import GraphPreview from './GraphPreview';
 import stages from '../assets/Stages';
+import Images from '../assets/Images';
 
 const LevelLayout = ({navigation, route}) => {
   const {levels, mode} = route.params;
@@ -36,7 +44,17 @@ const LevelLayout = ({navigation, route}) => {
   });
 
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={Images.levellayoutgif}
+      resizeMode="cover"
+      style={[
+        styles.container,
+        {
+          flex: 1,
+          // alignItems: 'center',
+          // justifyContent: 'center',
+        },
+      ]}>
       <View
         style={{
           marginTop: 50,
@@ -51,7 +69,7 @@ const LevelLayout = ({navigation, route}) => {
           renderItem={({item}) => item}
         />
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
@@ -60,6 +78,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'black',
     alignItems: 'center',
+    transform: [{scale: 1}],
     // justifyContent: 'center',
   },
   title: {

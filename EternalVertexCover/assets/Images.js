@@ -10,6 +10,7 @@ const images = {
   farmbg: require('./images/wheatbg.jpg'),
   title: require('./images/Title.png'),
   pinkArrow: require('./images/pinkArrow.png'),
+  levellayoutgif: require('./images/levellayout.gif'),
 };
 
 export default images;

@@ -45,14 +45,6 @@ const Modes = {
   AutoAttacker: 'autoAttacker',
   AutoDefender: 'autoDefender',
 };
-const mainBGM = new Sound('mainbgm.mp3', Sound.MAIN_BUNDLE, error => {
-  if (error) {
-    console.log('error in creating mainBGM', error);
-    return;
-  }
-  console.log('sound successfully created ');
-});
-
 export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   // const []
   const [atTutStage, setAtTutStage] = useState(1);
@@ -103,17 +95,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     // loaded successfully
     // Play the sound with an onEnd callback
   });
-  sound.setVolume(2);
-  console.log('was the sound file loaded ', mainBGM.isLoaded());
-  mainBGM.setNumberOfLoops(-1);
-  mainBGM.setVolume(0.8);
-  mainBGM.play(success => {
-    if (success) {
-      console.log('successfully finished playing');
-    } else {
-      console.log('playback failed due to audio decoding errors');
-    }
-  });
+  sound.setVolume(1);
 
   // const funcPlayForever = () => {
   //   console.log('playing sound bgm');
