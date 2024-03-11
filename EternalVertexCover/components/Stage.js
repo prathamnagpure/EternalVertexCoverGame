@@ -43,7 +43,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const [tutVisible, setTutVisible] = useState(
     isAttackerTutorial ? true : false,
   );
-  const showAnimation = useRef({value: false});
+  console.log({tutVisible});
   const [pigImage, setPigImage] = useState(Images.naugtypig);
   const [poop, setPoop] = useState(false);
   const [guardCount, setGuardCount] = useState(stage.guardCount);
@@ -55,6 +55,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const [warning, setWarning] = useState('');
   const [nodeStateMap, setNodeStateMap] = useState(new Map());
   const [edgeStateMap, setEdgeStateMap] = useState(new Map());
+
+  const showAnimation = useRef({value: false});
   const nodeIdToGuardIdMap = useRef(new Map());
   const guardIdToNodeIdMap = useRef(new Map());
   const adjList = useRef(null);
@@ -67,7 +69,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const guards = useRef([]);
   const moves = useRef(stage.moves);
   const selected = useRef(null);
-  // const [showAnimation, setShowAnimation] = useState(false);
+
   const pressed = useSharedValue(false);
   const offset = useSharedValue(0);
   const offsety = useSharedValue(0);
@@ -81,6 +83,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const opacity = useSharedValue(0);
   const poopOpacity = useSharedValue(1);
   const butwidth = useSharedValue(100);
+
   const sound = new Sound('fart.mp3', Sound.MAIN_BUNDLE, error => {
     if (error) {
       return;
@@ -99,7 +102,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   //   });
   // };
   // funcPlayForever();
-  console.log('moves', stage.moves, moves.current);
+  //
   const pan = Gesture.Pan()
     .onBegin(() => {
       pressed.value = true;
@@ -126,32 +129,22 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     width: butwidth.value,
     height: butwidth.value,
   }));
+
   const animatedStylesPoop = useAnimatedStyle(() => {
     return {
       opacity: poopOpacity.value,
       transform: [
-        {
-          translateX: translateX.value,
-        },
-        {
-          translateY: translateY.value,
-        },
         {
           rotate: `${rotation.value}deg`,
         },
       ],
     };
   });
+
   const animatedStylesFire = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [
-      {
-        translateX: translateX.value - 50,
-      },
-      {
-        translateY: translateY.value,
-      },
-    ],
+    left: poopX.value - 50,
+    top: poopY.value,
   }));
 
   const atNextFunc = () => {
@@ -171,53 +164,27 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       case 5:
         setTutVisible(false);
         setAtTutStage(4);
-        // setAtTutStage(4);
         break;
     }
   };
 
   useEffect(() => {
-    if (showAnimation.value) {
-      showAnimation.value = false;
-      // setShowAnimation(false);
+    if (showAnimation.current.value) {
+      showAnimation.current.value = false;
       poopOpacity.value = 1;
       opacity.value = withTiming(1, {duration: 2000}, () => {
         opacity.value = withTiming(0, {duration: 1000});
       });
-      // const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
-      // console.log({x1, x2, y1, y2});
-      // console.log(edgeStateMap.get(attackedEdge.current));
-      // m.current = ((y1 + y2) / 2 - inY.value) / ((x1 + x2) / 2 - inX.value);
-      // console.log(((y1 + y2) / 2 - inY.value) / ((x1 + x2) / 2 - inX.value));
-      // c.current = inY.value - inX.value * m.current;
-      // console.log('value is ', 1 / 2);
-      // console.log('m,c is ', m.current, c.current);
-      translateX.value = withTiming(
-        translateX.value +
-          (edgeStateMap.get(attackedEdge.current).x1 +
-            edgeStateMap.get(attackedEdge.current).x2) /
-            2 -
-          inX.value -
-          35,
-        {duration: 3000},
-        () => {
-          console.log('x value ');
-          poopX.value = translateX.value + poopX.value;
-          translateX.value = 0;
-        },
-      );
-      translateY.value = withTiming(
-        translateY.value +
-          (edgeStateMap.get(attackedEdge.current).y1 +
-            edgeStateMap.get(attackedEdge.current).y2) /
-            2 -
-          inY.value,
-        {duration: 3000},
-        () => {
-          poopY.value = translateY.value + poopY.value;
-          translateY.value = 0;
-        },
-      );
+
+      const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
+      const newX = (x1 + x2) / 2 - 35;
+      const newY = (y1 + y2) / 2;
+      const config = {duration: 3000};
+      poopX.value = withTiming(newX, config);
+      poopY.value = withTiming(newY, config);
+      translateX.value = withTiming(newX, config);
+      translateY.value = withTiming(newY, config);
+
       rotation.value = withTiming(rotation.value + 720, {duration: 3000});
       butwidth.value = withSpring(
         butwidth.value + 100,
@@ -245,10 +212,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
 
   function pooperPrakat() {
     setPigImage(Images.pigpoop);
-    // set poop
-    showAnimation.value = true;
-    // setShowAnimation(true);
-    sound.play(error => {});
+    showAnimation.current.value = true;
+    sound.play();
     setPoop(true);
     poopX.value = inX.value;
     poopY.value = inY.value;
@@ -296,7 +261,15 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
       currentMomentoIndex.current = maxMomentoIndex.current;
     },
-    [edgeStateMap, gameWinner, nodeStateMap, turn, guardStateMap],
+    [
+      edgeStateMap,
+      gameWinner,
+      nodeStateMap,
+      turn,
+      guardStateMap,
+      poop,
+      tutVisible,
+    ],
   );
   function undo() {
     if (currentMomentoIndex.current === 0) {
@@ -525,7 +498,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         saveMomento();
       }
       if (isGuardOnEdge(attackedEdge.current)) {
-        if (atTutStage === 4) {
+        if (isAttackerTutorial && atTutStage === 4) {
           setTutVisible(true);
           setAtTutStage(5);
         }
@@ -561,18 +534,22 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         pooperPrakat();
         if (mode === MODES.AUTO_DEFENDER) {
           playAutoDefender();
-          if (atTutStage === 2) {
-            setAtTutStage(3);
-            setTutVisible(true);
-          }
-          if (atTutStage === 4) {
-            console.log('reached in at 4');
+          if (isAttackerTutorial) {
+            if (atTutStage === 2) {
+              setAtTutStage(3);
+              setTutVisible(true);
+            }
+            if (atTutStage === 4) {
+              console.log('reached in at 4');
+            }
           }
         }
       }
-    } /* turn === Turns.DefenderLater */ else {
-      setAtTutStage(4);
-      setTutVisible(true);
+    } /* turn === turns.defenderLater */ else {
+      if (isAttackerTutorial) {
+        setAtTutStage(4);
+        setTutVisible(true);
+      }
       const nodeGuardCounter = new Map();
       const newNodeStateMap = new Map(nodeStateMap);
       [...newNodeStateMap.keys()].forEach(nodeId => {
@@ -772,6 +749,14 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
     }
   }
+
+  useEffect(() => {
+    if (!poop) {
+      poopX.value = inX.value;
+      poopY.value = inY.value;
+    }
+  }, [poop, inX.value, inY.value, poopX, poopY]);
+
   let buttonTitle = 'Done';
   let headingStyle = styles.heading;
   let headingText = '';
@@ -1032,8 +1017,6 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
                     width: 100,
                     height: 100,
                     position: 'absolute',
-                    left: poopX,
-                    top: poopY,
                   },
                   animatedStylesFire,
                 ]}>
