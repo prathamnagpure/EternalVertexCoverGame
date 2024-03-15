@@ -14,6 +14,7 @@ export default function Level({route, navigation}) {
         stage={stage}
         navigation={navigation}
         isAttackerTutorial={route.params.isAttackerTutorial}
+        isDefenderTutorial={route.params.isDefenderTutorial}
         mode={mode}
       />
     </SafeAreaView>

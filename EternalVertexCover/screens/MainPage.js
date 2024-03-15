@@ -69,12 +69,23 @@ function MainPage({navigation}) {
           style={styles.button}
           onPress={() =>
             navigation.navigate('Level', {
-              mode: 'autoDefender',
+              mode: MODES.AUTO_DEFENDER,
               isAttackerTutorial: true,
               stage: stages[16],
             })
           }>
-          <Text style={styles.text}>Tutorial </Text>
+          <Text style={styles.text}>Attacker Tutorial </Text>
+        </Pressable>
+        <Pressable
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate('Level', {
+              mode: MODES.AUTO_ATTACKER,
+              isDefenderTutorial: true,
+              stage: stages[17],
+            })
+          }>
+          <Text style={styles.text}>Defender Tutorial </Text>
         </Pressable>
         <Pressable
           style={styles.button}
@@ -123,11 +134,13 @@ function MainPage({navigation}) {
           onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.text}>Settings</Text>
         </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('testarea')}>
-          <Text style={styles.text}>testarea</Text>
-        </Pressable>
+        {
+        // <Pressable
+        //   style={styles.button}
+        //   onPress={() => navigation.navigate('testarea')}>
+        //   <Text style={styles.text}>testarea</Text>
+        // </Pressable>
+        }
       </View>
     </ImageBackground>
   );

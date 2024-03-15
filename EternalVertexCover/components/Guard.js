@@ -40,7 +40,7 @@ function Guard({cx, cy, width, height, id, onPress, animateRef}) {
     <AnimatedPressable
       style={[animatedStyle]}
       onPressIn={() => {
-        onPress?.();
+        onPress?.(id);
       }}>
       <Image source={images.guard} style={styles.image} />
     </AnimatedPressable>

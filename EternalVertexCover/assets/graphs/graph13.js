@@ -1,4 +1,4 @@
-export default graph = `digraph G {
+export default `digraph G {
 0 [label="50 50"]
 1 [label="175 50"]
 2 [label="175 450"]

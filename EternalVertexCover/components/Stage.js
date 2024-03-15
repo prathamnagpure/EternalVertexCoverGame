@@ -10,6 +10,7 @@ import {
   Image,
   ImageBackground,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
 import {TouchableCircle, TouchableLine, Poop, Guard, TutorialStep} from '.';
 import parse from 'dotparser';
@@ -37,11 +38,16 @@ const winner = {
   attacker: 2,
 };
 
-export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
-  // const []
-  const [atTutStage, setAtTutStage] = useState(1);
+export default function Stage({
+  navigation,
+  stage,
+  mode,
+  isAttackerTutorial,
+  isDefenderTutorial,
+}) {
+  const [atTutStage, setAtTutStage] = useState(isAttackerTutorial ? 1 : 6);
   const [tutVisible, setTutVisible] = useState(
-    isAttackerTutorial ? true : false,
+    isAttackerTutorial || isDefenderTutorial ? true : false,
   );
   console.log({tutVisible});
   const [pigImage, setPigImage] = useState(Images.naugtypig);
@@ -55,6 +61,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const [warning, setWarning] = useState('');
   const [nodeStateMap, setNodeStateMap] = useState(new Map());
   const [edgeStateMap, setEdgeStateMap] = useState(new Map());
+  const [arrowX, setArrowX] = useState(0);
+  const [arrowY, setArrowY] = useState(0);
 
   const showAnimation = useRef({value: false});
   const nodeIdToGuardIdMap = useRef(new Map());
@@ -133,6 +141,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
   const animatedStylesPoop = useAnimatedStyle(() => {
     return {
       opacity: poopOpacity.value,
+      left: poopX.value,
+      top: poopY.value,
       transform: [
         {
           rotate: `${rotation.value}deg`,
@@ -165,6 +175,35 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         setTutVisible(false);
         setAtTutStage(4);
         break;
+      case 6:
+        setAtTutStage(7);
+        break;
+      case 7:
+        setAtTutStage(8);
+        break;
+      case 8:
+        setAtTutStage(9);
+        setArrowX(nodeStateMap.get('0').cx);
+        setArrowY(nodeStateMap.get('0').cy);
+        break;
+      case 9:
+        setTutVisible(false);
+        break;
+      case 10:
+        setTutVisible(false);
+        break;
+      case 11:
+        setTutVisible(false);
+        break;
+      case 12:
+        setAtTutStage(13);
+        break;
+      case 13:
+        setTutVisible(false);
+        break;
+      case 14:
+        setTutVisible(false);
+        break;
     }
   };
 
@@ -180,8 +219,11 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       const newX = (x1 + x2) / 2 - 35;
       const newY = (y1 + y2) / 2;
       const config = {duration: 3000};
+      poopX.value = inX.value;
+      poopY.value = inY.value;
       poopX.value = withTiming(newX, config);
       poopY.value = withTiming(newY, config);
+      console.log({a: newX, b: newY});
       translateX.value = withTiming(newX, config);
       translateY.value = withTiming(newY, config);
 
@@ -215,8 +257,6 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     showAnimation.current.value = true;
     sound.play();
     setPoop(true);
-    poopX.value = inX.value;
-    poopY.value = inY.value;
     // set shared location
     //setpoop fire angle
     // set pig naugty
@@ -529,6 +569,10 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       } else {
         setWarning('Guards left should be 0');
       }
+      if (isDefenderTutorial) {
+        setTutVisible(true);
+        setAtTutStage(11);
+      }
     } else if (turn === turns.attacker) {
       if (checkAttack(isCalledByRedo)) {
         pooperPrakat();
@@ -648,6 +692,11 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
           setTurn(turns.attacker);
           setPigImage(Images.naugtypig);
         }
+        console.log({isDefenderTutorial, atTutStage});
+        if (isDefenderTutorial && atTutStage === 13) {
+          setTutVisible(true);
+          setAtTutStage(14);
+        }
       } else {
         setWarning('Invalid move, try again.');
       }
@@ -706,8 +755,26 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     if (!bySystem && (isLoading || mode === MODES.AUTO_DEFENDER)) {
       return;
     }
+    if (isDefenderTutorial && atTutStage === 9 && nodeId !== '1') {
+      return;
+    }
+    if (isDefenderTutorial && nodeId === '1') {
+      setTutVisible(true);
+      setAtTutStage(10);
+    }
+    if (isDefenderTutorial && atTutStage === 11) {
+      const [i1, i2] = attackedEdge.current.split(';');
+      if (i1 !== nodeId && i2 !== nodeId) {
+        return;
+      }
+    }
+    if (isDefenderTutorial && atTutStage === 11 && selected.current) {
+      setTutVisible(true);
+      setAtTutStage(12);
+    }
     currentTurn = currentTurn === null ? turn : currentTurn;
     const newNodeStateMap = new Map(nodeStateMap);
+    console.log({nodeId});
     const nodeState = newNodeStateMap.get(nodeId);
     const newGuardStates = new Map(guardStateMap);
     if (currentTurn === turns.defenderFirst) {
@@ -749,13 +816,6 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       }
     }
   }
-
-  useEffect(() => {
-    if (!poop) {
-      poopX.value = inX.value;
-      poopY.value = inY.value;
-    }
-  }, [poop, inX.value, inY.value, poopX, poopY]);
 
   let buttonTitle = 'Done';
   let headingStyle = styles.heading;
@@ -954,6 +1014,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
       newGuardStateMap.forEach(value => {
         [value.cx, value.cy] = resize(value.cx, value.cy);
       });
+
       setNodeStateMap(newNodeStateMap);
       setEdgeStateMap(newEdgeStateMap);
       setGuardStateMap(newGuardStateMap);
@@ -961,6 +1022,7 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
     },
     [mode, height, width, stage],
   );
+
   const undoButtonStyle = [
     styles.undo,
     {display: currentMomentoIndex.current > 0 ? 'flex' : 'none'},
@@ -1042,6 +1104,8 @@ export default function Stage({navigation, stage, mode, isAttackerTutorial}) {
         {tutVisible && (
           <TutorialStep
             tutorialState={atTutStage}
+            arrowX={arrowX}
+            arrowY={arrowY}
             pigX={inX.value}
             j
             pigY={inY.value}
