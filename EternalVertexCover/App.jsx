@@ -1,11 +1,11 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Sound from 'react-native-sound';
 import MainNavigator from './navigation/MainNavigator';
+import {AppState} from 'react-native';
 
 export default function App() {
-  const toPlay = useRef({val: 0});
-  if (toPlay.current.val === 0) {
+  useEffect(() => {
     const mainBGM = new Sound('mainBGM.mp3', Sound.MAIN_BUNDLE, error => {
       if (error) {
         console.log('error in creating mainBGM', error);
@@ -15,7 +15,6 @@ export default function App() {
       while (mainBGM.isLoaded() === false) {}
       mainBGM.setNumberOfLoops(-1);
       mainBGM.setVolume(0.4);
-      // if (toPlay === 0) {
       mainBGM.play(success => {
         if (success) {
           console.log('successfully finished playing');
@@ -23,26 +22,21 @@ export default function App() {
           console.log('playback failed due to audio decoding errors');
         }
       });
-      toPlay.current.val = 1;
       console.log(' app.jsx was the sound file loaded ', mainBGM.isLoaded());
     });
-  }
 
-  var fdata = require('./assets/graphMaps/file3.json');
-  console.log(fdata['1,2,4;6']);
-  var mp = new Map(Object.entries(fdata));
-  console.log(mp.get('1,2,4;6')[0]);
-  const config = {
-    animation: 'spring',
-    config: {
-      stiffness: 1000,
-      damping: 500,
-      mass: 3,
-      overshootClamping: true,
-      restDisplacementThreshold: 0.01,
-      restSpeedThreshold: 0.01,
-    },
-  };
+    const listener = status => {
+      if (status === 'background' || status === 'inactive') {
+        mainBGM?.pause();
+      } else if (status === 'active') {
+        mainBGM?.play();
+      }
+    };
+    const soundHandler = AppState.addEventListener('change', listener);
+    return () => {
+      soundHandler.remove();
+    };
+  }, []);
 
   return (
     <NavigationContainer independent={true}>

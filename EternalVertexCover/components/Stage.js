@@ -10,7 +10,6 @@ import {
   Image,
   ImageBackground,
   useWindowDimensions,
-  Alert,
 } from 'react-native';
 import {TouchableCircle, TouchableLine, Poop, Guard, TutorialStep} from '.';
 import parse from 'dotparser';
@@ -27,6 +26,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import {MODES} from '../constants';
+import {scale, horizontal} from '../utils/scaler';
 
 const turns = {
   defenderFirst: 1,
@@ -311,6 +311,7 @@ export default function Stage({
       tutVisible,
     ],
   );
+
   function undo() {
     if (currentMomentoIndex.current === 0) {
       return;
@@ -321,6 +322,7 @@ export default function Stage({
     currentMomentoIndex.current--;
     applyMomento(momentoes.current[currentMomentoIndex.current]);
   }
+
   function isHumanPlaying() {
     return (
       (mode === MODES.AUTO_DEFENDER && turn === turns.attacker) ||
@@ -1127,24 +1129,27 @@ function isAutomatic(mode) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: 30,
+    height: '20%',
     // backgroundColor: 'yellow',
   },
   imageBackground: {
     flex: 1,
   },
   heading: {
-    padding: 5,
+    paddingLeft: '2%',
+    paddingRight: '2%',
+    paddingTop: '1%',
+    paddingBottom: '1%',
     alignSelf: 'center',
-    fontSize: 20,
-    top: 5,
+    fontSize: scale(16),
+    top: '1%',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 'bold',
     color: 'white',
-    height: 33,
+    height: '5%',
     backgroundColor: 'black',
-    borderRadius: 10,
+    borderRadius: scale(10),
   },
   red: {
     color: 'red',
@@ -1154,11 +1159,11 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: 'grey',
-    padding: 15,
+    padding: '2%',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: 600,
+    top: '90%',
     width: '100%',
     alignSelf: 'center',
   },
