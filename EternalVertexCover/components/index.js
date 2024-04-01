@@ -13,6 +13,7 @@ import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import TutorialStep from './TutorialStep';
 import Tutorial from './TutorialStage';
+import SettingsButton from './SettingsButton';
 
 export {
   CancelDeleteButton,
@@ -30,4 +31,5 @@ export {
   TouchableLine,
   TutorialStep,
   Tutorial,
+  SettingsButton,
 };

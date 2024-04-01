@@ -21,12 +21,14 @@ import {
   DEFENDER_LEVELS,
   MODES,
 } from '../constants';
+import {horizontalScale, verticalScale} from '../utils/scaler';
+import SettingsIcon from '../components/icons/SettingsIcon';
 
 const positions = [
-  [0, 400],
-  [250, 200],
-  [0, 200],
-  [250, 400],
+  [0, verticalScale(400)],
+  [horizontalScale(200), verticalScale(200)],
+  [0, verticalScale(200)],
+  [horizontalScale(200), verticalScale(400)],
 ];
 
 function MainPage({navigation}) {
@@ -63,6 +65,11 @@ function MainPage({navigation}) {
       style={styles.imageBackground}>
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
+      <Pressable
+        style={styles.settingsIcon}
+        onPressIn={() => navigation.navigate('Settings')}>
+        <SettingsIcon size={horizontalScale(30)} />
+      </Pressable>
       <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
         <Pressable
@@ -74,7 +81,7 @@ function MainPage({navigation}) {
               stage: stages[16],
             })
           }>
-          <Text style={styles.text}>Attacker Tutorial </Text>
+          <Text style={styles.text}>Pig Tutorial </Text>
         </Pressable>
         <Pressable
           style={styles.button}
@@ -85,7 +92,7 @@ function MainPage({navigation}) {
               stage: stages[17],
             })
           }>
-          <Text style={styles.text}>Defender Tutorial </Text>
+          <Text style={styles.text}>Janitor Tutorial </Text>
         </Pressable>
         <Pressable
           style={styles.button}
@@ -96,7 +103,7 @@ function MainPage({navigation}) {
               title: 'Attacker',
             })
           }>
-          <Text style={styles.text}>Attacker</Text>
+          <Text style={styles.text}>Play As Pig</Text>
         </Pressable>
         <Pressable
           style={styles.button}
@@ -107,7 +114,7 @@ function MainPage({navigation}) {
               title: 'Defender',
             })
           }>
-          <Text style={styles.text}>Defender</Text>
+          <Text style={styles.text}>Play As Janitor</Text>
         </Pressable>
         <Pressable
           style={styles.button}
@@ -122,24 +129,19 @@ function MainPage({navigation}) {
         <Pressable
           style={styles.button}
           onPress={() => navigation.navigate('Imported Levels')}>
-          <Text style={styles.text}>Imported levels</Text>
+          <Text style={styles.text}>Imported Levels</Text>
         </Pressable>
         <Pressable
           style={styles.button}
           onPress={() => navigation.navigate('Graph Maker')}>
-          <Text style={styles.text}>Graph Maker</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.text}>Settings</Text>
+          <Text style={styles.text}>Level Maker</Text>
         </Pressable>
         {
-        // <Pressable
-        //   style={styles.button}
-        //   onPress={() => navigation.navigate('testarea')}>
-        //   <Text style={styles.text}>testarea</Text>
-        // </Pressable>
+          // <Pressable
+          //   style={styles.button}
+          //   onPress={() => navigation.navigate('testarea')}>
+          //   <Text style={styles.text}>testarea</Text>
+          // </Pressable>
         }
       </View>
     </ImageBackground>
@@ -153,6 +155,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: '#90EE90',
+    gap: verticalScale(10),
     padding: 0,
     marginTop: 0,
     alignItems: 'center',
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     // gap: 5,
   },
   title: {
-    fontSize: 32,
+    fontSize: horizontalScale(32),
     fontWeight: 'bold',
     // color: '', // Set the title color to white in dark mode
   },
@@ -170,19 +173,21 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: 'rgba(255, 193, 204, 0.9)',
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 20,
-    paddingRight: 20,
-    borderRadius: 5,
-    marginTop: 10,
-    marginVertical: 10,
-    width: '55%',
+    paddingTop: verticalScale(10),
+    paddingBottom: verticalScale(10),
+    paddingLeft: horizontalScale(20),
+    paddingRight: horizontalScale(20),
+    borderRadius: horizontalScale(10),
+    width: horizontalScale(200),
   },
   text: {
     color: '#AA336A',
-    fontSize: 20,
+    fontSize: horizontalScale(20),
     fontWeight: 'bold',
+  },
+  settingsIcon: {
+    top: verticalScale(9),
+    left: horizontalScale(300),
   },
 });
 

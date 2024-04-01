@@ -10,10 +10,12 @@ import {
   Alert,
   useWindowDimensions,
 } from 'react-native';
+
 import {TouchableLine, TouchableCircle, Guard} from '../components';
 import {AddIcon} from '../components/icons';
 import {readFile, writeFile, DownloadDirectoryPath} from 'react-native-fs';
 import {pickSingle} from 'react-native-document-picker';
+import {horizontalScale, verticalScale} from '../utils/scaler';
 
 const states = {
   addButton: 1,
@@ -190,10 +192,7 @@ export default function GraphMaker() {
             setState(states.addButton);
           }}>
           <AddIcon color={state === states.addButton ? 'black' : 'gray'} />
-          <Text
-            style={{
-              color: state === states.addButton ? 'black' : 'gray',
-            }}>
+          <Text style={state === states.addButton ? styles.black : styles.gray}>
             Node
           </Text>
         </Pressable>
@@ -203,10 +202,8 @@ export default function GraphMaker() {
             setState(states.addLine);
           }}>
           <AddIcon color={state === states.addLine ? 'black' : 'gray'} />
-          <Text
-            style={{
-              color: state === states.addLine ? 'black' : 'gray',
-            }}>
+
+          <Text style={state === states.addLine ? styles.black : styles.gray}>
             Edge
           </Text>
         </Pressable>
@@ -217,10 +214,7 @@ export default function GraphMaker() {
             setState(states.addGuards);
           }}>
           <AddIcon color={state === states.addGuards ? 'black' : 'gray'} />
-          <Text
-            style={{
-              color: state === states.addGuards ? 'black' : 'gray',
-            }}>
+          <Text style={state === states.addGuards ? styles.black : styles.gray}>
             Guard
           </Text>
         </Pressable>
@@ -228,10 +222,7 @@ export default function GraphMaker() {
           onPress={() => {
             setState(states.remove);
           }}>
-          <Text
-            style={{
-              color: state === states.remove ? 'black' : 'gray',
-            }}>
+          <Text style={state === states.remove ? styles.black : styles.gray}>
             Remove
           </Text>
         </Pressable>
@@ -241,14 +232,14 @@ export default function GraphMaker() {
             setModalVisible(true);
             console.log('doing export');
           }}>
-          <Text style={{color: 'gray'}}>Export</Text>
+          <Text style={styles.gray}>Export</Text>
         </Pressable>
         <Pressable
           onPress={() => {
             forImport();
             console.log('doing import');
           }}>
-          <Text style={{color: 'gray'}}>Import</Text>
+          <Text style={styles.gray}>Import</Text>
         </Pressable>
       </View>
 
@@ -261,7 +252,7 @@ export default function GraphMaker() {
               x2={points[value[1]][0]}
               y2={points[value[1]][1]}
               y1={points[value[0]][1]}
-              thickness={17}
+              thickness={horizontalScale(17)}
               id={index}
               onPress={lineRemove}
               key={index + 'line'}
@@ -274,7 +265,7 @@ export default function GraphMaker() {
               cx={value[0]}
               cy={value[1]}
               isSelected={index === fpoint}
-              r={30}
+              r={horizontalScale(30)}
               id={index}
               key={index}
               onPress={lineCreater}
@@ -289,8 +280,8 @@ export default function GraphMaker() {
             cx={points[value][0]}
             cy={points[value][1]}
             onPress={lineCreater}
-            height={70}
-            width={70}
+            height={verticalScale(70)}
+            width={horizontalScale(70)}
           />
         ))}
       </Pressable>
@@ -303,7 +294,7 @@ export default function GraphMaker() {
         }}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={{color: '#000'}}>Export</Text>
+            <Text style={styles.white}>Export</Text>
             <TextInput
               style={styles.input}
               onChangeText={setInputValue}
@@ -336,16 +327,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 0, // Set the left element to take up 20% of the width
     flexDirection: 'row',
-    gap: 10,
+    gap: horizontalScale(10),
     height: '7%',
     fontSize: 5,
     backgroundColor: 'lightblue',
-    padding: 10,
+    padding: horizontalScale(10),
   },
   rightElement: {
     flex: 1, // Set the right element to take up the remaining space
     backgroundColor: 'lightgreen',
-    padding: 10,
+    padding: horizontalScale(10),
   },
   mcontainer: {
     flex: 1,
@@ -360,22 +351,31 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
+    padding: horizontalScale(20),
+    borderRadius: horizontalScale(10),
     alignItems: 'center',
   },
   input: {
     borderWidth: 1,
     borderColor: 'gray',
-    borderRadius: 5,
+    borderRadius: horizontalScale(5),
     color: '#000',
-    width: 150,
-    padding: 10,
-    marginBottom: 10,
+    width: horizontalScale(150),
+    padding: horizontalScale(10),
+    marginBottom: verticalScale(10),
   },
   button: {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
+  },
+  white: {
+    color: 'white',
+  },
+  gray: {
+    color: 'gray',
+  },
+  black: {
+    color: 'black',
   },
 });

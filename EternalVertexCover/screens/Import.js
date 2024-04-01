@@ -7,8 +7,15 @@ import {
   readFile,
   unlink,
 } from 'react-native-fs';
-import {ImportHeader, DeleteButton, CancelDeleteButton} from '../components';
-import { MODES } from '../constants';
+import {FlatList} from 'react-native-gesture-handler';
+import {
+  ImportHeader,
+  DeleteButton,
+  CancelDeleteButton,
+  GraphPreview,
+} from '../components';
+import {MODES} from '../constants';
+import {horizontalScale, verticalScale} from '../utils/scaler';
 
 export default function Import({navigation}) {
   const [levels, setLevels] = useState([]);
@@ -157,18 +164,28 @@ export default function Import({navigation}) {
 
   return (
     <View style={styles.container}>
-      {levelsToShow.map((level, index) => (
-        <Pressable
-          key={'level' + index}
-          style={
-            itemsToDelete.includes(index)
-              ? [styles.button, styles.pinkBackground]
-              : styles.button
-          }
-          onPress={() => handleListItemPress(levels[index].stage, index)}>
-          <Text style={styles.text}>{level.name}</Text>
-        </Pressable>
-      ))}
+      <FlatList
+        data={levelsToShow}
+        renderItem={({item, index}) => {
+          return (
+            <Pressable
+              key={'level' + index}
+              style={
+                itemsToDelete.includes(index)
+                  ? [styles.button, styles.pinkBackground]
+                  : styles.button
+              }
+              onPress={() => handleListItemPress(levels[index].stage, index)}>
+              <Text style={styles.text}>{item.name}</Text>
+              <GraphPreview
+                stage={levels[index].stage}
+                height={verticalScale(200)}
+                width={horizontalScale(200)}
+              />
+            </Pressable>
+          );
+        }}
+      />
       <Modal
         animationType="fade"
         transparent={true}
@@ -188,12 +205,12 @@ export default function Import({navigation}) {
             <Pressable
               onPress={() => goToLevel(MODES.AUTO_DEFENDER)}
               style={[styles.bottomBorder, styles.modalButton]}>
-              <Text style={styles.text}>Attacker</Text>
+              <Text style={styles.text}>Pig</Text>
             </Pressable>
             <Pressable
               onPress={() => goToLevel(MODES.AUTO_ATTACKER)}
               style={[styles.modalButton]}>
-              <Text style={styles.text}>Defender</Text>
+              <Text style={styles.text}>Janitor</Text>
             </Pressable>
           </View>
         </Pressable>
@@ -234,23 +251,26 @@ const styles = StyleSheet.create({
   button: {
     padding: '2%',
     paddingLeft: '10%',
-    backgroundColor: '#ccc',
+    backgroundColor: '#999',
     color: '#000',
     top: '2%',
     margin: '2%',
     marginLeft: '3%',
     alignContent: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: horizontalScale(10),
   },
 
   text: {
     color: 'black',
+    alignSelf: 'center',
+    fontSize: horizontalScale(16),
   },
 
   container: {
     display: 'flex',
     flex: 1,
+    backgroundColor: '#000',
   },
 
   modalBackground: {
@@ -260,7 +280,7 @@ const styles = StyleSheet.create({
   },
 
   modalButton: {
-    padding: 5,
+    padding: horizontalScale(5),
   },
 
   pinkBackground: {
@@ -273,7 +293,6 @@ const styles = StyleSheet.create({
 
   importButton: {
     backgroundColor: '#cba',
-    borderRadius: 0,
   },
 
   modalContainer: {
@@ -285,23 +304,23 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     justifyContent: 'flex-end',
     borderColor: '#000',
-    borderWidth: 2,
-    borderRadius: 10,
+    borderWidth: horizontalScale(2),
+    borderRadius: horizontalScale(10),
   },
 
   modeModalContainer: {
     top: '10%',
     backgroundColor: '#fff',
     alignContent: 'center',
-    padding: 5,
+    padding: horizontalScale(5),
     alignSelf: 'center',
     justifyContent: 'flex-end',
     borderColor: '#000',
-    borderWidth: 2,
-    borderRadius: 10,
+    borderWidth: horizontalScale(2),
+    borderRadius: horizontalScale(10),
   },
   bottomBorder: {
-    borderBottomWidth: 1,
+    borderBottomWidth: verticalScale(1),
     borderColor: '#aaa',
   },
 });

@@ -1,4 +1,4 @@
-import {StyleSheet, Pressable, View} from 'react-native';
+import {StyleSheet, Pressable, View, Text} from 'react-native';
 import {React} from 'react';
 
 function TouchableCircle({cx, cy, r, onPress, isSelected, id, disabled}) {

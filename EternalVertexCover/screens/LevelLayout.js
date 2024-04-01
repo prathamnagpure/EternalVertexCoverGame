@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   View,
   Text,
@@ -7,67 +7,53 @@ import {
   Pressable,
   ImageBackground,
 } from 'react-native';
+import {useState, useEffect} from 'react';
 import {GraphPreview} from '../components';
 import stages from '../assets/Stages';
 import Images from '../assets/Images';
+import {horizontalScale, verticalScale} from '../utils/scaler';
+import {DoneIcon} from '../components/icons';
+import {getData} from '../utils/storage';
+import {MODES} from '../constants';
+import CompletedLevelsContext from '../contexts/CompletedLevelsContext';
 
 const LevelLayout = ({navigation, route}) => {
   const {levels, mode} = route.params;
+  const {completedLevels} = useContext(CompletedLevelsContext);
   const levelButtons = levels.map((level, index) => {
     const buttonLabel = `Level ${index + 1}`;
-    const navigate = () =>
-      navigation.navigate('Level', {levelno: level, mode, index});
-
-    return (
-      <Pressable
-        style={{
-          borderWidth: 1,
-          borderColor: 'gray',
-          padding: '3%',
-          width: 310,
-          alignItems: 'center',
-        }}
-        key={level}
-        onPress={navigate}>
-        <Text
-          style={{
-            alignSelf: 'center',
-            position: 'relative',
-            fontWeight: 'bold',
-            color: '#888',
-            fontSize: 20,
-          }}>
-          {buttonLabel}
-        </Text>
-        <GraphPreview stage={stages[level]} height={200} width={200} />
-      </Pressable>
-    );
+    const navigate = () => navigation.navigate('Level', {levels, mode, index});
+    return {level, navigate, buttonLabel, index};
   });
 
   return (
     <ImageBackground
       source={Images.levellayoutgif}
       resizeMode="cover"
-      style={[
-        styles.container,
-        {
-          flex: 1,
-          // alignItems: 'center',
-          // justifyContent: 'center',
-        },
-      ]}>
-      <View
-        style={{
-          marginTop: 50,
-          justifyContent: 'center',
-          width: 320,
-          height: 600,
-        }}>
+      style={[styles.container]}>
+      <View style={styles.listContainer}>
         <FlatList
-          //horizontal
           data={levelButtons}
-          // initialScrollIndex={5}
-          renderItem={({item}) => item}
+          renderItem={({item}) => {
+            return (
+              <Pressable
+                style={styles.button}
+                key={item.level}
+                onPress={item.navigate}>
+                <View style={styles.titleContainer}>
+                  <Text style={styles.buttonText} numberOfLines={1}>
+                    {item.buttonLabel}
+                  </Text>
+                  {completedLevels[item.index] && <DoneIcon />}
+                </View>
+                <GraphPreview
+                  stage={stages[item.level]}
+                  height={verticalScale(200)}
+                  width={horizontalScale(200)}
+                />
+              </Pressable>
+            );
+          }}
         />
       </View>
     </ImageBackground>
@@ -83,13 +69,34 @@ const styles = StyleSheet.create({
     // justifyContent: 'center',
   },
   title: {
-    fontSize: 32,
+    fontSize: horizontalScale(32),
     fontWeight: 'bold',
     color: 'white', // Set the title color to white in dark mode
   },
+  titleContainer: {
+    flexDirection: 'row',
+  },
   text: {
     color: 'white',
-    fontSize: 24,
+    fontSize: horizontalScale(24),
+  },
+  button: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    padding: '3%',
+    width: horizontalScale(310),
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontWeight: 'bold',
+    color: '#888',
+    fontSize: horizontalScale(20),
+  },
+  listContainer: {
+    marginTop: verticalScale(50),
+    justifyContent: 'center',
+    width: horizontalScale(320),
+    height: horizontalScale(600),
   },
 });
 

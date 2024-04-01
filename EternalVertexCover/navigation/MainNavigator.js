@@ -9,6 +9,8 @@ import {
   Import,
   Settings,
 } from '../screens';
+import SettingsButton from '../components/SettingsButton';
+import {DeleteButton} from '../components';
 
 const Stack = createStackNavigator();
 
@@ -37,10 +39,15 @@ function MainNavigator() {
         name="Level"
         component={Level}
         options={({route}) => ({
+          headerRight: () => SettingsButton({style: {right: '5%'}}),
           title: 'Level ' + (route.params.index + 1),
         })}
       />
-      <Stack.Screen name="Graph Maker" component={GraphMaker} />
+      <Stack.Screen
+        name="Graph Maker"
+        component={GraphMaker}
+        options={{headerTitle: 'Level Maker'}}
+      />
       <Stack.Screen name="testarea" component={ForTest} />
       <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
