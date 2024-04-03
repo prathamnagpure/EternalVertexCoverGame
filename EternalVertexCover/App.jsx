@@ -103,6 +103,7 @@ export default function App() {
   }, [backgroundMusicVolume, changeVolume, backgroundMusic]);
 
   function updateCompletedLevels(newCompletedLevels) {
+    console.log(newCompletedLevels);
     setCompletedLevels(newCompletedLevels);
     setData('completedLevels', newCompletedLevels);
   }

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -44,7 +44,12 @@ const LevelLayout = ({navigation, route}) => {
                   <Text style={styles.buttonText} numberOfLines={1}>
                     {item.buttonLabel}
                   </Text>
-                  {completedLevels[item.index] && <DoneIcon />}
+                  {((mode === MODES.AUTO_ATTACKER &&
+                    completedLevels.completedDefenderLevels[item.index]) ||
+                    (mode === MODES.AUTO_DEFENDER &&
+                      completedLevels.completedAttackerLevels[item.index])) && (
+                    <DoneIcon />
+                  )}
                 </View>
                 <GraphPreview
                   stage={stages[item.level]}
