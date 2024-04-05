@@ -55,6 +55,7 @@ export default function Stage({
   isAttackerTutorial,
   isDefenderTutorial,
   goNextStage,
+  goAgain,
   onWin,
 }) {
   const {animationSpeed} = useContext(AnimationSpeedContext);
@@ -479,63 +480,7 @@ export default function Stage({
   }
 
   function restartGame() {
-    currentMomentoIndex.current = 0;
-    maxMomentoIndex.current = 0;
-    momentoes.current = [];
-    attackedEdge.current = null;
-    moves.current = stage.moves;
-    const newNodeStateMap = new Map();
-    [...nodeStateMap.keys()].forEach(key => {
-      const value = nodeStateMap.get(key);
-      newNodeStateMap.set(key, {
-        ...value,
-        isGuardPresent: false,
-        isSelected: false,
-      });
-    });
-    resetEdges();
-    setPoop(false);
-    setGameWinner(null);
-    setPigImage(Images.naugtypig);
-    setGuardCount(stage.guardCount);
-    if (mode === MODES.AUTO_DEFENDER) {
-      [...nodeStateMap.keys()].forEach(key => {
-        const value = nodeStateMap.get(key);
-        if (stage.guards.includes(parseInt(key, 10))) {
-          const nodeState = newNodeStateMap.get(key);
-          guardStateMap
-            .get(String(key))
-            .animateRef(parseFloat(nodeState.cx), parseFloat(nodeState.cy), 0);
-          newNodeStateMap.set(key, {...value, isGuardPresent: true});
-        }
-      });
-    }
-    let ast = null;
-    try {
-      ast = parse(stage.graph);
-    } catch {
-      return 'error';
-    }
-    if (!ast) {
-      return 'error';
-    }
-    const children = ast[0].children;
-    nodeIdToGuardIdMap.current.clear();
-    guardIdToNodeIdMap.current.clear();
-    for (const element of children) {
-      if (element.type === 'node_stmt') {
-        const id = String(element.node_id.id);
-        if (
-          mode === MODES.AUTO_DEFENDER &&
-          stage.guards.includes(parseInt(id, 10))
-        ) {
-          nodeIdToGuardIdMap.current.set(id, [id]);
-          guardIdToNodeIdMap.current.set(id, id);
-        }
-      }
-    }
-    setTurn(turns.attacker);
-    setNodeStateMap(newNodeStateMap);
+    goAgain();
   }
 
   function onButtonPress() {
@@ -787,13 +732,16 @@ export default function Stage({
   }
   const onEdgePress = useCallback(
     (edgeId, currTurn = null) => {
+      // if (mode === MODES.AUTO_ATTACKER) {
+      //   return;
+      // }
       if (isLoading) {
         return;
       }
       currTurn = currTurn === null ? turn : currTurn;
       setEdgeStateMap(prev => {
         const newEdgeStateMap = new Map(prev);
-        if (currTurn === turns.attacker) {
+        if (currTurn === turns.attacker && mode !== MODES.AUTO_ATTACKER) {
           if (attackedEdge.current) {
             const prevState = newEdgeStateMap.get(attackedEdge.current);
             newEdgeStateMap.set(attackedEdge.current, {
@@ -817,6 +765,7 @@ export default function Stage({
           });
           return newEdgeStateMap;
         }
+        return newEdgeStateMap;
       });
     },
     [isLoading, mode, turn],
@@ -1160,7 +1109,7 @@ export default function Stage({
           {renderNodes()}
           {renderGuards()}
         </View>
-        <Text style={styles.warning}>{warning}</Text>
+        {!(warning == '') && <Text style={styles.warning}>{warning}</Text>}
         {!gameWinner && (
           <Pressable
             onPressIn={onButtonPress}
@@ -1183,7 +1132,7 @@ export default function Stage({
               source={pigImage}
               style={[styles.pig, animatedStyles]}
             />
-            {pigImage !== Images.naugtypig && (
+            {/* {pigImage !== Images.naugtypig && (
               <Animated.View
                 style={[
                   {
@@ -1204,11 +1153,11 @@ export default function Stage({
                   }}
                 />
               </Animated.View>
-            )}
+            )} */}
             {poop && (
-              <>
+              <View style={{position: 'absolute'}} pointerEvents="none">
                 <Poop {...{poopX, poopY, animatedStylesPoop}} key={'Poop'} />
-              </>
+              </View>
             )}
           </>
         </GestureDetector>
@@ -1229,7 +1178,7 @@ export default function Stage({
           />
         )}
       </ImageBackground>
-      {gameWinner && (
+      {gameWinner && !isAttackerTutorial && !isDefenderTutorial && (
         <Modal
           animationType="slide"
           transparent={true}

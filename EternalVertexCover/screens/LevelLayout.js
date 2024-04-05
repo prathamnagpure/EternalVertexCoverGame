@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,13 @@ const LevelLayout = ({navigation, route}) => {
     const navigate = () => navigation.navigate('Level', {levels, mode, index});
     return {level, navigate, buttonLabel, index};
   });
+  levelButtons.push({
+    level: 0,
+    navigate: () => navigation.navigate('Tutorial'),
+    buttonLabel: 'Tutorial',
+    index: levelButtons.length,
+    notShow: true,
+  });
 
   return (
     <ImageBackground
@@ -34,24 +41,30 @@ const LevelLayout = ({navigation, route}) => {
       <View style={styles.listContainer}>
         <FlatList
           data={levelButtons}
+          style={{marginBottom: 10}}
           renderItem={({item}) => {
             return (
-              <Pressable
-                style={styles.button}
-                key={item.level}
-                onPress={item.navigate}>
-                <View style={styles.titleContainer}>
-                  <Text style={styles.buttonText} numberOfLines={1}>
-                    {item.buttonLabel}
-                  </Text>
-                  {completedLevels[item.index] && <DoneIcon />}
-                </View>
-                <GraphPreview
-                  stage={stages[item.level]}
-                  height={verticalScale(200)}
-                  width={horizontalScale(200)}
-                />
-              </Pressable>
+              <>
+                {!item.notShow && (
+                  <Pressable
+                    style={styles.button}
+                    key={item.level}
+                    onPress={item.navigate}>
+                    <View style={styles.titleContainer}>
+                      <Text style={styles.buttonText} numberOfLines={1}>
+                        {item.buttonLabel}
+                      </Text>
+                      {completedLevels[item.index] && <DoneIcon />}
+                    </View>
+                    <GraphPreview
+                      stage={stages[item.level]}
+                      height={verticalScale(200)}
+                      width={horizontalScale(200)}
+                    />
+                  </Pressable>
+                )}
+                {item.notShow && <View style={{height: verticalScale(110)}} />}
+              </>
             );
           }}
         />

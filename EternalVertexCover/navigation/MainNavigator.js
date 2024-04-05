@@ -40,7 +40,9 @@ function MainNavigator() {
         component={Level}
         options={({route}) => ({
           headerRight: () => SettingsButton({style: {right: '5%'}}),
-          title: 'Level ' + (route.params.index + 1),
+          title: route.params.title
+            ? route.params.title
+            : 'Level ' + (route.params.index + 1),
         })}
       />
       <Stack.Screen

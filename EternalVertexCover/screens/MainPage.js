@@ -79,6 +79,7 @@ function MainPage({navigation}) {
               mode: MODES.AUTO_DEFENDER,
               isAttackerTutorial: true,
               stage: stages[16],
+              title: 'Pig Tutorial',
             })
           }>
           <Text style={styles.text}>Pig Tutorial </Text>
@@ -90,6 +91,7 @@ function MainPage({navigation}) {
               mode: MODES.AUTO_ATTACKER,
               isDefenderTutorial: true,
               stage: stages[17],
+              title: 'Janitor Tutorial',
             })
           }>
           <Text style={styles.text}>Janitor Tutorial </Text>

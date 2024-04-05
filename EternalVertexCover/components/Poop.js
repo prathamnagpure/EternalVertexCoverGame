@@ -14,6 +14,7 @@ export default function Poop({poopX, poopY, animatedStylesPoop}) {
 
   return (
     <Animated.Image
+      pointerEvents="none"
       source={Images.poop}
       style={[
         {

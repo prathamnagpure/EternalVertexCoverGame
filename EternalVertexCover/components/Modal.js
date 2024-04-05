@@ -20,9 +20,9 @@ export default function MyModal({
         // Alert.alert('Modal has been closed.');
         goBack();
       }}>
-      <View style={[styles.centeredView, {top: y, left: x}]}>
-        <View style={styles.modalView}>
-          <Text style={styles.modalText}>{text}</Text>
+      <View style={[styles.centeredView]}>
+        <View style={[styles.modalView, {top: y, left: x}]}>
+          <Text style={[styles.modalText]}>{text}</Text>
           <Pressable
             style={[styles.button, styles.buttonOpen]}
             onPress={() => onClickNext()}>
@@ -36,11 +36,13 @@ export default function MyModal({
 }
 const styles = StyleSheet.create({
   centeredView: {
-    // flex: 1,
+    flex: 1,
 
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
+    display: 'flex',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+
     // borderColor: 'black',
     // borderWidth: 20,
     // marginTop: 22,
@@ -48,6 +50,7 @@ const styles = StyleSheet.create({
   modalView: {
     margin: 20,
     backgroundColor: 'rgba(255,255,255,0.8)',
+    position: 'absolute',
     borderRadius: 20,
     padding: 10,
     width: 300,

@@ -23,6 +23,15 @@ export default function Level({route, navigation}) {
 
   let goNextStage = null;
   let correctStage = null;
+  const goAgain = () => {
+    console.log('go next stage called');
+    navigation.goBack();
+    navigation.navigate('Level', {
+      levels,
+      mode,
+      index: index,
+    });
+  };
   if (stage) {
     correctStage = stage;
   } else {
@@ -49,6 +58,7 @@ export default function Level({route, navigation}) {
         isDefenderTutorial={route.params.isDefenderTutorial}
         mode={mode}
         goNextStage={goNextStage}
+        goAgain={goAgain}
         onWin={onWin}
       />
     </SafeAreaView>
