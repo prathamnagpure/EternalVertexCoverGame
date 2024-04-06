@@ -427,7 +427,6 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
               puraState = element[0];
               puraWhere = element[1];
             }
-
             mxMoves = Math.max(mxMoves, Moves + 1);
           } else {
             if (tempaLose / (tempaLose + tempaWin) >= probMax) {

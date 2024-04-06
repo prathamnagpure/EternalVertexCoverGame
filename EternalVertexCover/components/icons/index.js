@@ -9,6 +9,7 @@ import LeftArrowIcon from './LeftArrowIcon';
 import SearchIcon from './SearchIcon';
 import SettingsIcon from './SettingsIcon';
 import DoneIcon from './DoneIcon';
+import ReplayIcon from './ReplayIcon';
 
 export {
   AddIcon,
@@ -22,4 +23,5 @@ export {
   SearchIcon,
   SettingsIcon,
   DoneIcon,
+  ReplayIcon,
 };

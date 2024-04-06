@@ -15,7 +15,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  Image,
   ImageBackground,
   useWindowDimensions,
 } from 'react-native';

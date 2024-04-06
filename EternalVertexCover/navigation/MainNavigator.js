@@ -10,6 +10,7 @@ import {
   Settings,
 } from '../screens';
 import SettingsButton from '../components/SettingsButton';
+import LevelHeader from '../components';
 import {DeleteButton} from '../components';
 
 const Stack = createStackNavigator();
@@ -39,7 +40,6 @@ function MainNavigator() {
         name="Level"
         component={Level}
         options={({route}) => ({
-          headerRight: () => SettingsButton({style: {right: '5%'}}),
           title: route.params.title
             ? route.params.title
             : 'Level ' + (route.params.index + 1),
