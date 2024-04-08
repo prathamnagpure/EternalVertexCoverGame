@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Sound from 'react-native-sound';
 import MainNavigator from './navigation/MainNavigator';
@@ -7,7 +7,6 @@ import AnimationSpeedContext from './contexts/AnimationSpeedContext';
 import InGameVolumeContext from './contexts/InGameVolumeContext';
 import BackgroundMusicVolumeContext from './contexts/BackGroundMusicContext';
 import {getData, setData} from './utils/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import CompletedLevelsContext from './contexts/CompletedLevelsContext';
 
 function isNullOrUndefined(value) {
@@ -19,7 +18,6 @@ export default function App() {
   const [backgroundMusic, setBackgroundMusic] = useState(null);
   const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.4);
   const [inGameVolume, setInGameVolume] = useState(0.4);
-  const isPlayed = useRef({value: false});
   const [count, setCount] = useState(0);
   const [completedLevels, setCompletedLevels] = useState({
     completedAttackerLevels: [],
@@ -35,17 +33,12 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (isPlayed.current.value) {
-      return;
-    }
-
     getData('completedLevels').then(value => {
       if (!isNullOrUndefined(value)) {
         setCompletedLevels(value);
       }
     });
 
-    isPlayed.current.value = true;
     getData('animationSpeed').then(value => {
       console.log('animation speed', value);
       setCount(prev => prev + 1);
@@ -75,7 +68,7 @@ export default function App() {
           setBackgroundMusicVolume(value);
           mainBGM.setVolume(value);
         } else {
-          mainBGM.setVolume(backgroundMusicVolume);
+          mainBGM.setVolume(0.4);
         }
       });
       mainBGM.setNumberOfLoops(-1);
@@ -90,6 +83,7 @@ export default function App() {
       console.log(' app.jsx was the sound file loaded ', mainBGM.isLoaded());
     });
     const listener = status => {
+      console.log('status', status);
       if (status === 'background' || status === 'inactive') {
         mainBGM?.pause();
       } else if (status === 'active') {
@@ -99,8 +93,9 @@ export default function App() {
     const soundHandler = AppState.addEventListener('change', listener);
     return () => {
       soundHandler.remove();
+      mainBGM?.release();
     };
-  }, [backgroundMusicVolume, changeVolume, backgroundMusic]);
+  }, []);
 
   function updateCompletedLevels(newCompletedLevels) {
     console.log(newCompletedLevels);

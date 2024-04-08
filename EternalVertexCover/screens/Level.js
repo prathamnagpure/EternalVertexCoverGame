@@ -24,7 +24,8 @@ export default function Level({route, navigation}) {
     });
   }, [navigation, route.params]);
 
-  const {stage, levels, index, mode} = route.params;
+  const {stage, levels, index, mode, isAttackerTutorial, isDefenderTutorial} =
+    route.params;
   const {completedLevels, updateCompletedLevels} = useContext(
     CompletedLevelsContext,
   );
@@ -44,9 +45,7 @@ export default function Level({route, navigation}) {
     console.log('go next stage called');
     navigation.goBack();
     navigation.navigate('Level', {
-      levels,
-      mode,
-      index: index,
+      ...route.params,
     });
   };
   if (stage) {
@@ -71,8 +70,8 @@ export default function Level({route, navigation}) {
       <Stage
         stage={correctStage}
         navigation={navigation}
-        isAttackerTutorial={route.params.isAttackerTutorial}
-        isDefenderTutorial={route.params.isDefenderTutorial}
+        isAttackerTutorial={isAttackerTutorial}
+        isDefenderTutorial={isDefenderTutorial}
         mode={mode}
         goNextStage={goNextStage}
         goAgain={goAgain}
