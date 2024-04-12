@@ -1000,6 +1000,8 @@ export default function Stage({
               element.edge_list[1].id,
             ]);
           }
+          adjListForMap[element.edge_list[0].id].push(element.edge_list[1].id);
+          adjListForMap[element.edge_list[1].id].push(element.edge_list[0].id);
           adjList.current
             .get(String(element.edge_list[0].id))
             .push(String(element.edge_list[1].id));

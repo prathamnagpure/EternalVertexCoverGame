@@ -491,6 +491,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
 
 export function giveMap(guardNum, guardPos, adjList, edgList, moves) {
   //console.log(mainAlgo(1,[1,2],undefined,[[1],[0,2],[1,3],[2]],[[0,1],[1,2],[2,3]]));
+  console.log(guardNum, guardPos, adjList, edgList, moves);
   aMoveMap = new Map();
   dMoveMap = new Map();
   //console.log(guardNum, adjList, edgList, moves);
@@ -498,6 +499,7 @@ export function giveMap(guardNum, guardPos, adjList, edgList, moves) {
   for (let i = 0; i < edgList.length; i++) {
     tempArr.push(i);
   }
+  // adjList = [[1, 3], [2, 3], [1], [0]];
 
   combinations(tempArr, 1).map(value => {
     // 2 [[1], [0, 2], [1, 3], [2]] [[0, 1], [1, 2], [2, 3]] 6
@@ -507,8 +509,10 @@ export function giveMap(guardNum, guardPos, adjList, edgList, moves) {
     //console.log('Done this ', value);
     //console.log(mainAlgo(1,value,undefined,[[1],[0]],[[0,1]],4));
   });
-  //console.log(aMoveMap);
-  //console.log(dMoveMap);
+  console.log('aMoveMap');
+  console.log(aMoveMap);
+  console.log('dMoveMap');
+  console.log(dMoveMap);
   return dMoveMap;
   //console.log(forDefender([1,2],[[1],[0,2],[1,3],[2]],[0,0,0,0],0));
   //console.log(combinations([0,1,2,3],1));
