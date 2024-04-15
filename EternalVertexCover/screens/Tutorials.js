@@ -31,7 +31,7 @@ const positions = [
   [horizontalScale(200), verticalScale(400)],
 ];
 
-function MainPage({navigation}) {
+function Tutorial({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
@@ -75,71 +75,27 @@ function MainPage({navigation}) {
         <Pressable
           style={styles.button}
           onPress={() =>
-            navigation.navigate('Tutorial', {
-              title: 'How to Play',
-            })
-          }>
-          <Text style={styles.text}>How to Play</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: ATTACKER_LEVELS,
+            navigation.navigate('Level', {
               mode: MODES.AUTO_DEFENDER,
-              title: 'Attacker',
+              isAttackerTutorial: true,
+              stage: stages[16],
+              title: 'Pig Tutorial',
             })
           }>
-          <Text style={styles.text}>Play As Pig</Text>
+          <Text style={styles.text}>Pig Tutorial </Text>
         </Pressable>
         <Pressable
           style={styles.button}
           onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: DEFENDER_LEVELS,
+            navigation.navigate('Level', {
               mode: MODES.AUTO_ATTACKER,
-              title: 'Defender',
+              isDefenderTutorial: true,
+              stage: stages[17],
+              title: 'Janitor Tutorial',
             })
           }>
-          <Text style={styles.text}>Play As Janitor</Text>
+          <Text style={styles.text}>Janitor Tutorial </Text>
         </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: PVP_LEVELS,
-              title: 'Player Vs Player',
-            })
-          }>
-          <Text style={styles.text}>Player vs Player</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('Imported Levels')}>
-          <Text style={styles.text}>Imported Levels</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('Graph Maker')}>
-          <Text style={styles.text}>Level Maker</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Endless', {
-              title: 'Endless mode',
-            })
-          }>
-          <Text style={styles.text}>Endless Mode</Text>
-        </Pressable>
-
-        {
-          // <Pressable
-          //   style={styles.button}
-          //   onPress={() => navigation.navigate('testarea')}>
-          //   <Text style={styles.text}>testarea</Text>
-          // </Pressable>
-        }
       </View>
     </ImageBackground>
   );
@@ -188,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MainPage;
+export default Tutorial;

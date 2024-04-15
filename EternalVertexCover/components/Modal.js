@@ -1,5 +1,5 @@
 import {Modal} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import {View, StyleSheet, Pressable, Text} from 'react-native';
 
 export default function MyModal({
@@ -9,7 +9,10 @@ export default function MyModal({
   x,
   y,
   goBack,
+  buttonText,
+  showAns,
 }) {
+  const [darknes, setDarkness] = useState({});
   return (
     // <View style={[styles.centeredView, {top: y, left: x}]}>
     <Modal
@@ -20,14 +23,24 @@ export default function MyModal({
         // Alert.alert('Modal has been closed.');
         goBack();
       }}>
-      <View style={[styles.centeredView]}>
+      <View style={[styles.centeredView, darknes]}>
         <View style={[styles.modalView, {top: y, left: x}]}>
           <Text style={[styles.modalText]}>{text}</Text>
           <Pressable
             style={[styles.button, styles.buttonOpen]}
             onPress={() => onClickNext()}>
-            <Text style={styles.textStyle}>Next</Text>
+            <Text style={styles.textStyle}>{buttonText ?? 'Next'}</Text>
           </Pressable>
+          {showAns && (
+            <Pressable
+              style={[styles.button, styles.buttonOpen]}
+              onPress={() => {
+                showAns();
+                setDarkness({backgroundColor: 'rgba(0,0,0,0.3)'});
+              }}>
+              <Text style={styles.textStyle}>Show Answer!</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </Modal>

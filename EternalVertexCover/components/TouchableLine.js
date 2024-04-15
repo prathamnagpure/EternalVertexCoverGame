@@ -13,6 +13,7 @@ function TouchableLine({
   moveGuard2,
   id,
   disabled,
+  yellow,
 }) {
   const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -26,8 +27,8 @@ function TouchableLine({
       width: length,
       height: thickness,
       flex: 1,
-      borderWidth: 3,
-      borderColor: '#5C4033',
+      borderWidth: 1,
+      borderColor: yellow ? 'yellow' : '#5C4033',
       transform: [{rotate: `${angle}deg`}],
     },
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
+
 import {
   MainPage,
   LevelLayout,
@@ -8,10 +9,12 @@ import {
   ForTest,
   Import,
   Settings,
+  Endless,
 } from '../screens';
 import SettingsButton from '../components/SettingsButton';
 import LevelHeader from '../components';
 import {DeleteButton} from '../components';
+import Tutorial from '../screens/Tutorials';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +26,12 @@ function MainNavigator() {
         gestureDirection: 'horizontal',
         presentation: 'modal',
       }}>
+      <Stack.Screen
+        name="Endless"
+        component={Endless}
+        // options={{headerShown: false}}
+      />
+
       <Stack.Screen
         name="MainPage"
         component={MainPage}
@@ -52,6 +61,7 @@ function MainNavigator() {
       />
       <Stack.Screen name="testarea" component={ForTest} />
       <Stack.Screen name="Settings" component={Settings} />
+      <Stack.Screen name="Tutorial" component={Tutorial} />
     </Stack.Navigator>
   );
 }

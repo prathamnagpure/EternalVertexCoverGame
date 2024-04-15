@@ -5,5 +5,15 @@ import LevelLayout from './LevelLayout';
 import Level from './Level';
 import MainPage from './MainPage';
 import Settings from './Settings';
+import Endless from './Endless';
 
-export {ForTest, GraphMaker, Import, Level, LevelLayout, MainPage, Settings};
+export {
+  ForTest,
+  GraphMaker,
+  Import,
+  Level,
+  LevelLayout,
+  MainPage,
+  Settings,
+  Endless,
+};
