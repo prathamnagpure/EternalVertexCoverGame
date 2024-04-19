@@ -189,6 +189,7 @@ export default function GraphMaker() {
         <Pressable
           style={styles.button}
           onPress={() => {
+            setfpoint(null);
             setState(states.addButton);
           }}>
           <AddIcon color={state === states.addButton ? 'black' : 'gray'} />
@@ -199,6 +200,7 @@ export default function GraphMaker() {
         <Pressable
           style={styles.button}
           onPress={() => {
+            setfpoint(null);
             setState(states.addLine);
           }}>
           <AddIcon color={state === states.addLine ? 'black' : 'gray'} />
@@ -211,6 +213,7 @@ export default function GraphMaker() {
         <Pressable
           style={styles.button}
           onPress={() => {
+            setfpoint(null);
             setState(states.addGuards);
           }}>
           <AddIcon color={state === states.addGuards ? 'black' : 'gray'} />
@@ -220,6 +223,7 @@ export default function GraphMaker() {
         </Pressable>
         <Pressable
           onPress={() => {
+            setfpoint(null);
             setState(states.remove);
           }}>
           <Text style={state === states.remove ? styles.black : styles.gray}>
@@ -273,17 +277,20 @@ export default function GraphMaker() {
             />
           );
         })}
-        {guards.map(value => (
-          <Guard
-            key={'Guard' + value}
-            id={value}
-            cx={points[value][0]}
-            cy={points[value][1]}
-            onPress={lineCreater}
-            height={verticalScale(70)}
-            width={horizontalScale(70)}
-          />
-        ))}
+        {guards.map(
+          value =>
+            points[value] && (
+              <Guard
+                key={'Guard' + value}
+                id={value}
+                cx={points[value][0]}
+                cy={points[value][1]}
+                onPress={lineCreater}
+                height={verticalScale(70)}
+                width={horizontalScale(70)}
+              />
+            ),
+        )}
       </Pressable>
       <Modal
         animationType="slide"

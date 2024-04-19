@@ -2,9 +2,6 @@ import Images from '../assets/Images';
 import React from 'react';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 export default function Poop({poopX, poopY, animatedStylesPoop}) {
-  console.log('poopppp');
-  console.log('inside poop ', poopX.value, poopY.value);
-
   const animatedStyle = useAnimatedStyle(() => {
     return {
       left: poopX.value,

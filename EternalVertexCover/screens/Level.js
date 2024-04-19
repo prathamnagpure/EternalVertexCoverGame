@@ -12,7 +12,7 @@ import stages from '../assets/Stages';
 import {MODES} from '../constants';
 import CompletedLevelsContext from '../contexts/CompletedLevelsContext';
 import LevelHeader from '../components/LevelHeader';
-import {horizontalScale} from '../utils/scaler';
+import {horizontalScale, guidelineBaseHeight} from '../utils/scaler';
 
 export default function Level({route, navigation}) {
   const [isRestartModalVisible, setRestartModalVisible] = useState(false);

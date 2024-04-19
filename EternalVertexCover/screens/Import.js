@@ -136,14 +136,14 @@ export default function Import({navigation}) {
 
   function goToLevel(mode) {
     setIsModeModalVisible(false);
-    let stage = selectedStage;
+    let {stage, name} = selectedStage;
     if (mode === MODES.AUTO_DEFENDER && selectedStage.moves % 2 === 0) {
       stage = {...selectedStage, moves: selectedStage.moves - 1};
     }
-    navigation.navigate('Level', {stage, mode});
+    navigation.navigate('Level', {stage, mode, title: name});
   }
 
-  function handleListItemPress(stage, index) {
+  function handleListItemPress(stage, index, name) {
     if (isMultiSelectEnabled) {
       setItemsToDelete(prev => {
         if (prev.includes(index)) {
@@ -153,7 +153,7 @@ export default function Import({navigation}) {
         }
       });
     } else {
-      setSelectedStage(stage);
+      setSelectedStage({stage, name});
       setIsModeModalVisible(true);
     }
   }
@@ -175,7 +175,9 @@ export default function Import({navigation}) {
                   ? [styles.button, styles.pinkBackground]
                   : styles.button
               }
-              onPress={() => handleListItemPress(levels[index].stage, index)}>
+              onPress={() =>
+                handleListItemPress(levels[index].stage, index, item.name)
+              }>
               <Text style={styles.text}>{item.name}</Text>
               <GraphPreview
                 stage={levels[index].stage}

@@ -66,36 +66,43 @@ function Tutorial({navigation}) {
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
       <Pressable
+        android_ripple={{color: '#444'}}
         style={styles.settingsIcon}
         onPressIn={() => navigation.navigate('Settings')}>
         <SettingsIcon size={horizontalScale(30)} />
       </Pressable>
       <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Level', {
-              mode: MODES.AUTO_DEFENDER,
-              isAttackerTutorial: true,
-              stage: stages[16],
-              title: 'Pig Tutorial',
-            })
-          }>
-          <Text style={styles.text}>Pig Tutorial </Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Level', {
-              mode: MODES.AUTO_ATTACKER,
-              isDefenderTutorial: true,
-              stage: stages[17],
-              title: 'Janitor Tutorial',
-            })
-          }>
-          <Text style={styles.text}>Janitor Tutorial </Text>
-        </Pressable>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('Level', {
+                mode: MODES.AUTO_DEFENDER,
+                isAttackerTutorial: true,
+                stage: stages[16],
+                title: 'Pig Tutorial',
+              })
+            }>
+            <Text style={styles.text}>Pig Tutorial </Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('Level', {
+                mode: MODES.AUTO_ATTACKER,
+                isDefenderTutorial: true,
+                stage: stages[17],
+                title: 'Janitor Tutorial',
+              })
+            }>
+            <Text style={styles.text}>Janitor Tutorial </Text>
+          </Pressable>
+        </View>
       </View>
     </ImageBackground>
   );
@@ -141,6 +148,10 @@ const styles = StyleSheet.create({
   settingsIcon: {
     top: verticalScale(9),
     left: horizontalScale(300),
+  },
+  buttonContainer: {
+    overflow: 'hidden',
+    borderRadius: horizontalScale(10),
   },
 });
 

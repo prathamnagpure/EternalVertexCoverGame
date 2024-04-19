@@ -66,72 +66,98 @@ function MainPage({navigation}) {
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
       <Pressable
+        android_ripple={{color: '#444'}}
         style={styles.settingsIcon}
         onPressIn={() => navigation.navigate('Settings')}>
         <SettingsIcon size={horizontalScale(30)} />
       </Pressable>
-      <Image style={styles.titleImage} source={Images.title} />
+      <Image
+        style={styles.titleImage}
+        resizeMode="contain"
+        source={Images.title}
+      />
       <View style={styles.container}>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Tutorial', {
-              title: 'How to Play',
-            })
-          }>
-          <Text style={styles.text}>How to Play</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: ATTACKER_LEVELS,
-              mode: MODES.AUTO_DEFENDER,
-              title: 'Attacker',
-            })
-          }>
-          <Text style={styles.text}>Play As Pig</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: DEFENDER_LEVELS,
-              mode: MODES.AUTO_ATTACKER,
-              title: 'Defender',
-            })
-          }>
-          <Text style={styles.text}>Play As Janitor</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('LevelLayout', {
-              levels: PVP_LEVELS,
-              title: 'Player Vs Player',
-            })
-          }>
-          <Text style={styles.text}>Player vs Player</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('Imported Levels')}>
-          <Text style={styles.text}>Imported Levels</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.navigate('Graph Maker')}>
-          <Text style={styles.text}>Level Maker</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate('Endless', {
-              title: 'Endless mode',
-            })
-          }>
-          <Text style={styles.text}>Endless Mode</Text>
-        </Pressable>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('Tutorial', {
+                title: 'How to Play',
+              })
+            }>
+            <Text style={styles.text}>How to Play</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('LevelLayout', {
+                levels: ATTACKER_LEVELS,
+                mode: MODES.AUTO_DEFENDER,
+                title: 'Play as Pig',
+              })
+            }>
+            <Text style={styles.text}>Play As Pig</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('LevelLayout', {
+                levels: DEFENDER_LEVELS,
+                mode: MODES.AUTO_ATTACKER,
+                title: 'Play as Janitors',
+              })
+            }>
+            <Text style={styles.text}>Play As Janitors</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('LevelLayout', {
+                levels: PVP_LEVELS,
+                title: 'Player Vs Player',
+              })
+            }>
+            <Text style={styles.text}>Player vs Player</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() => navigation.navigate('Imported Levels')}>
+            <Text style={styles.text}>Imported Levels</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() => navigation.navigate('Graph Maker')}>
+            <Text style={styles.text}>Level Maker</Text>
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('Endless', {
+                title: 'Endless mode',
+              })
+            }>
+            <Text style={styles.text}>Endless Mode</Text>
+          </Pressable>
+        </View>
 
         {
           // <Pressable
@@ -166,6 +192,10 @@ const styles = StyleSheet.create({
   },
   titleImage: {
     marginBottom: 0,
+    marginTop: 0,
+    top: 0,
+    height: '30%',
+    alignSelf: 'center',
   },
   button: {
     alignItems: 'center',
@@ -177,12 +207,21 @@ const styles = StyleSheet.create({
     borderRadius: horizontalScale(10),
     width: horizontalScale(200),
   },
+  buttonContainer: {
+    overflow: 'hidden',
+    borderRadius: horizontalScale(10),
+  },
   text: {
     color: '#AA336A',
     fontSize: horizontalScale(20),
     fontWeight: 'bold',
   },
+  settingsIconContainer: {
+    overflow: 'hidden',
+    borderRadius: horizontalScale(100),
+  },
   settingsIcon: {
+    width: horizontalScale(30),
     top: verticalScale(9),
     left: horizontalScale(300),
   },

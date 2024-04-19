@@ -72,6 +72,7 @@ export default function Stage({
   const [guardStateMap, setGuardStateMap] = useState(new Map());
   const [turn, setTurn] = useState(turns.defenderFirst);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingPercentage, setLoadingPercentage] = useState(0);
   const {height, width} = useWindowDimensions();
   const [gameWinner, setGameWinner] = useState(null);
   const [warning, setWarning] = useState('');
@@ -127,7 +128,7 @@ export default function Stage({
   const poopOpacity = useSharedValue(1);
   const butwidth = useSharedValue(100);
   const attackerName = 'Pig';
-  const defenderName = 'Janitor';
+  const defenderName = 'Janitors';
 
   const pan = Gesture.Pan()
     .onBegin(() => {
@@ -451,19 +452,6 @@ export default function Stage({
     showGuard(guardIdToNodeIdMap.current.get(guardId));
   }
 
-  function resetNodes() {
-    const newNodeStateMap = new Map();
-    [...nodeStateMap.keys()].forEach(key => {
-      const value = nodeStateMap.get(key);
-      newNodeStateMap.set(key, {
-        ...value,
-        isGuardPresent: false,
-        isSelected: false,
-      });
-    });
-    setNodeStateMap(newNodeStateMap);
-  }
-
   function resetEdges() {
     const newEdgeStateMap = new Map();
     [...edgeStateMap.keys()].forEach(key => {
@@ -489,8 +477,8 @@ export default function Stage({
   function isGuardOnEdge(edgeId) {
     const [node1, node2] = edgeId.split(';');
     return (
-      nodeStateMap.get(node1).isGuardPresent ||
-      nodeStateMap.get(node2).isGuardPresent
+      nodeIdToGuardIdMap.current.get(node1)?.length ||
+      nodeIdToGuardIdMap.current.get(node2)?.length
     );
   }
 
@@ -503,11 +491,12 @@ export default function Stage({
       return;
     }
     guards.current = [];
-    nodeStateMap.forEach(nodeState => {
-      if (nodeState.isGuardPresent) {
-        guards.current.push(parseInt(nodeState.id, 10));
+    nodeIdToGuardIdMap.current.forEach((guard, nodeId) => {
+      if (guard?.length) {
+        guards.current.push(parseInt(nodeId, 10));
       }
     });
+    guards.current.sort((a, b) => a - b);
     let toAttack = moveMap.current.get(
       tupleToString(guards.current) + ';' + moves.current,
     )[0];
@@ -526,10 +515,9 @@ export default function Stage({
       return;
     }
     guards.current = [];
-    const newNodeStateMap = new Map(nodeStateMap);
-    newNodeStateMap.forEach(nodeState => {
-      if (nodeState.isGuardPresent) {
-        guards.current.push(parseInt(nodeState.id, 10));
+    nodeIdToGuardIdMap.current.forEach((guard, nodeId) => {
+      if (guard?.length) {
+        guards.current.push(parseInt(nodeId, 10));
       }
     });
     guards.current.sort((a, b) => a - b);
@@ -624,12 +612,8 @@ export default function Stage({
         setTutVisible(true);
       }
       const nodeGuardCounter = new Map();
-      const newNodeStateMap = new Map(nodeStateMap);
-      [...newNodeStateMap.keys()].forEach(nodeId => {
-        nodeGuardCounter.set(
-          nodeId,
-          newNodeStateMap.get(nodeId).isGuardPresent ? 1 : 0,
-        );
+      nodeIdToGuardIdMap.current.forEach((guard, nodeId) => {
+        nodeGuardCounter.set(nodeId, guard?.length || 0);
       });
       const newEdgeStateMap = new Map(edgeStateMap);
       newEdgeStateMap.forEach((edgeState, edgeId) => {
@@ -666,24 +650,18 @@ export default function Stage({
           const [guardId] = guardIds;
           const guardState = guardStateMap.get(guardId);
           if (guardIds.length === 1) {
-            nodeIdToGuardIdMap.current.delete(nodeId1);
+            nodeIdToGuardIdMap.current.get(nodeId1).pop();
           } else {
             nodeIdToGuardIdMap.current.get(nodeId1).shift();
           }
           guardIdToNodeIdMap.current.delete(guardId);
-          if (nodeIdToGuardIdMap.current.has(nodeId2)) {
+          if (nodeIdToGuardIdMap.current.get(nodeId2)?.length) {
             nodeIdToGuardIdMap.current.get(nodeId2).push(guardId);
           } else {
             nodeIdToGuardIdMap.current.set(nodeId2, [guardId]);
           }
           guardIdToNodeIdMap.current.set(guardId, nodeId2);
           guardState.animateRef(cx, cy);
-          if (!guardExistsSet.has(nodeId1)) {
-            const nodeState = newNodeStateMap.get(nodeId1);
-            newNodeStateMap.set(nodeId1, {...nodeState, isGuardPresent: false});
-          }
-          const nodeState = newNodeStateMap.get(nodeId2);
-          newNodeStateMap.set(nodeId2, {...nodeState, isGuardPresent: true});
           guardExistsSet.add(nodeId2);
         };
         newEdgeStateMap.forEach((edgeState, edgeId) => {
@@ -696,12 +674,11 @@ export default function Stage({
           }
         });
         setGuardStateMap(new Map(guardStateMap));
-        setNodeStateMap(newNodeStateMap);
         setEdgeStateMap(newEdgeStateMap);
         const [attackedNode1, attackedNode2] = attackedEdge.current.split(';');
         if (
-          (!nodeStateMap.get(attackedNode1).isGuardPresent &&
-            !nodeStateMap.get(attackedNode2).isGuardPresent) ||
+          (!nodeIdToGuardIdMap.current.get(attackedNode1)?.length &&
+            !nodeIdToGuardIdMap.current.get(attackedNode2)?.length) ||
           !wasCovered
         ) {
           setGameWinner(prev => (prev ? prev : winner.attacker));
@@ -713,7 +690,7 @@ export default function Stage({
           attackedEdge.current = null;
           if (mode === MODES.AUTO_ATTACKER) {
             moves.current--;
-            setTimeout(playAutoAttacker, cleanDuration);
+            setTimeout(() => playAutoAttacker(), cleanDuration);
           } else if (mode === MODES.AUTO_DEFENDER) {
             moves.current--;
           }
@@ -809,28 +786,25 @@ export default function Stage({
       setAtTutStage(12);
     }
     currentTurn = currentTurn === null ? turn : currentTurn;
-    const newNodeStateMap = new Map(nodeStateMap);
-    const nodeState = newNodeStateMap.get(nodeId);
     const newGuardStates = new Map(guardStateMap);
     if (currentTurn === turns.defenderFirst) {
-      if (nodeIdToGuardIdMap.current.has(nodeId)) {
+      if (nodeIdToGuardIdMap.current.get(nodeId)?.length) {
         setGuardCount(prev => ++prev);
         const [guardId] = nodeIdToGuardIdMap.current.get(nodeId);
         newGuardStates.delete(guardId);
         nodeIdToGuardIdMap.current.delete(nodeId);
         guardIdToNodeIdMap.current.delete(guardId);
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: false});
       } else {
         setGuardCount(prev => --prev);
         const {cx, cy} = nodeStateMap.get(nodeId);
         newGuardStates.set(nodeId, {cy, cx});
         nodeIdToGuardIdMap.current.set(nodeId, [nodeId]);
         guardIdToNodeIdMap.current.set(nodeId, nodeId);
-        newNodeStateMap.set(nodeId, {...nodeState, isGuardPresent: true});
       }
-      setNodeStateMap(newNodeStateMap);
       setGuardStateMap(newGuardStates);
     } else if (currentTurn === turns.defenderLater) {
+      const newNodeStateMap = new Map(nodeStateMap);
+      const nodeState = newNodeStateMap.get(nodeId);
       if (selected.current) {
         if (adjList.current.get(selected.current).includes(nodeId)) {
           const newEdgeStateMap = new Map(edgeStateMap);
@@ -845,7 +819,7 @@ export default function Stage({
         });
         selected.current = null;
         setNodeStateMap(newNodeStateMap);
-      } else if (nodeState.isGuardPresent) {
+      } else if (nodeIdToGuardIdMap.current.get(nodeId)?.length) {
         newNodeStateMap.set(nodeId, {...nodeState, isSelected: true});
         selected.current = nodeId;
         setNodeStateMap(newNodeStateMap);
@@ -868,7 +842,7 @@ export default function Stage({
     let winText =
       gameWinner === winner.attacker
         ? `${attackerName} Won`
-        : `${defenderName}s Win`;
+        : `${defenderName} Win`;
     let textColor = {color: 'white'};
     if (mode) {
       const isAutoAttacker = mode === MODES.AUTO_ATTACKER;
@@ -880,19 +854,19 @@ export default function Stage({
     headingStyle = [styles.heading, textColor];
     headingText = `${winText}!`;
   } else if (isLoading) {
-    headingText = 'Loading... Please Wait';
+    headingText = `Loading... ${Math.floor(loadingPercentage)}%`;
   } else {
     switch (mode) {
       case MODES.AUTO_ATTACKER:
         switch (turn) {
           case turns.attacker:
-            headingText = "Attacker's Turn";
+            headingText = `${attackerName}'s Turn`;
             break;
           case turns.defenderLater:
             headingText = `Your turn | Turns Left: ${(moves.current + 1) / 2}`;
             break;
           case turns.defenderFirst:
-            headingText = `Guards Left: ${guardCount}`;
+            headingText = `Janitors Left: ${guardCount}`;
             headingStyle = [
               styles.heading,
               {
@@ -907,7 +881,7 @@ export default function Stage({
         headingText =
           turn === turns.attacker
             ? `Your turn | Turns Left: ${(moves.current + 1) / 2}`
-            : `${defenderName}s's Turn`;
+            : `${defenderName}' Turn`;
         break;
       default:
         switch (turn) {
@@ -915,10 +889,10 @@ export default function Stage({
             headingText = `${attackerName}'s Turn`;
             break;
           case turns.defenderLater:
-            headingText = `${defenderName}s's Turn`;
+            headingText = `${defenderName}' Turn`;
             break;
           default:
-            headingText = `${defenderName}s Left: ${guardCount}`;
+            headingText = `${defenderName} Left: ${guardCount}`;
             headingStyle = [
               styles.heading,
               {
@@ -956,12 +930,10 @@ export default function Stage({
           const id = String(element.node_id.id);
           adjList.current.set(id, []);
           adjListForMap.push([]);
-          let isGuardPresent = false;
           if (
             mode === MODES.AUTO_DEFENDER &&
             stage.guards.includes(parseInt(id, 10))
           ) {
-            isGuardPresent = true;
             const guardState = {
               cy: parseFloat(y),
               cx: parseFloat(x),
@@ -975,7 +947,6 @@ export default function Stage({
             cx: parseFloat(x),
             cy: parseFloat(y),
             id: String(element.node_id.id),
-            isGuardPresent,
           });
         } /* edge */ else {
           const edgeId =
@@ -1012,6 +983,7 @@ export default function Stage({
       }
       let returnVal = 'ok';
       if (!stage.map) {
+        console.log('map not found');
         if (mode === MODES.AUTO_ATTACKER) {
           returnVal = 'loading';
           setTimeout(() => {
@@ -1021,6 +993,7 @@ export default function Stage({
                 adjListForMap,
                 edgeList.current,
                 stage.moves,
+                progress => setLoadingPercentage(progress * 100),
               ),
             );
             moveMap.current = new Map(Object.entries(stage.map));
@@ -1037,6 +1010,7 @@ export default function Stage({
                 adjListForMap,
                 edgeList.current,
                 stage.moves - 1,
+                progress => setLoadingPercentage(progress * 100),
               ),
             );
             moveMap.current = new Map(Object.entries(stage.map));
