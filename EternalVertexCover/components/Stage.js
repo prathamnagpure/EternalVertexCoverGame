@@ -16,6 +16,7 @@ import {
   StyleSheet,
   Text,
   ImageBackground,
+  ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
 import {TouchableCircle, TouchableLine, Poop, Guard, TutorialStep} from '.';
@@ -298,7 +299,7 @@ export default function Stage({
     const status = construct();
     if (status === 'ok') {
       if (mode === MODES.AUTO_DEFENDER) {
-        stage.guards.sort((a, b) => a - b);
+        stage.guards.sort();
         moveMap.current = new Map(Object.entries(stage.map));
         setTurn(turns.attacker);
       } else if (mode === MODES.AUTO_ATTACKER) {
@@ -499,7 +500,8 @@ export default function Stage({
         guards.current.push(parseInt(nodeId, 10));
       }
     });
-    guards.current.sort((a, b) => a - b);
+    guards.current.sort();
+    console.log(tupleToString(guards.current) + ';' + moves.current);
     let toAttack = moveMap.current.get(
       tupleToString(guards.current) + ';' + moves.current,
     )[0];
@@ -523,7 +525,7 @@ export default function Stage({
         guards.current.push(parseInt(nodeId, 10));
       }
     });
-    guards.current.sort((a, b) => a - b);
+    guards.current.sort();
     const [node1, node2] = attackedEdge.current.split(';');
     let edgeIndex = -1;
     edgeList.current.forEach((value, index) => {
@@ -866,7 +868,9 @@ export default function Stage({
             headingText = `${attackerName}'s Turn`;
             break;
           case turns.defenderLater:
-            headingText = `Your turn | Turns Left: ${(moves.current + 1) / 2}`;
+            headingText = `Your turn | Turns Left: ${Math.ceil(
+              (moves.current + 1) / 2,
+            )}`;
             break;
           case turns.defenderFirst:
             headingText = `Janitors Left: ${guardCount}`;
@@ -883,7 +887,7 @@ export default function Stage({
       case MODES.AUTO_DEFENDER:
         headingText =
           turn === turns.attacker
-            ? `Your turn | Turns Left: ${(moves.current + 1) / 2}`
+            ? `Your turn | Turns Left: ${Math.ceil((moves.current + 1) / 2)}`
             : `${defenderName}' Turn`;
         break;
       default:
@@ -990,33 +994,33 @@ export default function Stage({
         if (mode === MODES.AUTO_ATTACKER) {
           returnVal = 'loading';
           setTimeout(() => {
-            stage.map = Object.fromEntries(
+            const map = Object.fromEntries(
               giveMapA(
                 stage.guardCount,
                 adjListForMap,
                 edgeList.current,
                 stage.moves,
-                progress => setLoadingPercentage(progress * 100),
+                progress => setLoadingPercentage(progress),
               ),
             );
-            moveMap.current = new Map(Object.entries(stage.map));
+            moveMap.current = new Map(Object.entries(map));
             setIsLoading(false);
           }, 0);
         } else if (mode === MODES.AUTO_DEFENDER) {
-          stage.guards.sort((a, b) => a - b);
+          stage.guards.sort();
           returnVal = 'loading';
           setTimeout(() => {
-            stage.map = Object.fromEntries(
+            const map = Object.fromEntries(
               giveMapD(
                 stage.guardCount,
                 stage.guards,
                 adjListForMap,
                 edgeList.current,
                 stage.moves - 1,
-                progress => setLoadingPercentage(progress * 100),
+                progress => setLoadingPercentage(progress),
               ),
             );
-            moveMap.current = new Map(Object.entries(stage.map));
+            moveMap.current = new Map(Object.entries(map));
             setIsLoading(false);
             setTurn(turns.attacker);
           });
@@ -1070,12 +1074,25 @@ export default function Stage({
         source={Images.farm}
         resizeMode="cover"
         style={styles.imageBackground}>
-        <Text
-          allowFontScaling={true}
-          adjustsFontSizeToFit={true}
-          style={[headingStyle]}>
-          {headingText}
-        </Text>
+        <View
+          style={[
+            headingStyle,
+            {
+              top: verticalScale(4),
+              flexDirection: 'row',
+              backgroundColor: 'black',
+              alignSelf: 'center',
+            },
+          ]}>
+          {isLoading && <ActivityIndicator size="large" color="white" />}
+          <Text
+            allowFontScaling={true}
+            adjustsFontSizeToFit={true}
+            numberOfLines={1}
+            style={[headingStyle]}>
+            {headingText}
+          </Text>
+        </View>
         <Pressable onPressIn={undo} style={undoButtonStyle}>
           <Text>Undo</Text>
         </Pressable>
@@ -1226,18 +1243,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   heading: {
-    paddingLeft: horizontalScale(7),
+    paddingLeft: horizontalScale(3),
     paddingRight: horizontalScale(3),
-    paddingTop: verticalScale(4),
+    paddingTop: verticalScale(2),
     paddingBottom: verticalScale(2),
     alignSelf: 'center',
     fontSize: horizontalScale(16),
-    top: verticalScale(4),
     fontWeight: 'bold',
     color: 'white',
-    width: horizontalScale(190),
-    height: verticalScale(35),
-    backgroundColor: 'black',
     borderRadius: horizontalScale(10),
   },
   red: {

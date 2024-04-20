@@ -1,9 +1,14 @@
+let total = 0;
+let current = 0;
+let prev = 0;
+let p = null;
+
 export function tupleToString(tuple) {
   return tuple.join(',');
 }
 function check(lis) {
   let set = new Set(lis);
-  if (set.size == lis.length) {
+  if (set.size === lis.length) {
     return true;
   }
   return false;
@@ -28,49 +33,37 @@ function combinations(arr, k) {
   return result;
 }
 
-// const pNumbers = [1, 2, 3, 4];
-// const k = 2;
-// const kCombinations = combinations(pNumbers, k);
-//console.log(kCombinations);
-
 const result = {win: 1, lose: 0, na: 2};
 let aMoveMap = new Map();
 let dMoveMap = new Map();
 function forDefender(guards, adjList, cantGo, cur) {
-  //console.log("inside forDefender");
-  //console.log(typeof(cur));
-  //console.log(guards, adjList, cantGo, cur);
   let mainList = [];
-  if (cur == guards.length) {
+  if (cur === guards.length) {
     return [[]];
   }
 
-  forDefender(guards, adjList, cantGo, cur + 1).forEach(element2 => {
-    let temp = [guards[cur]];
-    temp = temp.concat(element2);
-
-    if (check(temp)) {
-      mainList.push(temp);
+  const nodesToGo = [guards[cur]];
+  adjList[guards[cur]].forEach(element => {
+    if (cantGo[element] === 0) {
+      nodesToGo.push(element);
     }
   });
 
-  adjList[guards[cur]].forEach(element => {
-    if (cantGo[element] == 0) {
-      forDefender(guards, adjList, cantGo, cur + 1).forEach(element2 => {
-        let temp = [element].concat(element2);
-        if (check(temp)) {
-          mainList.push(temp);
-        }
-      });
-    }
+  const nextCombinations = forDefender(guards, adjList, cantGo, cur + 1);
+
+  nodesToGo.forEach(element => {
+    nextCombinations.forEach(element2 => {
+      let temp = [element].concat(element2);
+      if (check(temp)) {
+        mainList.push(temp);
+      }
+    });
   });
 
   return mainList;
 }
 
 function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
-  //console.log("mainAlgo");
-  //console.log(turn, guards, attackedge, adjList, edgList,curMove);
   let fin = 0;
   let pura = result.na;
   let probMax = 0;
@@ -78,9 +71,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   let minMoves = 100;
   let minMoves2 = 100;
   let mxMoves = 0;
-  if (turn == 1) {
+  if (turn === 1) {
     //console.log("Attacker");
-    if (curMove == 0) {
+    if (curMove === 0) {
       aMoveMap.set(tupleToString(guards) + ';' + curMove, [
         0,
         0,
@@ -96,6 +89,14 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
     let winEdge;
     let puraEdge;
     if (aMoveMap.get(tupleToString(guards) + ';' + curMove) === undefined) {
+      if (p) {
+        ++current;
+        const newPercentage = Math.floor((current * 100) / total);
+        if (newPercentage !== prev) {
+          prev = newPercentage;
+          p?.(Math.min(newPercentage, 99));
+        }
+      }
       //console.log("not HIT");
       //console.log(aMoveMap);
       let countt = 0;
@@ -116,12 +117,12 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           aWin += tempdLose;
           aLose += tempdWin;
           if (true) {
-            if (tempPura == result.lose && minMoves >= moves + 1) {
+            if (tempPura === result.lose && minMoves >= moves + 1) {
               pura = result.win;
               fin = 1;
               winEdge = index;
               minMoves = Math.min(minMoves, moves + 1);
-            } else if (tempPura == result.win) {
+            } else if (tempPura === result.win) {
               cnt += 1;
               if (mxMoves <= moves + 1) {
                 puraEdge = index;
@@ -136,10 +137,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           }
         }
       });
-      if (cnt == countt) {
+      if (cnt === countt) {
         pura = result.lose;
       }
-      if (pura == result.lose) {
+      if (pura === result.lose) {
         aMoveMap.set(tupleToString(guards) + ';' + curMove, [
           puraEdge,
           aWin,
@@ -147,7 +148,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           pura,
           mxMoves,
         ]);
-      } else if (pura == result.win) {
+      } else if (pura === result.win) {
         aMoveMap.set(tupleToString(guards) + ';' + curMove, [
           winEdge,
           aWin,
@@ -184,17 +185,15 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
     let [node1, node2] = edgList[attackedge];
     let pos1 = guards.indexOf(node1);
     let pos2 = guards.indexOf(node2);
-    //console.log(pos1+" this is the value ");
-    //console.log(pos2+" this is the value ");
     let guardsCopy = [];
     let retPosits = [];
     let cantgo = [];
     for (let i = 0; i < adjList.length; i += 1) {
       cantgo.push(0);
     }
-    if (pos1 == -1) {
+    if (pos1 === -1) {
       //console.log("no guard on left");
-      if (pos2 == -1) {
+      if (pos2 === -1) {
         //console.log("no guard on right");
         dMoveMap.set(tupleToString(guards) + ';' + attackedge + ';' + curMove, [
           guards,
@@ -217,10 +216,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           return element.concat([node1]);
         });
         //console.log("postions' returned ");
-        //console.log(retPosits);
       }
     } else {
-      if (pos2 == -1) {
+      if (pos2 === -1) {
         //console.log("no guard on right");
         cantgo[node1] = 0;
         cantgo[node2] = 1;
@@ -235,7 +233,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           return element.concat([node2]);
         });
         //console.log("postions' returned ");
-        //console.log(retPosits);
       } else {
         cantgo[node1] = 1;
         cantgo[node2] = 1;
@@ -251,10 +248,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           return element.concat([node2, node1]);
         });
         //console.log("postions' returned ");
-        //console.log(retPosits);
         cantgo[node2] = 0;
         adjList[node1].forEach(element => {
-          if (cantgo[element] == 0) {
+          if (cantgo[element] === 0) {
             cantgo[element] = 1;
             retPosits = retPosits.concat(
               forDefender(guardsCopy, adjList, cantgo, 0).map(element2 => {
@@ -265,11 +261,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           }
         });
         //console.log("postions' after concat ");
-        //console.log(retPosits);
         cantgo[node1] = 0;
         cantgo[node2] = 1;
         adjList[node2].forEach(element => {
-          if (cantgo[element] == 0) {
+          if (cantgo[element] === 0) {
             cantgo[element] = 1;
             retPosits = retPosits.concat(
               forDefender(guardsCopy, adjList, cantgo, 0).map(element2 => {
@@ -280,12 +275,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           }
         });
         //console.log("postions' after concat ");
-        //console.log(retPosits);
       }
     }
+    retPosits = retPosits.filter(ele => check(ele)).map(ele => ele.sort());
     retPosits.forEach(element => {
-      //console.log("yaha pe");
-      //console.log(element);
       let [_, tempaWin, tempaLose, tempPura, Moves] = mainAlgo(
         1,
         element,
@@ -297,12 +290,12 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       dWin += tempaLose;
       dLose += tempaWin;
       if (true) {
-        if (tempPura == result.lose && minMoves <= Moves + 1) {
+        if (tempPura === result.lose && minMoves <= Moves + 1) {
           pura = result.win;
           fin = 1;
           winState = element;
           minMoves = Math.min(Moves + 1, minMoves);
-        } else if (tempPura == result.win) {
+        } else if (tempPura === result.win) {
           cnt += 1;
           if (minMoves2 >= Moves + 1) {
             puraState = element;
@@ -317,13 +310,12 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       }
     });
     //console.log("returned positions ");
-    //console.log(retPosits);
 
-    if (cnt == retPosits.length) {
+    if (cnt === retPosits.length) {
       pura = result.lose;
     }
 
-    if (pura == result.lose) {
+    if (pura === result.lose) {
       dMoveMap.set(tupleToString(guards) + ';' + attackedge + ';' + curMove, [
         puraState,
         dWin,
@@ -331,7 +323,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         pura,
         minMoves2,
       ]);
-    } else if (pura == result.win) {
+    } else if (pura === result.win) {
       dMoveMap.set(tupleToString(guards) + ';' + attackedge + ';' + curMove, [
         winState,
         dWin,
@@ -354,30 +346,26 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   }
 }
 
-export function giveMap(guardNum, adjList, edgList, moves) {
-  //console.log(mainAlgo(1,[1,2],undefined,[[1],[0,2],[1,3],[2]],[[0,1],[1,2],[2,3]]));
+export function giveMap(guardNum, adjList, edgList, moves, progress) {
+  let c = [];
+  c[0] = 1;
+  for (let k = 0; k < guardNum; ++k) {
+    c[k + 1] = (c[k] * (adjList.length - k)) / (k + 1);
+  }
+  current = 0;
+  prev = 0;
+  total = c[guardNum] * moves;
+  p = progress;
+
   aMoveMap = new Map();
   dMoveMap = new Map();
-  //console.log(guardNum, adjList, edgList, moves);
   let tempArr = [];
   for (let i = 0; i < adjList.length; i++) {
     tempArr.push(i);
   }
 
-  for (let i = 1; i <= guardNum; i++) {
-    combinations(tempArr, i).map(value => {
-      //    2 [[1], [0, 2], [1, 3], [2]] [[0, 1], [1, 2], [2, 3]] 6
-      //console.log(value);
-      //console.log();
-      mainAlgo(1, value, undefined, adjList, edgList, moves);
-      //console.log('Done this ', value);
-      //console.log(mainAlgo(1,value,undefined,[[1],[0]],[[0,1]],4));
-    });
-  }
-  //console.log(aMoveMap);
-  //console.log(dMoveMap);
+  combinations(tempArr, guardNum).map(value => {
+    mainAlgo(1, value, undefined, adjList, edgList, moves);
+  });
   return aMoveMap;
-  //console.log(forDefender([1,2],[[1],[0,2],[1,3],[2]],[0,0,0,0],0));
-  //console.log(combinations([0,1,2,3],1));
-  //console.log(combinations([0,1,2,3],2));
 }
