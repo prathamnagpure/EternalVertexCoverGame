@@ -15,6 +15,7 @@ import SettingsButton from '../components/SettingsButton';
 import LevelHeader from '../components';
 import {DeleteButton} from '../components';
 import Tutorial from '../screens/Tutorials';
+import Mode from '../screens/Mode';
 
 const Stack = createStackNavigator();
 
@@ -31,7 +32,11 @@ function MainNavigator() {
         component={Endless}
         // options={{headerShown: false}}
       />
-
+      <Stack.Screen
+        name="Mode"
+        component={Mode}
+        // options={{headerShown: false}}
+      />
       <Stack.Screen
         name="MainPage"
         component={MainPage}

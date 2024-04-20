@@ -24,8 +24,15 @@ export default function Level({route, navigation}) {
     });
   }, [navigation, route.params]);
 
-  const {stage, levels, index, mode, isAttackerTutorial, isDefenderTutorial} =
-    route.params;
+  const {
+    stage,
+    levels,
+    index,
+    mode,
+    isAttackerTutorial,
+    isDefenderTutorial,
+    isChallenge,
+  } = route.params;
   const {completedLevels, updateCompletedLevels} = useContext(
     CompletedLevelsContext,
   );
@@ -68,6 +75,7 @@ export default function Level({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <Stage
+        isChallenge={isChallenge}
         stage={correctStage}
         navigation={navigation}
         isAttackerTutorial={isAttackerTutorial}

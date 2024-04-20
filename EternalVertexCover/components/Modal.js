@@ -11,6 +11,7 @@ export default function MyModal({
   goBack,
   buttonText,
   showAns,
+  challengeMe,
 }) {
   const [darknes, setDarkness] = useState({});
   return (
@@ -39,6 +40,16 @@ export default function MyModal({
                 setDarkness({backgroundColor: 'rgba(0,0,0,0.3)'});
               }}>
               <Text style={styles.textStyle}>Show Answer!</Text>
+            </Pressable>
+          )}
+          {challengeMe && (
+            <Pressable
+              style={[styles.button, styles.buttonOpen]}
+              onPress={() => {
+                setDarkness({backgroundColor: 'rgba(0,0,0,0.3)'});
+                challengeMe();
+              }}>
+              <Text style={styles.textStyle}>Challenge Me!</Text>
             </Pressable>
           )}
         </View>

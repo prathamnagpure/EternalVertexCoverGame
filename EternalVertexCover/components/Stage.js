@@ -56,6 +56,7 @@ export default function Stage({
   goNextStage,
   goAgain,
   onWin,
+  isChallenge,
 }) {
   const {animationSpeed} = useContext(AnimationSpeedContext);
   const poopDuration = animationSpeed * 300;
@@ -68,7 +69,9 @@ export default function Stage({
   );
   const [pigImage, setPigImage] = useState(Images.naugtypig);
   const [poop, setPoop] = useState(false);
-  const [guardCount, setGuardCount] = useState(stage.guardCount);
+  const [guardCount, setGuardCount] = useState(
+    isChallenge ? 0 : stage.guardCount,
+  );
   const [guardStateMap, setGuardStateMap] = useState(new Map());
   const [turn, setTurn] = useState(turns.defenderFirst);
   const [isLoading, setIsLoading] = useState(true);
@@ -931,7 +934,7 @@ export default function Stage({
           adjList.current.set(id, []);
           adjListForMap.push([]);
           if (
-            mode === MODES.AUTO_DEFENDER &&
+            (mode === MODES.AUTO_DEFENDER || isChallenge) &&
             stage.guards.includes(parseInt(id, 10))
           ) {
             const guardState = {
@@ -1182,10 +1185,16 @@ export default function Stage({
                 <Pressable
                   style={[styles.modalButton, styles.buttonOpen]}
                   onPress={() => {
-                    navigation.goBack();
+                    if (isChallenge) {
+                      navigation.navigate('Mode');
+                    } else {
+                      navigation.goBack();
+                    }
                   }}>
                   <Text style={styles.textStyle}>
-                    {!isAttackerTutorial && !isDefenderTutorial
+                    {isChallenge
+                      ? 'go back!'
+                      : !isAttackerTutorial && !isDefenderTutorial
                       ? 'Levels'
                       : 'Exit'}
                   </Text>

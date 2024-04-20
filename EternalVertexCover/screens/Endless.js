@@ -5,6 +5,9 @@ import {MyModal, TouchableCircle, TouchableLine} from '../components';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import Timer from '../components/Timer';
 import {getData, setData} from '../utils/storage';
+import {giveMap} from '../utils/MainAlgoBruteForce';
+import {tupleToString} from '../utils/MainAlgoBruteForceD';
+import {MODES} from '../constants';
 // A JavaScript program to find size of minimum vertex
 // cover using Binary Search
 
@@ -101,17 +104,18 @@ function insertEdge(u, v, gr) {
   gr[u][v] = true;
   gr[v][u] = true; // Undirected graph
 }
-export default function Endless({navigation}) {
-  const [gameState, setGameState] = useState();
+export default function Endless({navigation, route}) {
+  // const [gameState, setGameState] = useState();
   const [score, setScore] = useState(0);
   const [graphNode, setGraphNode] = useState(4);
   const [graphEdges, setGraphEdges] = useState(3);
-  const [time, setTime] = useState(30);
+  const [time, setTime] = useState(route.params.time);
   const [timeObj, setTimeObj] = useState(null);
   const [modalVisible, setIsModalVisible] = useState(false);
   const [modalText, setModalText] = useState(null);
   const [guardsList, setGuardsList] = useState([]);
   const [coveredEdge, setCoveredEdge] = useState(false);
+  const [numGuards, setNumGuards] = useState(route.params.numGuards);
   const solution = useRef([]);
   const mvc = useRef(0);
   const [highScore, setHighScore] = useState(0);
@@ -135,38 +139,71 @@ export default function Endless({navigation}) {
   }
 
   function check() {
-    // return true;
-    console.log(
-      'check values ',
-      mvc.current,
-      guardsList.length,
-      guardsList,
-      gr.current,
-      graph[1].length,
-      graph[1],
-    );
-    if (guardsList.length === mvc.current) {
+    if (route.params.numMoves == 1) {
+      // return true;
+      console.log(
+        'check values ',
+        mvc.current,
+        guardsList.length,
+        guardsList,
+        gr.current,
+        graph[1].length,
+        graph[1],
+      );
+      if (guardsList.length === mvc.current) {
+        for (let i = 0; i < graph[1].length; i++) {
+          for (let j = 0; j < graph[1][i].length; j++) {
+            if (
+              !guardsList.includes(graph[1][i][j]) &&
+              !guardsList.includes(i)
+            ) {
+              return false;
+            }
+          }
+        }
+        return true; //Math.random() > 0.5;
+      }
+      return false;
+    } else {
+      const edgList = [];
       for (let i = 0; i < graph[1].length; i++) {
         for (let j = 0; j < graph[1][i].length; j++) {
-          if (!guardsList.includes(graph[1][i][j]) && !guardsList.includes(i)) {
-            return false;
+          if (i < graph[1][i][j]) {
+            edgList.push([i, graph[1][i][j]]);
           }
         }
       }
-      return true; //Math.random() > 0.5;
+      const mp = giveMap(
+        guardsList.length,
+        graph[1],
+        edgList,
+        route.params.numMoves * 2,
+      );
+      return mp.get(
+        tupleToString(guardsList) + ';' + route.params.numMoves * 2,
+      )[3] === 1
+        ? false
+        : true;
     }
-    return false;
   }
 
   function buttonPress(id) {
     if (guardsList.includes(id)) {
       setGuardsList(prev => {
+        setNumGuards(p => {
+          return p + 1;
+        });
         return [...prev.filter(a => a !== id)];
       });
     } else {
-      setGuardsList(prev => {
-        return [...prev, id];
-      });
+      if (numGuards) {
+        setGuardsList(prev => {
+          setNumGuards(p => {
+            return p - 1;
+          });
+          return [...prev, id];
+        });
+      }
     }
   }
 
@@ -202,6 +239,38 @@ export default function Endless({navigation}) {
       gr.current,
     );
   }, []);
+  function challengeMe() {
+    let str = 'digraph G {\n';
+    graph[0].forEach((element, index) => {
+      str +=
+        index + ' ' + '[label=' + '"' + element[0] + ' ' + element[1] + '"]\n';
+    });
+    const edgList = [];
+    for (let i = 0; i < graph[1].length; i++) {
+      for (let j = 0; j < graph[1][i].length; j++) {
+        if (i < graph[1][i][j]) {
+          edgList.push([i, graph[1][i][j]]);
+        }
+      }
+    }
+    edgList.forEach(element => {
+      str += `${element[0]} -- ${element[1]}\n`;
+    });
+    str += '}';
+    // console.log(guards);
+    const obj = {
+      graph: str,
+      guardCount: guardsList.length,
+      moves: route.params.numMoves * 2,
+      guards: guardsList,
+    };
+    navigation.navigate('Level', {
+      stage: obj,
+      mode: MODES.AUTO_ATTACKER,
+      title: 'Challenge Me',
+      isChallenge: true,
+    });
+  }
 
   function donePress() {
     if (check()) {
@@ -209,7 +278,7 @@ export default function Endless({navigation}) {
       gr.current = Array.from({length: maxn}, () =>
         new Array(maxn).fill(false),
       );
-      setTime(30);
+      setTime(route.params.time);
       if (graphEdges < (graphNode * (graphNode - 1)) / 3) {
         setGraphEdges(prev => {
           setGraph(() => {
@@ -314,6 +383,25 @@ export default function Endless({navigation}) {
         }}>
         High Score:{highScore}
       </Text>
+      <Text
+        style={{
+          fontWeight: 'bold',
+          position: 'absolute',
+          right: 150,
+          color: 'black',
+        }}>
+        Guards Left:{numGuards}
+      </Text>
+      <Text
+        style={{
+          fontWeight: 'bold',
+          position: 'absolute',
+          right: 150,
+          top: 40,
+          color: 'black',
+        }}>
+        number of Moves:{route.params.numMoves}
+      </Text>
       <Pressable
         onPress={() => {
           setCoveredEdge(!coveredEdge);
@@ -335,17 +423,17 @@ export default function Endless({navigation}) {
       <MyModal
         modalVisible={modalVisible}
         text={modalText}
-        buttonText={'play again'}
-        y={verticalScale(500)}
+        buttonText={'Exit'}
+        y={verticalScale(450)}
         x={horizontalScale(30)}
         onClickNext={() => {
           navigation.goBack();
-          navigation.navigate('Endless');
         }}
         goBack={() => {
           navigation.goBack();
         }}
         showAns={showAns}
+        challengeMe={challengeMe}
       />
       <View style={{right: 0, fontWeight: 'bold'}}>
         <Text style={{fontWeight: 'bold', color: 'black'}}>

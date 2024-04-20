@@ -31,7 +31,7 @@ const positions = [
   [horizontalScale(200), verticalScale(400)],
 ];
 
-function MainPage({navigation}) {
+function Mode({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
@@ -71,22 +71,20 @@ function MainPage({navigation}) {
         onPressIn={() => navigation.navigate('Settings')}>
         <SettingsIcon size={horizontalScale(30)} />
       </Pressable>
-      <Image
-        style={styles.titleImage}
-        resizeMode="contain"
-        source={Images.title}
-      />
+      <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
         <View style={styles.buttonContainer}>
           <Pressable
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
             onPress={() =>
-              navigation.navigate('Tutorial', {
-                title: 'How to Play',
+              navigation.navigate('Endless', {
+                numGuards: 200,
+                numMoves: 1,
+                time: 30,
               })
             }>
-            <Text style={styles.text}>How to Play</Text>
+            <Text style={styles.text}>Easy</Text>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -94,13 +92,13 @@ function MainPage({navigation}) {
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
             onPress={() =>
-              navigation.navigate('LevelLayout', {
-                levels: ATTACKER_LEVELS,
-                mode: MODES.AUTO_DEFENDER,
-                title: 'Play as Pig',
+              navigation.navigate('Endless', {
+                numGuards: 300,
+                numMoves: 2,
+                time: 60,
               })
             }>
-            <Text style={styles.text}>Play As Pig</Text>
+            <Text style={styles.text}> Normal </Text>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -108,66 +106,15 @@ function MainPage({navigation}) {
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
             onPress={() =>
-              navigation.navigate('LevelLayout', {
-                levels: DEFENDER_LEVELS,
-                mode: MODES.AUTO_ATTACKER,
-                title: 'Play as Janitors',
+              navigation.navigate('Endless', {
+                numGuards: 400,
+                numMoves: 3,
+                time: 60,
               })
             }>
-            <Text style={styles.text}>Play As Janitors</Text>
+            <Text style={styles.text}> Hard </Text>
           </Pressable>
         </View>
-        <View style={styles.buttonContainer}>
-          <Pressable
-            android_ripple={{color: '#AA336A'}}
-            style={styles.button}
-            onPress={() =>
-              navigation.navigate('LevelLayout', {
-                levels: PVP_LEVELS,
-                title: 'Player Vs Player',
-              })
-            }>
-            <Text style={styles.text}>Player vs Player</Text>
-          </Pressable>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Pressable
-            android_ripple={{color: '#AA336A'}}
-            style={styles.button}
-            onPress={() => navigation.navigate('Imported Levels')}>
-            <Text style={styles.text}>Imported Levels</Text>
-          </Pressable>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Pressable
-            android_ripple={{color: '#AA336A'}}
-            style={styles.button}
-            onPress={() => navigation.navigate('Graph Maker')}>
-            <Text style={styles.text}>Level Maker</Text>
-          </Pressable>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Pressable
-            android_ripple={{color: '#AA336A'}}
-            style={styles.button}
-            onPress={() =>
-              navigation.navigate('Mode', {
-                title: 'Endless mode',
-                // numGuards: 5,
-                // numMoves: 2,
-              })
-            }>
-            <Text style={styles.text}>Endless Mode</Text>
-          </Pressable>
-        </View>
-
-        {
-          // <Pressable
-          //   style={styles.button}
-          //   onPress={() => navigation.navigate('testarea')}>
-          //   <Text style={styles.text}>testarea</Text>
-          // </Pressable>
-        }
       </View>
     </ImageBackground>
   );
@@ -194,10 +141,6 @@ const styles = StyleSheet.create({
   },
   titleImage: {
     marginBottom: 0,
-    marginTop: 0,
-    top: 0,
-    height: '30%',
-    alignSelf: 'center',
   },
   button: {
     alignItems: 'center',
@@ -209,24 +152,19 @@ const styles = StyleSheet.create({
     borderRadius: horizontalScale(10),
     width: horizontalScale(200),
   },
-  buttonContainer: {
-    overflow: 'hidden',
-    borderRadius: horizontalScale(10),
-  },
   text: {
     color: '#AA336A',
     fontSize: horizontalScale(20),
     fontWeight: 'bold',
   },
-  settingsIconContainer: {
-    overflow: 'hidden',
-    borderRadius: horizontalScale(100),
-  },
   settingsIcon: {
-    width: horizontalScale(30),
     top: verticalScale(9),
     left: horizontalScale(300),
   },
+  buttonContainer: {
+    overflow: 'hidden',
+    borderRadius: horizontalScale(10),
+  },
 });
 
-export default MainPage;
+export default Mode;
