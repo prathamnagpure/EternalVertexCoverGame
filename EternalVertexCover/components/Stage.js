@@ -58,6 +58,7 @@ export default function Stage({
   goAgain,
   onWin,
   isChallenge,
+  isEndless,
 }) {
   const {animationSpeed} = useContext(AnimationSpeedContext);
   const poopDuration = animationSpeed * 300;
@@ -303,7 +304,9 @@ export default function Stage({
         moveMap.current = new Map(Object.entries(stage.map));
         setTurn(turns.attacker);
       } else if (mode === MODES.AUTO_ATTACKER) {
-        moveMap.current = new Map(Object.entries(stage.map));
+        if (stage.map) {
+          moveMap.current = new Map(Object.entries(stage.map));
+        }
       }
       setIsLoading(false);
     } else if (status === 'error') {
@@ -490,7 +493,7 @@ export default function Stage({
     if (moves.current === 0) {
       setGameWinner(prev => (prev ? prev : winner.defender));
       if (mode === MODES.AUTO_ATTACKER) {
-        onWin();
+        onWin(stage.guardCount - guardStateMap.size);
       }
       return;
     }
@@ -507,6 +510,12 @@ export default function Stage({
     )[0];
     attackedEdge.current =
       edgeList.current[toAttack][0] + ';' + edgeList.current[toAttack][1];
+    const edgeState = edgeStateMap.get(attackedEdge.current);
+    edgeStateMap.set(attackedEdge.current, {
+      ...edgeState,
+      isAttacked: true,
+    });
+    setEdgeStateMap(new Map(edgeStateMap));
     onEdgePress(attackedEdge.current, turns.attacker);
     moves.current--;
     checkAttack(isCalledByRedo);
@@ -564,7 +573,9 @@ export default function Stage({
         setTurn(turns.defenderLater);
       } else {
         setGameWinner(prev => (prev ? prev : winner.attacker));
-        onWin();
+        if (mode === MODES.AUTO_DEFENDER) {
+          onWin(stage.guardCount - guardStateMap.size);
+        }
       }
     }
     return true;
@@ -577,7 +588,21 @@ export default function Stage({
     setWarning('');
     setIsTouched(false);
     if (turn === turns.defenderFirst) {
-      if (guardCount === 0) {
+      if (guardCount === 0 || (isEndless && guardCount >= 0)) {
+        if (isEndless) {
+          setIsLoading(true);
+          const map = Object.fromEntries(
+            giveMapA(
+              guardStateMap.size,
+              stage.adjList,
+              edgeList.current,
+              stage.moves,
+              progress => setLoadingPercentage(progress),
+            ),
+          );
+          moveMap.current = new Map(Object.entries(map));
+          setIsLoading(false);
+        }
         // Saving momento.
         if (mode !== MODES.AUTO_DEFENDER && !isCalledByRedo) {
           saveMomento();
@@ -989,7 +1014,7 @@ export default function Stage({
         }
       }
       let returnVal = 'ok';
-      if (!stage.map) {
+      if (!stage.map && !isEndless) {
         console.log('map not found');
         if (mode === MODES.AUTO_ATTACKER) {
           returnVal = 'loading';
@@ -1078,10 +1103,11 @@ export default function Stage({
           style={[
             headingStyle,
             {
-              top: verticalScale(4),
+              top: verticalScale(0),
               flexDirection: 'row',
               backgroundColor: 'black',
               alignSelf: 'center',
+              position: 'absolute',
             },
           ]}>
           {isLoading && <ActivityIndicator size="large" color="white" />}
@@ -1093,12 +1119,16 @@ export default function Stage({
             {headingText}
           </Text>
         </View>
-        <Pressable onPressIn={undo} style={undoButtonStyle}>
-          <Text>Undo</Text>
-        </Pressable>
-        <Pressable onPressIn={redo} style={redoButtonStyle}>
-          <Text>Redo</Text>
-        </Pressable>
+        {!isEndless && (
+          <Pressable onPressIn={undo} style={undoButtonStyle}>
+            <Text>Undo</Text>
+          </Pressable>
+        )}
+        {!isEndless && (
+          <Pressable onPressIn={redo} style={redoButtonStyle}>
+            <Text>Redo</Text>
+          </Pressable>
+        )}
         <View style={styles.container}>
           {renderEdges()}
           {renderNodes()}
@@ -1110,11 +1140,12 @@ export default function Stage({
             onPressIn={onButtonPress}
             style={[
               styles.button,
-              (turn === turns.attacker && !attackedEdge.current) ||
-              (turn === turns.defenderFirst && guardCount !== 0) ||
-              (turn === turns.defenderLater &&
-                !isTouched &&
-                mode !== MODES.AUTO_DEFENDER)
+              ((turn === turns.attacker && !attackedEdge.current) ||
+                (turn === turns.defenderFirst && guardCount !== 0) ||
+                (turn === turns.defenderLater &&
+                  !isTouched &&
+                  mode !== MODES.AUTO_DEFENDER)) &&
+              !isEndless
                 ? styles.buttonDisabled
                 : styles.buttonEnabled,
             ]}>
@@ -1199,23 +1230,25 @@ export default function Stage({
                     <Text style={styles.textStyle}>Next</Text>
                   </Pressable>
                 )}
-                <Pressable
-                  style={[styles.modalButton, styles.buttonOpen]}
-                  onPress={() => {
-                    if (isChallenge) {
-                      navigation.navigate('Mode');
-                    } else {
-                      navigation.goBack();
-                    }
-                  }}>
-                  <Text style={styles.textStyle}>
-                    {isChallenge
-                      ? 'go back!'
-                      : !isAttackerTutorial && !isDefenderTutorial
-                      ? 'Levels'
-                      : 'Exit'}
-                  </Text>
-                </Pressable>
+                {!isEndless && (
+                  <Pressable
+                    style={[styles.modalButton, styles.buttonOpen]}
+                    onPress={() => {
+                      if (isChallenge) {
+                        navigation.navigate('Mode');
+                      } else {
+                        navigation.goBack();
+                      }
+                    }}>
+                    <Text style={styles.textStyle}>
+                      {isChallenge
+                        ? 'go back!'
+                        : !isAttackerTutorial && !isDefenderTutorial
+                        ? 'Levels'
+                        : 'Exit'}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           </View>
@@ -1243,6 +1276,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   heading: {
+    // position: 'absolute',
+    top: 0,
     paddingLeft: horizontalScale(3),
     paddingRight: horizontalScale(3),
     paddingTop: verticalScale(2),

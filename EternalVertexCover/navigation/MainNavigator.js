@@ -16,6 +16,7 @@ import LevelHeader from '../components';
 import {DeleteButton} from '../components';
 import Tutorial from '../screens/Tutorials';
 import Mode from '../screens/Mode';
+import StageWrap from '../screens/StageWrap';
 
 const Stack = createStackNavigator();
 
@@ -67,6 +68,11 @@ function MainNavigator() {
       <Stack.Screen name="testarea" component={ForTest} />
       <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="Tutorial" component={Tutorial} />
+      <Stack.Screen
+        options={{headerTitle: 'Endless Janitor'}}
+        name="StageWrap"
+        component={StageWrap}
+      />
     </Stack.Navigator>
   );
 }

@@ -91,6 +91,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   let probMax = 0;
   let cnt = 0;
   let minMoves = 100;
+  let dminMoves = 100;
   let minMoves2 = 100;
   let mxMoves = 0;
   if (turn === 1) {
@@ -429,12 +430,12 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       dWin += tempaLose;
       dLose += tempaWin;
       if (true) {
-        if (tempPura === result.lose && minMoves >= Moves + 1) {
+        if (tempPura === result.lose && dminMoves >= Moves + 1) {
           pura = result.win;
           fin = 1;
           winState = element[0];
           winWhere = element[1];
-          minMoves = Math.min(Moves + 1, minMoves);
+          dminMoves = Math.min(Moves + 1, dminMoves);
         } else if (tempPura === result.win) {
           cnt += 1;
           if (mxMoves <= Moves + 1) {
@@ -480,7 +481,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         dWin,
         dLose,
         pura,
-        minMoves,
+        dminMoves,
         newwinWhere,
       ]);
     } else {
@@ -489,7 +490,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         dWin,
         dLose,
         pura,
-        minMoves,
+        dminMoves,
         puraWhere,
       ]);
     }

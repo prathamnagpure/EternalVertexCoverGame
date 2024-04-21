@@ -69,6 +69,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   let probMax = 0;
   let cnt = 0;
   let minMoves = 100;
+  let dminMoves = 100;
   let minMoves2 = 100;
   let mxMoves = 0;
   if (turn === 1) {
@@ -112,8 +113,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         let [node1, node2] = element;
         let pos1 = guards.indexOf(node1);
         let pos2 = guards.indexOf(node2);
+
         if (!(pos1 != -1 && pos2 != -1)) {
           countt++;
+
           aWin += tempdLose;
           aLose += tempdWin;
           if (true) {
@@ -129,6 +132,17 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
                 mxMoves = moves + 1;
               }
             } else {
+              if (tupleToString(guards) + ';' + curMove === '0,2;4') {
+                console.log(
+                  'idhar aaaya ',
+                  minMoves,
+                  moves,
+                  guards,
+                  tempPura,
+                  element,
+                  index,
+                );
+              }
               if (tempdLose / (tempdLose + tempdWin) >= probMax) {
                 puraEdge = index;
                 probMax = tempdLose / (tempdLose + tempdWin);
@@ -137,6 +151,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           }
         }
       });
+      if (tupleToString(guards) + ';' + curMove === '0,2;4') {
+        console.log('exact case ', countt, cnt);
+      }
       if (cnt === countt) {
         pura = result.lose;
       }
@@ -202,6 +219,12 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           result.lose,
           1,
         ]);
+        if (
+          tupleToString(guards) + ';' + attackedge + ';' + curMove ===
+          '0,2;1;3'
+        ) {
+          console.log('218');
+        }
         return [guards, 0, 1, result.lose, 1];
       } else {
         cantgo[node1] = 1;
@@ -278,6 +301,16 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       }
     }
     retPosits = retPosits.filter(ele => check(ele)).map(ele => ele.sort());
+    retPosits = [...new Set(retPosits.map(ele => JSON.stringify(ele)))].map(
+      ele => JSON.parse(ele),
+    );
+    if (curMove === 1) {
+      console.log(
+        tupleToString(guards) + ';' + attackedge + ';' + curMove,
+        'base is ',
+        retPosits,
+      );
+    }
     retPosits.forEach(element => {
       let [_, tempaWin, tempaLose, tempPura, Moves] = mainAlgo(
         1,
@@ -289,18 +322,29 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       );
       dWin += tempaLose;
       dLose += tempaWin;
+      if (curMove === 1) {
+        console.log(
+          tupleToString(guards) + ';' + attackedge + ';' + curMove,
+          'tempPura is ',
+          _,
+          tempaWin,
+          tempaLose,
+          tempPura,
+          Moves,
+        );
+      }
       if (true) {
-        if (tempPura === result.lose && minMoves <= Moves + 1) {
+        if (tempPura === result.lose && dminMoves >= Moves + 1) {
           pura = result.win;
           fin = 1;
           winState = element;
-          minMoves = Math.min(Moves + 1, minMoves);
+          dminMoves = Math.min(Moves + 1, dminMoves);
         } else if (tempPura === result.win) {
           cnt += 1;
           if (minMoves2 >= Moves + 1) {
             puraState = element;
           }
-          minMoves2 = Math.max(minMoves2, Moves + 1);
+          minMoves2 = Math.min(minMoves2, Moves + 1);
         } else {
           if (tempaLose / (tempaLose + tempaWin) >= probMax) {
             puraState = element;
@@ -313,6 +357,13 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
 
     if (cnt === retPosits.length) {
       pura = result.lose;
+    }
+    if (curMove === 1) {
+      console.log(
+        'final is ',
+        pura,
+        tupleToString(guards) + ';' + attackedge + ';' + curMove,
+      );
     }
 
     if (pura === result.lose) {
@@ -329,7 +380,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         dWin,
         dLose,
         pura,
-        minMoves,
+        dminMoves,
       ]);
     } else {
       dMoveMap.set(tupleToString(guards) + ';' + attackedge + ';' + curMove, [
@@ -337,8 +388,14 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         dWin,
         dLose,
         pura,
-        minMoves,
+        dminMoves,
       ]);
+    }
+    if (
+      tupleToString(guards) + ';' + attackedge + ';' + curMove ===
+      '0,2;1;3'
+    ) {
+      console.log('390');
     }
     return dMoveMap.get(
       tupleToString(guards) + ';' + attackedge + ';' + curMove,
@@ -367,5 +424,7 @@ export function giveMap(guardNum, adjList, edgList, moves, progress) {
   combinations(tempArr, guardNum).map(value => {
     mainAlgo(1, value, undefined, adjList, edgList, moves);
   });
+  console.log('this is ', aMoveMap);
+  console.log('this is dmoveMap', dMoveMap);
   return aMoveMap;
 }

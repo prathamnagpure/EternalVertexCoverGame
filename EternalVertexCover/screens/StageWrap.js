@@ -1,7 +1,7 @@
 import {View, Text, Dimensions, Pressable, StyleSheet} from 'react-native';
 import {useRef, useEffect, useState} from 'react';
 import RandomGraphGenerator from '../utils/RandomGraphGenerator';
-import {MyModal, TouchableCircle, TouchableLine} from '../components';
+import {MyModal, Stage, TouchableCircle, TouchableLine} from '../components';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import Timer from '../components/Timer';
 import {getData, setData} from '../utils/storage';
@@ -104,11 +104,12 @@ function insertEdge(u, v, gr) {
   gr[u][v] = true;
   gr[v][u] = true; // Undirected graph
 }
-export default function Endless({navigation, route}) {
+export default function StageWrap({navigation, route}) {
   // const [gameState, setGameState] = useState();
-  const [score, setScore] = useState(0);
-  const [graphNode, setGraphNode] = useState(4);
-  const [graphEdges, setGraphEdges] = useState(3);
+  const [stageObj, setStageObj] = useState(null);
+  const [score, setScore] = useState(route.params.score);
+  const [graphNode, setGraphNode] = useState(route.params.numNode);
+  const [graphEdges, setGraphEdges] = useState(route.params.numEdge);
   const [time, setTime] = useState(route.params.time);
   const [timeObj, setTimeObj] = useState(null);
   const [modalVisible, setIsModalVisible] = useState(false);
@@ -122,6 +123,18 @@ export default function Endless({navigation, route}) {
   const gr = useRef(
     Array.from({length: maxn}, () => new Array(maxn).fill(false)),
   );
+  function onWin(numbGuard) {
+    navigation.goBack();
+    navigation.navigate('StageWrap', {
+      numGuards: numbGuard,
+      numNode:
+        graphEdges >= (graphNode * graphNode) / 3 ? graphNode + 1 : graphNode,
+      numEdge:
+        graphEdges >= (graphNode * graphNode) / 3 ? graphNode : graphEdges + 1,
+      score: score + 1,
+      time: 30,
+    });
+  }
   const [graph, setGraph] = useState(
     RandomGraphGenerator(graphNode, graphEdges),
   );
@@ -137,6 +150,9 @@ export default function Endless({navigation, route}) {
   function showAns() {
     setGuardsList(solution.current);
   }
+  useEffect(() => {
+    navigation.setOptions({headerTitle: time});
+  }, [time]);
 
   function check() {
     if (route.params.numMoves == 1) {
@@ -220,10 +236,13 @@ export default function Endless({navigation, route}) {
           recursor();
         }, 1000),
       );
+      //   navigation.setOptions({ headerTitle: prev - 1,
+      //   });
       return prev - 1;
     });
   }
   useEffect(() => {
+    navigation.setOptions({headerTitle: 'lund'});
     recursor();
     getData('highScore').then(val => {
       setHighScore(val ?? 0);
@@ -235,13 +254,6 @@ export default function Endless({navigation, route}) {
         ed++;
       }
     }
-    [mvc.current, solution.current] = findMinCover(
-      graph[1].length,
-      ed / 2,
-      gr.current,
-    );
-  }, []);
-  function challengeMe() {
     let str = 'digraph G {\n';
     graph[0].forEach((element, index) => {
       str +=
@@ -262,17 +274,14 @@ export default function Endless({navigation, route}) {
     // console.log(guards);
     const obj = {
       graph: str,
-      guardCount: guardsList.length,
+      guardCount: route.params.numGuards,
       moves: route.params.numMoves * 2,
       guards: guardsList,
+      adjList: graph[1],
     };
-    navigation.navigate('Level', {
-      stage: obj,
-      mode: MODES.AUTO_ATTACKER,
-      title: 'Challenge Me',
-      isChallenge: true,
-    });
-  }
+    setStageObj(obj);
+  }, []);
+  function challengeMe() {}
 
   function donePress() {
     if (check()) {
@@ -281,6 +290,9 @@ export default function Endless({navigation, route}) {
         new Array(maxn).fill(false),
       );
       setTime(route.params.time);
+      //   navigation.setOptions({
+      //     headerTitle: route.params.time,
+      //   });
       if (graphEdges < (graphNode * (graphNode - 1)) / 3) {
         setGraphEdges(prev => {
           setGraph(() => {
@@ -375,35 +387,6 @@ export default function Endless({navigation, route}) {
 
   return (
     <View style={{flex: 1, backgroundColor: 'grey'}}>
-      <Text style={{fontWeight: 'bold', color: 'black'}}>Score:{score}</Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 0,
-          color: 'black',
-        }}>
-        High Score:{highScore}
-      </Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 150,
-          color: 'black',
-        }}>
-        Guards Left:{numGuards}
-      </Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 150,
-          top: 40,
-          color: 'black',
-        }}>
-        number of Moves:{route.params.numMoves}
-      </Text>
       <Pressable
         onPress={() => {
           setCoveredEdge(!coveredEdge);
@@ -437,12 +420,7 @@ export default function Endless({navigation, route}) {
         showAns={route.params.numMoves === 1 ? showAns : null}
         challengeMe={route.params.numMoves > 1 ? challengeMe : null}
       />
-      <View style={{right: 0, fontWeight: 'bold'}}>
-        <Text style={{fontWeight: 'bold', color: 'black'}}>
-          Time left is {time}
-        </Text>
-      </View>
-      {giveGraph()}
+      {/* {giveGraph()} */}
       <Pressable
         onPress={() => {
           donePress();
@@ -459,6 +437,35 @@ export default function Endless({navigation, route}) {
         ]}>
         <Text style={styles.textStyle}>Done</Text>
       </Pressable>
+      {stageObj && (
+        <Stage
+          onWin={onWin}
+          stage={stageObj}
+          isEndless={true}
+          mode={MODES.AUTO_ATTACKER}
+        />
+      )}
+      <Text
+        style={{
+          position: 'absolute',
+          right: 0,
+          fontWeight: 'bold',
+          fontSize: 16,
+          color: 'red',
+          backgroundColor: 'white',
+        }}>
+        Time left is {time}
+      </Text>
+      <Text
+        style={{
+          fontWeight: 'bold',
+          position: 'absolute',
+          color: 'black',
+          backgroundColor: 'white',
+          fontSize: 16,
+        }}>
+        Score:{score}
+      </Text>
     </View>
   );
 }

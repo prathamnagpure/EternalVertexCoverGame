@@ -160,6 +160,23 @@ function MainPage({navigation}) {
             <Text style={styles.text}>Endless Mode</Text>
           </Pressable>
         </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            android_ripple={{color: '#AA336A'}}
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('StageWrap', {
+                time: 30,
+                numGuards: 5,
+                numMoves: 2,
+                numNode: 4,
+                numEdge: 3,
+                score: 0,
+              })
+            }>
+            <Text style={styles.text}>Endless Janitor</Text>
+          </Pressable>
+        </View>
 
         {
           // <Pressable
