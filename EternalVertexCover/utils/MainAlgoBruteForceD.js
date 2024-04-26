@@ -415,6 +415,9 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         temp2 = temp3.map(value => value[1]);
         return [temp, temp2];
       });
+    retPosits = [...new Set(retPosits.map(ele => JSON.stringify(ele)))].map(
+      ele => JSON.parse(ele),
+    );
 
     retPosits.forEach(element => {
       //console.log("yaha pe");
@@ -501,6 +504,7 @@ export function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
 }
 
 export function giveMap(guardNum, guardPos, adjList, edgList, moves, progress) {
+  console.log('MainAlgoD', guardNum, guardPos, adjList, edgList, moves);
   let c = [];
   c[0] = 1;
   for (let k = 0; k < guardNum; ++k) {

@@ -165,6 +165,7 @@ export default function Stage({
 
   const animatedStylesPoop = useAnimatedStyle(() => {
     return {
+      position: 'absolute',
       opacity: poopOpacity.value,
       left: poopX.value,
       top: poopY.value,
@@ -243,8 +244,8 @@ export default function Stage({
         return;
       }
       const {x1, x2, y1, y2} = edgeStateMap.get(attackedEdge.current);
-      const newX = (x1 + x2) / 2 - 35;
-      const newY = (y1 + y2) / 2;
+      const newX = (x1 + x2) / 2 - horizontalScale(35);
+      const newY = (y1 + y2) / 2 - verticalScale(35);
       const config = {duration: poopDuration};
       poopX.value = inX.value;
       poopY.value = inY.value;
@@ -510,12 +511,6 @@ export default function Stage({
     )[0];
     attackedEdge.current =
       edgeList.current[toAttack][0] + ';' + edgeList.current[toAttack][1];
-    const edgeState = edgeStateMap.get(attackedEdge.current);
-    edgeStateMap.set(attackedEdge.current, {
-      ...edgeState,
-      isAttacked: true,
-    });
-    setEdgeStateMap(new Map(edgeStateMap));
     onEdgePress(attackedEdge.current, turns.attacker);
     moves.current--;
     checkAttack(isCalledByRedo);
@@ -602,6 +597,7 @@ export default function Stage({
           );
           moveMap.current = new Map(Object.entries(map));
           setIsLoading(false);
+          setLoadingPercentage(0);
         }
         // Saving momento.
         if (mode !== MODES.AUTO_DEFENDER && !isCalledByRedo) {
@@ -614,7 +610,7 @@ export default function Stage({
           setPigImage(Images.naugtypig);
         }
       } else {
-        setWarning('Guards left should be 0');
+        setWarning('Janitors left should be 0');
       }
       if (isDefenderTutorial) {
         setTutVisible(true);
@@ -747,7 +743,7 @@ export default function Stage({
       currTurn = currTurn === null ? turn : currTurn;
       setEdgeStateMap(prev => {
         const newEdgeStateMap = new Map(prev);
-        if (currTurn === turns.attacker && mode !== MODES.AUTO_ATTACKER) {
+        if (currTurn === turns.attacker) {
           if (attackedEdge.current) {
             const prevState = newEdgeStateMap.get(attackedEdge.current);
             newEdgeStateMap.set(attackedEdge.current, {
@@ -898,7 +894,9 @@ export default function Stage({
             )}`;
             break;
           case turns.defenderFirst:
-            headingText = `Janitors Left: ${guardCount}`;
+            headingText = `Janitors Left: ${guardCount} | Turns: ${Math.floor(
+              moves.current / 2,
+            )}`;
             headingStyle = [
               styles.heading,
               {
@@ -1052,7 +1050,10 @@ export default function Stage({
         }
       }
       function resize(x, y) {
-        return [(x / maxX) * width * 0.85, (y / maxY) * height * 0.7];
+        return [
+          (x / maxX) * width * 0.85 + horizontalScale(10),
+          (y / maxY) * height * 0.7 + verticalScale(25),
+        ];
       }
       newNodeStateMap.forEach(value => {
         [value.cx, value.cy] = resize(value.cx, value.cy);
@@ -1070,7 +1071,7 @@ export default function Stage({
       setGuardStateMap(newGuardStateMap);
       return returnVal;
     },
-    [mode, height, width, stage],
+    [mode, height, width, stage, isEndless, isChallenge],
   );
 
   const undoButtonStyle = [

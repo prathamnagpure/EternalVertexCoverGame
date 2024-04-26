@@ -114,7 +114,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         let pos1 = guards.indexOf(node1);
         let pos2 = guards.indexOf(node2);
 
-        if (!(pos1 != -1 && pos2 != -1)) {
+        if (!(pos1 !== -1 && pos2 !== -1)) {
           countt++;
 
           aWin += tempdLose;
@@ -156,6 +156,10 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       }
       if (cnt === countt) {
         pura = result.lose;
+      }
+      if (!puraEdge) {
+        pura = result.lose;
+        puraEdge = Math.floor(Math.random() * edgList.length);
       }
       if (pura === result.lose) {
         aMoveMap.set(tupleToString(guards) + ';' + curMove, [
@@ -404,6 +408,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
 }
 
 export function giveMap(guardNum, adjList, edgList, moves, progress) {
+  console.log('MainAlgo', guardNum, adjList, edgList, moves);
   let c = [];
   c[0] = 1;
   for (let k = 0; k < guardNum; ++k) {

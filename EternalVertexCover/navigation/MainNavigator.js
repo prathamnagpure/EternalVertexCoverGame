@@ -17,6 +17,7 @@ import {DeleteButton} from '../components';
 import Tutorial from '../screens/Tutorials';
 import Mode from '../screens/Mode';
 import StageWrap from '../screens/StageWrap';
+import Empty from '../screens/Empty';
 
 const Stack = createStackNavigator();
 
@@ -72,6 +73,11 @@ function MainNavigator() {
         options={{headerTitle: 'Endless Janitor'}}
         name="StageWrap"
         component={StageWrap}
+      />
+      <Stack.Screen
+        name="Empty"
+        component={Empty}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );

@@ -65,12 +65,14 @@ function MainPage({navigation}) {
       style={styles.imageBackground}>
       {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
-      <Pressable
-        android_ripple={{color: '#444'}}
-        style={styles.settingsIcon}
-        onPressIn={() => navigation.navigate('Settings')}>
-        <SettingsIcon size={horizontalScale(30)} />
-      </Pressable>
+      <View style={styles.settingsButtonContainer}>
+        <Pressable
+          android_ripple={{color: '#444'}}
+          style={styles.settingsIcon}
+          onPressIn={() => navigation.navigate('Settings')}>
+          <SettingsIcon size={horizontalScale(30)} />
+        </Pressable>
+      </View>
       <Image
         style={styles.titleImage}
         resizeMode="contain"
@@ -164,16 +166,17 @@ function MainPage({navigation}) {
           <Pressable
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
-            onPress={() =>
+            onPress={() => {
+              navigation.navigate('Empty');
               navigation.navigate('StageWrap', {
                 time: 30,
-                numGuards: 5,
+                numGuards: 50,
                 numMoves: 2,
                 numNode: 4,
                 numEdge: 3,
                 score: 0,
-              })
-            }>
+              });
+            }}>
             <Text style={styles.text}>Endless Janitor</Text>
           </Pressable>
         </View>
@@ -197,11 +200,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: '#90EE90',
-    gap: verticalScale(10),
+    gap: verticalScale(8),
     padding: 0,
     marginTop: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    height: '70%',
     // gap: 5,
   },
   title: {
@@ -219,8 +223,8 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: 'rgba(255, 193, 204, 0.9)',
-    paddingTop: verticalScale(10),
-    paddingBottom: verticalScale(10),
+    paddingTop: verticalScale(5),
+    paddingBottom: verticalScale(5),
     paddingLeft: horizontalScale(20),
     paddingRight: horizontalScale(20),
     borderRadius: horizontalScale(10),
@@ -230,19 +234,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: horizontalScale(10),
   },
+  settingsButtonContainer: {
+    overflow: 'hidden',
+  },
   text: {
     color: '#AA336A',
     fontSize: horizontalScale(20),
     fontWeight: 'bold',
   },
-  settingsIconContainer: {
-    overflow: 'hidden',
-    borderRadius: horizontalScale(100),
-  },
   settingsIcon: {
-    width: horizontalScale(30),
-    top: verticalScale(9),
-    left: horizontalScale(300),
+    borderRadius: horizontalScale(300),
+    alignSelf: 'flex-end',
+    margin: verticalScale(5),
   },
 });
 
