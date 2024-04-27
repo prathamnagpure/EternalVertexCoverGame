@@ -157,7 +157,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       if (cnt === countt) {
         pura = result.lose;
       }
-      if (!puraEdge) {
+      if (pura === result.na) {
         pura = result.lose;
         puraEdge = Math.floor(Math.random() * edgList.length);
       }

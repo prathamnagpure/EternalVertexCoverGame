@@ -28,7 +28,7 @@ function TouchableLine({
       height: thickness,
       flex: 1,
       borderWidth: 1,
-      borderColor: yellow ? 'yellow' : '#5C4033',
+      borderColor: yellow ? 'red' : '#5C4033',
       transform: [{rotate: `${angle}deg`}],
     },
 

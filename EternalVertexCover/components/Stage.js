@@ -1126,7 +1126,9 @@ export default function Stage({
           {renderGuards()}
         </View>
         {!(warning === '') && (
-          <SingleLineText style={styles.warning}>{warning}</SingleLineText>
+          <SingleLineText pointerEvents="none" pointstyle={styles.warning}>
+            {warning}
+          </SingleLineText>
         )}
         {!gameWinner && (
           <Pressable

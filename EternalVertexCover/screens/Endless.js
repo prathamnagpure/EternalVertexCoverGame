@@ -1,4 +1,11 @@
-import {View, Text, Dimensions, Pressable, StyleSheet} from 'react-native';
+import {
+  ImageBackground,
+  View,
+  Text,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
 import {useRef, useEffect, useState} from 'react';
 import RandomGraphGenerator from '../utils/RandomGraphGenerator';
 import {MyModal, TouchableCircle, TouchableLine} from '../components';
@@ -8,6 +15,7 @@ import {getData, setData} from '../utils/storage';
 import {giveMap} from '../utils/MainAlgoBruteForce';
 import {tupleToString} from '../utils/MainAlgoBruteForceD';
 import {MODES} from '../constants';
+import Images from '../assets/Images';
 // A JavaScript program to find size of minimum vertex
 // cover using Binary Search
 
@@ -122,6 +130,7 @@ export default function Endless({navigation, route}) {
   const gr = useRef(
     Array.from({length: maxn}, () => new Array(maxn).fill(false)),
   );
+  const samay = useRef(route.params.time);
   const [graph, setGraph] = useState(
     RandomGraphGenerator(graphNode, graphEdges),
   );
@@ -129,7 +138,7 @@ export default function Endless({navigation, route}) {
     // console.log('highscore is ', highScore);
     setIsModalVisible(true);
     if (score > highScore) {
-      setData('highScore', score);
+      setData('highScore' + route.params.numMoves, score);
       text += ' ,new high score!';
     }
     setModalText(text);
@@ -165,6 +174,9 @@ export default function Endless({navigation, route}) {
       }
       return false;
     } else {
+      if (guardsList.length === 0) {
+        return false;
+      }
       const edgList = [];
       for (let i = 0; i < graph[1].length; i++) {
         for (let j = 0; j < graph[1][i].length; j++) {
@@ -225,7 +237,7 @@ export default function Endless({navigation, route}) {
   }
   useEffect(() => {
     recursor();
-    getData('highScore').then(val => {
+    getData('highScore' + route.params.numMoves).then(val => {
       setHighScore(val ?? 0);
     });
     let ed = 0;
@@ -280,9 +292,21 @@ export default function Endless({navigation, route}) {
       gr.current = Array.from({length: maxn}, () =>
         new Array(maxn).fill(false),
       );
-      setTime(route.params.time);
+      setTime(() => {
+        samay.current =
+          samay.current +
+          (guardsList.length <= Math.ceil(mvc.current * 1.5) ? 5 : -5);
+        console.log(
+          'samay is ',
+          guardsList.length <= Math.ceil(mvc.current * 1.5) ? 5 : -5,
+        );
+        return samay.current;
+      });
       if (graphEdges < (graphNode * (graphNode - 1)) / 3) {
         setGraphEdges(prev => {
+          setScore(prevv => {
+            return Math.floor(prevv + (graphNode * 100) / guardsList.length);
+          });
           setGraph(() => {
             let x = RandomGraphGenerator(graphNode, prev + 1);
 
@@ -304,6 +328,9 @@ export default function Endless({navigation, route}) {
         });
       } else {
         setGraphNode(prev => {
+          setScore(prevv => {
+            return Math.floor(prevv + (prev * 100) / guardsList.length);
+          });
           setGraph(() => {
             let x = RandomGraphGenerator(prev + 1, prev);
 
@@ -325,7 +352,6 @@ export default function Endless({navigation, route}) {
           return prev + 1;
         });
       }
-      setScore(prev => prev + 1);
       recursor();
       let ed = 0;
       setGuardsList([]);
@@ -375,90 +401,93 @@ export default function Endless({navigation, route}) {
 
   return (
     <View style={{flex: 1, backgroundColor: 'grey'}}>
-      <Text style={{fontWeight: 'bold', color: 'black'}}>Score:{score}</Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 0,
-          color: 'black',
-        }}>
-        High Score:{highScore}
-      </Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 150,
-          color: 'black',
-        }}>
-        Guards Left:{numGuards}
-      </Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          right: 150,
-          top: 40,
-          color: 'black',
-        }}>
-        number of Moves:{route.params.numMoves}
-      </Text>
-      <Pressable
-        onPress={() => {
-          setCoveredEdge(!coveredEdge);
-        }}
-        style={[
-          {
+      <ImageBackground
+        source={Images.farm}
+        resizeMode="cover"
+        style={styles.imageBackground}>
+        <Text style={{fontWeight: 'bold', color: 'black'}}>Score:{score}</Text>
+        <Text
+          style={{
+            fontWeight: 'bold',
             position: 'absolute',
-            top: '5%',
             right: 0,
-            // width: Dimensions.get('window').width / 4,
-          },
-          styles.button,
-          styles.buttonOpen,
-        ]}>
-        <Text style={{fontWeight: 'bold', color: 'white'}}>
-          Higlight covered!
+            color: 'black',
+          }}>
+          High Score:{highScore}
         </Text>
-      </Pressable>
-      <MyModal
-        modalVisible={modalVisible}
-        text={modalText}
-        buttonText={'Exit'}
-        y={verticalScale(450)}
-        x={horizontalScale(30)}
-        onClickNext={() => {
-          navigation.pop();
-        }}
-        goBack={() => {
-          navigation.pop();
-        }}
-        showAns={route.params.numMoves === 1 ? showAns : null}
-        challengeMe={route.params.numMoves > 1 ? challengeMe : null}
-      />
-      <View style={{right: 0, fontWeight: 'bold'}}>
-        <Text style={{fontWeight: 'bold', color: 'black'}}>
-          Time left is {time}
-        </Text>
-      </View>
-      {giveGraph()}
-      <Pressable
-        onPress={() => {
-          donePress();
-        }}
-        style={[
-          {
+        <Text
+          style={{
+            fontWeight: 'bold',
             position: 'absolute',
-            bottom: 0,
-            alignSelf: 'center',
-            width: Dimensions.get('window').width / 4,
-          },
-          styles.button,
-          styles.buttonOpen,
-        ]}>
-        <Text style={styles.textStyle}>Done</Text>
-      </Pressable>
+            right: 150,
+            color: 'black',
+          }}>
+          Guards Left:{numGuards}
+        </Text>
+        <Text
+          style={{
+            fontWeight: 'bold',
+            position: 'absolute',
+            right: 150,
+            top: 40,
+            color: 'black',
+          }}>
+          number of Moves:{route.params.numMoves}
+        </Text>
+        <Pressable
+          onPress={() => {
+            setCoveredEdge(!coveredEdge);
+          }}
+          style={[
+            {
+              position: 'absolute',
+              top: '5%',
+              right: 0,
+              // width: Dimensions.get('window').width / 4,
+            },
+            styles.button,
+            styles.buttonOpen,
+          ]}>
+          <Text style={{fontWeight: 'bold', color: 'white'}}>Paint red!</Text>
+        </Pressable>
+        <MyModal
+          modalVisible={modalVisible}
+          text={modalText}
+          buttonText={'Exit'}
+          y={verticalScale(450)}
+          x={horizontalScale(30)}
+          onClickNext={() => {
+            navigation.pop();
+          }}
+          goBack={() => {
+            navigation.pop();
+          }}
+          showAns={route.params.numMoves === 1 ? showAns : null}
+          challengeMe={route.params.numMoves > 1 ? challengeMe : null}
+        />
+        <View style={{right: 0, fontWeight: 'bold'}}>
+          <Text style={{fontWeight: 'bold', color: 'black'}}>
+            Time left is {time}
+          </Text>
+        </View>
+        {giveGraph()}
+        <Pressable
+          onPress={() => {
+            donePress();
+          }}
+          style={[
+            {
+              position: 'absolute',
+              bottom: 0,
+              alignSelf: 'center',
+              width: Dimensions.get('window').width / 4,
+            },
+            styles.button,
+            styles.buttonOpen,
+          ]}>
+          <Text style={styles.textStyle}>Done</Text>
+        </Pressable>
+      </ImageBackground>
     </View>
   );
 }
@@ -475,5 +504,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  imageBackground: {
+    flex: 1,
   },
 });
