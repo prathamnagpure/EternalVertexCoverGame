@@ -15,6 +15,7 @@ import TutorialStep from './TutorialStep';
 import Tutorial from './TutorialStage';
 import SettingsButton from './SettingsButton';
 import LevelHeader from './LevelHeader';
+import SingleLineText from './SingleLineText';
 
 export {
   CancelDeleteButton,
@@ -34,4 +35,5 @@ export {
   Tutorial,
   SettingsButton,
   LevelHeader,
+  SingleLineText,
 };

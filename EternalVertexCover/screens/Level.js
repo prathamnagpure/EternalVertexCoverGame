@@ -50,7 +50,7 @@ export default function Level({route, navigation}) {
   let correctStage = null;
   const goAgain = () => {
     console.log('go next stage called');
-    navigation.goBack();
+    navigation.pop();
     navigation.navigate('Level', {
       ...route.params,
     });
@@ -62,7 +62,7 @@ export default function Level({route, navigation}) {
     if (index + 1 < levels.length) {
       goNextStage = () => {
         console.log('go next stage called');
-        navigation.goBack();
+        navigation.pop();
         navigation.navigate('Level', {
           levels,
           mode,

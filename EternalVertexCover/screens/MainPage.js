@@ -2,7 +2,6 @@ import React from 'react';
 import Images from '../assets/Images';
 import {
   View,
-  Text,
   StyleSheet,
   Pressable,
   ImageBackground,
@@ -14,7 +13,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import images from '../assets/Images';
-import stages from '../assets/Stages';
 import {
   ATTACKER_LEVELS,
   PVP_LEVELS,
@@ -23,6 +21,7 @@ import {
 } from '../constants';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import SettingsIcon from '../components/icons/SettingsIcon';
+import {SingleLineText} from '../components';
 
 const positions = [
   [0, verticalScale(400)],
@@ -88,7 +87,7 @@ function MainPage({navigation}) {
                 title: 'How to Play',
               })
             }>
-            <Text style={styles.text}>How to Play</Text>
+            <SingleLineText style={styles.text}>How to Play</SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -102,7 +101,7 @@ function MainPage({navigation}) {
                 title: 'Play as Pig',
               })
             }>
-            <Text style={styles.text}>Play As Pig</Text>
+            <SingleLineText style={styles.text}>Play As Pig</SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -116,7 +115,9 @@ function MainPage({navigation}) {
                 title: 'Play as Janitors',
               })
             }>
-            <Text style={styles.text}>Play As Janitors</Text>
+            <SingleLineText style={styles.text}>
+              {'Play As Janitors'}
+            </SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -129,7 +130,9 @@ function MainPage({navigation}) {
                 title: 'Player Vs Player',
               })
             }>
-            <Text style={styles.text}>Player vs Player</Text>
+            <SingleLineText style={styles.text}>
+              {'Player vs Player'}
+            </SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -137,7 +140,9 @@ function MainPage({navigation}) {
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
             onPress={() => navigation.navigate('Imported Levels')}>
-            <Text style={styles.text}>Imported Levels</Text>
+            <SingleLineText style={styles.text}>
+              {'Imported Levels'}
+            </SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -145,7 +150,7 @@ function MainPage({navigation}) {
             android_ripple={{color: '#AA336A'}}
             style={styles.button}
             onPress={() => navigation.navigate('Graph Maker')}>
-            <Text style={styles.text}>Level Maker</Text>
+            <SingleLineText style={styles.text}>{'Level Maker'}</SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -159,7 +164,9 @@ function MainPage({navigation}) {
                 // numMoves: 2,
               })
             }>
-            <Text style={styles.text}>Endless Mode</Text>
+            <SingleLineText style={styles.text}>
+              {'Endless Mode'}
+            </SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -177,7 +184,9 @@ function MainPage({navigation}) {
                 score: 0,
               });
             }}>
-            <Text style={styles.text}>Endless Janitor</Text>
+            <SingleLineText style={styles.text}>
+              {'Endless Janitor'}
+            </SingleLineText>
           </Pressable>
         </View>
 

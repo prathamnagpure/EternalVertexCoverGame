@@ -1,28 +1,13 @@
 import React from 'react';
 import Images from '../assets/Images';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ImageBackground,
-  Image,
-} from 'react-native';
+import {View, Text, StyleSheet, Pressable, ImageBackground} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import images from '../assets/Images';
-import stages from '../assets/Stages';
-import {
-  ATTACKER_LEVELS,
-  PVP_LEVELS,
-  DEFENDER_LEVELS,
-  MODES,
-} from '../constants';
 import {horizontalScale, verticalScale} from '../utils/scaler';
-import SettingsIcon from '../components/icons/SettingsIcon';
 
 const positions = [
   [0, verticalScale(400)],
@@ -35,7 +20,6 @@ function Mode({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
-  // const image = useSharedValue(Images.naugtypig);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       position: 'absolute',
@@ -63,15 +47,7 @@ function Mode({navigation}) {
       source={Images.farmbg}
       resizeMode="cover"
       style={styles.imageBackground}>
-      {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
-      <Pressable
-        android_ripple={{color: '#444'}}
-        style={styles.settingsIcon}
-        onPressIn={() => navigation.navigate('Settings')}>
-        <SettingsIcon size={horizontalScale(30)} />
-      </Pressable>
-      <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
         <View style={styles.buttonContainer}>
           <Pressable
@@ -132,15 +108,10 @@ const styles = StyleSheet.create({
     marginTop: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    // gap: 5,
   },
   title: {
     fontSize: horizontalScale(32),
     fontWeight: 'bold',
-    // color: '', // Set the title color to white in dark mode
-  },
-  titleImage: {
-    marginBottom: 0,
   },
   button: {
     alignItems: 'center',

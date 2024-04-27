@@ -19,7 +19,14 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
-import {TouchableCircle, TouchableLine, Poop, Guard, TutorialStep} from '.';
+import {
+  TouchableCircle,
+  TouchableLine,
+  Poop,
+  Guard,
+  TutorialStep,
+  SingleLineText,
+} from '.';
 import parse from 'dotparser';
 import Sound from 'react-native-sound';
 import {
@@ -36,6 +43,7 @@ import Animated, {
 import {MODES} from '../constants';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import {AnimationSpeedContext, InGameVolumeContext} from '../contexts';
+import {useHeaderHeight} from '@react-navigation/elements';
 
 const turns = {
   defenderFirst: 1,
@@ -59,6 +67,7 @@ export default function Stage({
   onWin,
   isChallenge,
   isEndless,
+  modalGoBack,
 }) {
   const {animationSpeed} = useContext(AnimationSpeedContext);
   const poopDuration = animationSpeed * 300;
@@ -86,6 +95,7 @@ export default function Stage({
   const [arrowX, setArrowX] = useState(0);
   const [arrowY, setArrowY] = useState(0);
   const [isTouched, setIsTouched] = useState(false);
+  const headerHeight = useHeaderHeight();
 
   const showAnimation = useRef({value: false});
   const nodeIdToGuardIdMap = useRef(new Map());
@@ -176,12 +186,6 @@ export default function Stage({
       ],
     };
   });
-
-  const animatedStylesFire = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    left: poopX.value - 50,
-    top: poopY.value,
-  }));
 
   const atNextFunc = () => {
     switch (atTutStage) {
@@ -949,14 +953,18 @@ export default function Stage({
       const newEdgeStateMap = new Map();
       const newGuardStateMap = new Map();
       const children = ast[0].children;
-      let maxX = 0,
-        maxY = 0;
+      let maxX = 0;
+      let maxY = 0;
+      let minX = Infinity;
+      let minY = Infinity;
       let adjListForMap = [];
       for (const element of children) {
         if (element.type === 'node_stmt') {
           const [x, y] = element.attr_list[0].eq.split(' ');
           maxX = Math.max(x, maxX);
           maxY = Math.max(y, maxY);
+          minX = Math.min(x, minX);
+          minY = Math.min(y, minY);
           const id = String(element.node_id.id);
           adjList.current.set(id, []);
           adjListForMap.push([]);
@@ -1051,8 +1059,13 @@ export default function Stage({
       }
       function resize(x, y) {
         return [
+          (x - minX) * ((width * 0.8) / (maxX - minX)) + 0.1 * width,
+          (y - minY) * (((height - headerHeight) * 0.6) / (maxY - minY)) +
+            0.13 * height,
+          /*
           (x / maxX) * width * 0.85 + horizontalScale(10),
           (y / maxY) * height * 0.7 + verticalScale(25),
+          */
         ];
       }
       newNodeStateMap.forEach(value => {
@@ -1071,7 +1084,7 @@ export default function Stage({
       setGuardStateMap(newGuardStateMap);
       return returnVal;
     },
-    [mode, height, width, stage, isEndless, isChallenge],
+    [mode, height, width, stage, isEndless, isChallenge, headerHeight],
   );
 
   const undoButtonStyle = [
@@ -1086,48 +1099,25 @@ export default function Stage({
       ? styles.buttonEnabled
       : styles.buttonDisabled,
   ];
-  let angle = 0;
-  if (attackedEdge.current) {
-    const edgeState = edgeStateMap.get(attackedEdge.current);
-    if (edgeState) {
-      const {x1, x2, y1, y2} = edgeState;
-      angle = ((y1 + y2) / 2 - inY.value) / ((x1 + x2) / 2 - inX.value);
-    }
-  }
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <ImageBackground
         source={Images.farm}
         resizeMode="cover"
         style={styles.imageBackground}>
-        <View
-          style={[
-            headingStyle,
-            {
-              top: verticalScale(0),
-              flexDirection: 'row',
-              backgroundColor: 'black',
-              alignSelf: 'center',
-              position: 'absolute',
-            },
-          ]}>
+        <View>
           {isLoading && <ActivityIndicator size="large" color="white" />}
-          <Text
-            allowFontScaling={true}
-            adjustsFontSizeToFit={true}
-            numberOfLines={1}
-            style={[headingStyle]}>
-            {headingText}
-          </Text>
+          <SingleLineText style={[headingStyle]}>{headingText}</SingleLineText>
         </View>
         {!isEndless && (
           <Pressable onPressIn={undo} style={undoButtonStyle}>
-            <Text>Undo</Text>
+            <SingleLineText>Undo</SingleLineText>
           </Pressable>
         )}
         {!isEndless && (
           <Pressable onPressIn={redo} style={redoButtonStyle}>
-            <Text>Redo</Text>
+            <SingleLineText>Redo</SingleLineText>
           </Pressable>
         )}
         <View style={styles.container}>
@@ -1135,7 +1125,9 @@ export default function Stage({
           {renderNodes()}
           {renderGuards()}
         </View>
-        {!(warning == '') && <Text style={styles.warning}>{warning}</Text>}
+        {!(warning === '') && (
+          <SingleLineText style={styles.warning}>{warning}</SingleLineText>
+        )}
         {!gameWinner && (
           <Pressable
             onPressIn={onButtonPress}
@@ -1150,7 +1142,9 @@ export default function Stage({
                 ? styles.buttonDisabled
                 : styles.buttonEnabled,
             ]}>
-            <Text style={styles.buttonText}>{buttonTitle}</Text>
+            <SingleLineText style={styles.buttonText}>
+              {buttonTitle}
+            </SingleLineText>
           </Pressable>
         )}
         <GestureDetector gesture={pan}>
@@ -1182,7 +1176,7 @@ export default function Stage({
               </Animated.View>
             )} */}
             {poop && (
-              <View style={{position: 'absolute'}} pointerEvents="none">
+              <View style={styles.poopContainer} pointerEvents="none">
                 <Poop {...{poopX, poopY, animatedStylesPoop}} key={'Poop'} />
               </View>
             )}
@@ -1200,7 +1194,7 @@ export default function Stage({
               atNextFunc();
             }}
             goBack={() => {
-              navigation.goBack();
+              navigation.pop();
             }}
           />
         )}
@@ -1211,7 +1205,11 @@ export default function Stage({
           transparent={true}
           visible={!!gameWinner}
           onRequestClose={() => {
-            navigation.goBack();
+            if (modalGoBack) {
+              modalGoBack();
+            } else {
+              navigation.pop();
+            }
           }}>
           <View style={[styles.centeredView]}>
             <View style={styles.modalView}>
@@ -1221,14 +1219,18 @@ export default function Stage({
                   <Pressable
                     style={[styles.modalButton, styles.buttonOpen]}
                     onPress={restartGame}>
-                    <Text style={styles.textStyle}>Replay</Text>
+                    <SingleLineText style={styles.textStyle}>
+                      {'Play Again'}
+                    </SingleLineText>
                   </Pressable>
                 )}
                 {goNextStage && (
                   <Pressable
                     style={[styles.modalButton, styles.buttonOpen]}
                     onPress={goNextStage}>
-                    <Text style={styles.textStyle}>Next</Text>
+                    <SingleLineText style={styles.textStyle}>
+                      {'Next'}
+                    </SingleLineText>
                   </Pressable>
                 )}
                 {!isEndless && (
@@ -1238,12 +1240,12 @@ export default function Stage({
                       if (isChallenge) {
                         navigation.navigate('Mode');
                       } else {
-                        navigation.goBack();
+                        navigation.pop();
                       }
                     }}>
                     <Text style={styles.textStyle}>
                       {isChallenge
-                        ? 'go back!'
+                        ? 'Go back!'
                         : !isAttackerTutorial && !isDefenderTutorial
                         ? 'Levels'
                         : 'Exit'}
@@ -1277,8 +1279,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   heading: {
-    // position: 'absolute',
+    position: 'absolute',
     top: 0,
+    width: '55%',
     paddingLeft: horizontalScale(3),
     paddingRight: horizontalScale(3),
     paddingTop: verticalScale(2),
@@ -1288,6 +1291,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     borderRadius: horizontalScale(10),
+    flexDirection: 'row',
+    backgroundColor: 'black',
+    textAlign: 'center',
   },
   red: {
     color: 'red',
@@ -1302,7 +1308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: '90%',
+    bottom: 0,
     width: '60%',
     right: 0,
   },
@@ -1330,7 +1336,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: '90%',
+    bottom: 0,
     backgroundColor: 'grey',
     left: '0%',
     width: '20%',
@@ -1342,7 +1348,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: '90%',
+    bottom: 0,
     width: '20%',
     backgroundColor: 'grey',
     left: '20%',
@@ -1397,5 +1403,8 @@ const styles = StyleSheet.create({
   },
   buttonOpen: {
     backgroundColor: '#F194FF',
+  },
+  poopContainer: {
+    position: 'absolute',
   },
 });

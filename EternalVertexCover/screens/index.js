@@ -6,6 +6,10 @@ import Level from './Level';
 import MainPage from './MainPage';
 import Settings from './Settings';
 import Endless from './Endless';
+import StageWrap from './StageWrap';
+import Tutorials from './Tutorials';
+import Empty from './Empty';
+import Mode from './Mode';
 
 export {
   ForTest,
@@ -16,4 +20,8 @@ export {
   MainPage,
   Settings,
   Endless,
+  StageWrap,
+  Tutorials,
+  Empty,
+  Mode,
 };

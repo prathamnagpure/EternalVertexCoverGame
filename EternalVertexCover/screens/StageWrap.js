@@ -6,34 +6,47 @@ import {MyModal, Stage} from '../components';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import {getData, setData} from '../utils/storage';
 import {MODES} from '../constants';
+import {LeftArrowIcon} from '../components/icons';
 
 export default function StageWrap({navigation, route}) {
   const [stageObj, setStageObj] = useState(null);
-  const [score, setScore] = useState(route.params.score);
-  const [graphNode, setGraphNode] = useState(route.params.numNode);
-  const [graphEdges, setGraphEdges] = useState(route.params.numEdge);
   const [time, setTime] = useState(route.params.time);
   const [modalVisible, setIsModalVisible] = useState(false);
   const [modalText, setModalText] = useState(null);
   const [guardsList, setGuardsList] = useState([]);
-  const [coveredEdge, setCoveredEdge] = useState(false);
   const solution = useRef([]);
   const [highScore, setHighScore] = useState(0);
-  const [graph, setGraph] = useState(
-    RandomGraphGenerator(graphNode, graphEdges),
-  );
+  const [graph] = useState(RandomGraphGenerator(graphNode, graphEdges));
+  const score = route.params.score;
+  const graphNode = route.params.numNode;
+  const graphEdges = route.params.numEdge;
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Pressable
+          style={{left: horizontalScale(10)}}
+          onPress={() => {
+            navigation.pop();
+            navigation.pop();
+          }}>
+          <LeftArrowIcon />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() => {
     const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.goBack();
-      navigation.goBack();
+      navigation.pop();
+      navigation.pop();
       return true;
     });
     return () => handler.remove();
   }, [navigation]);
 
   function goAgain() {
-    navigation.goBack();
+    navigation.pop();
     navigation.navigate('StageWrap', {
       time: 30,
       numGuards: 50,
@@ -60,7 +73,7 @@ export default function StageWrap({navigation, route}) {
   }
 
   function onWin(numbGuard) {
-    navigation.goBack();
+    navigation.pop();
     navigation.navigate('StageWrap', {
       ...route.params,
       time: time + 30,
@@ -85,22 +98,29 @@ export default function StageWrap({navigation, route}) {
     [highScore, score],
   );
 
+  function modalGoBack() {
+    navigation.pop();
+    navigation.pop();
+  }
+
   function showAns() {
     setGuardsList(solution.current);
   }
   useEffect(() => {
-    navigation.setOptions({headerTitle: time});
-  }, [time, navigation]);
+    navigation.setOptions({
+      headerTitle: `Score: ${score} (Time Left: ${formatTime(time)})`,
+    });
+  }, [time, navigation, score]);
 
   useEffect(() => {
     if (time <= 0) {
       gameOver('oopsie poopsie time over ');
+    } else {
+      const timer = setTimeout(() => {
+        setTime(prevSeconds => prevSeconds - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-    const timer = setTimeout(() => {
-      setTime(prevSeconds => prevSeconds - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
   }, [time, gameOver]);
 
   useEffect(() => {
@@ -136,25 +156,7 @@ export default function StageWrap({navigation, route}) {
   }, [graph, guardsList, route.params.numGuards, route.params.numMoves]);
 
   return (
-    <View style={{flex: 1, backgroundColor: 'grey'}}>
-      <Pressable
-        onPress={() => {
-          setCoveredEdge(!coveredEdge);
-        }}
-        style={[
-          {
-            position: 'absolute',
-            top: '5%',
-            right: 0,
-            // width: Dimensions.get('window').width / 4,
-          },
-          styles.button,
-          styles.buttonOpen,
-        ]}>
-        <Text style={{fontWeight: 'bold', color: 'white'}}>
-          Higlight covered!
-        </Text>
-      </Pressable>
+    <View style={styles.container}>
       <MyModal
         modalVisible={modalVisible}
         text={modalText}
@@ -162,12 +164,12 @@ export default function StageWrap({navigation, route}) {
         y={verticalScale(450)}
         x={horizontalScale(30)}
         onClickNext={() => {
-          navigation.goBack();
-          navigation.goBack();
+          navigation.pop();
+          navigation.pop();
         }}
         goBack={() => {
-          navigation.goBack();
-          navigation.goBack();
+          navigation.pop();
+          navigation.pop();
         }}
         showAns={route.params.numMoves === 1 ? showAns : null}
       />
@@ -178,35 +180,15 @@ export default function StageWrap({navigation, route}) {
           stage={stageObj}
           isEndless={true}
           mode={MODES.AUTO_ATTACKER}
+          modalGoBack={modalGoBack}
+          navigation={navigation}
         />
       )}
-      <Text
-        numberOfLines={1}
-        allowFontScaling={true}
-        style={{
-          position: 'absolute',
-          right: 0,
-          fontWeight: 'bold',
-          fontSize: 16,
-          color: 'red',
-          backgroundColor: 'white',
-        }}>
-        Time: {formatTime(time)}
-      </Text>
-      <Text
-        style={{
-          fontWeight: 'bold',
-          position: 'absolute',
-          color: 'black',
-          backgroundColor: 'white',
-          fontSize: 16,
-        }}>
-        Score:{score}
-      </Text>
     </View>
   );
 }
 const styles = StyleSheet.create({
+  container: {flex: 1, backgroundColor: 'grey'},
   button: {
     borderRadius: 20,
     padding: 10,
@@ -218,6 +200,19 @@ const styles = StyleSheet.create({
   textStyle: {
     color: 'white',
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  headingText: {
+    fontWeight: 'bold',
+    position: 'absolute',
+    borderColor: 'black',
+    borderWidth: horizontalScale(1),
+    color: 'black',
+    backgroundColor: 'white',
+    fontSize: horizontalScale(16),
+    width: '20%',
+    borderRadius: horizontalScale(10),
+    padding: horizontalScale(1),
     textAlign: 'center',
   },
 });

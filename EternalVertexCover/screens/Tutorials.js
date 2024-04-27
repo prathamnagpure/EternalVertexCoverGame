@@ -1,13 +1,6 @@
 import React from 'react';
 import Images from '../assets/Images';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ImageBackground,
-  Image,
-} from 'react-native';
+import {View, StyleSheet, Pressable, ImageBackground} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,14 +8,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import images from '../assets/Images';
 import stages from '../assets/Stages';
-import {
-  ATTACKER_LEVELS,
-  PVP_LEVELS,
-  DEFENDER_LEVELS,
-  MODES,
-} from '../constants';
+import {MODES} from '../constants';
 import {horizontalScale, verticalScale} from '../utils/scaler';
-import SettingsIcon from '../components/icons/SettingsIcon';
+import {SingleLineText} from '../components';
 
 const positions = [
   [0, verticalScale(400)],
@@ -31,11 +19,10 @@ const positions = [
   [horizontalScale(200), verticalScale(400)],
 ];
 
-function Tutorial({navigation}) {
+function Tutorials({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
-  // const image = useSharedValue(Images.naugtypig);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       position: 'absolute',
@@ -63,15 +50,7 @@ function Tutorial({navigation}) {
       source={Images.farmbg}
       resizeMode="cover"
       style={styles.imageBackground}>
-      {/* <Text style={styles.title}>Eternal Vertex Cover</Text> */}
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
-      <Pressable
-        android_ripple={{color: '#444'}}
-        style={styles.settingsIcon}
-        onPressIn={() => navigation.navigate('Settings')}>
-        <SettingsIcon size={horizontalScale(30)} />
-      </Pressable>
-      <Image style={styles.titleImage} source={Images.title} />
       <View style={styles.container}>
         <View style={styles.buttonContainer}>
           <Pressable
@@ -85,7 +64,7 @@ function Tutorial({navigation}) {
                 title: 'Pig Tutorial',
               })
             }>
-            <Text style={styles.text}>Pig Tutorial </Text>
+            <SingleLineText style={styles.text}>Pig Tutorial </SingleLineText>
           </Pressable>
         </View>
         <View style={styles.buttonContainer}>
@@ -100,7 +79,9 @@ function Tutorial({navigation}) {
                 title: 'Janitor Tutorial',
               })
             }>
-            <Text style={styles.text}>Janitor Tutorial </Text>
+            <SingleLineText style={styles.text}>
+              Janitor Tutorial{' '}
+            </SingleLineText>
           </Pressable>
         </View>
       </View>
@@ -145,9 +126,9 @@ const styles = StyleSheet.create({
     fontSize: horizontalScale(20),
     fontWeight: 'bold',
   },
-  settingsIcon: {
+  goBack: {
     top: verticalScale(9),
-    left: horizontalScale(300),
+    left: horizontalScale(10),
   },
   buttonContainer: {
     overflow: 'hidden',
@@ -155,4 +136,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Tutorial;
+export default Tutorials;

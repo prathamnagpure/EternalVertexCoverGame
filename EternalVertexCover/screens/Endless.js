@@ -429,10 +429,10 @@ export default function Endless({navigation, route}) {
         y={verticalScale(450)}
         x={horizontalScale(30)}
         onClickNext={() => {
-          navigation.goBack();
+          navigation.pop();
         }}
         goBack={() => {
-          navigation.goBack();
+          navigation.pop();
         }}
         showAns={route.params.numMoves === 1 ? showAns : null}
         challengeMe={route.params.numMoves > 1 ? challengeMe : null}

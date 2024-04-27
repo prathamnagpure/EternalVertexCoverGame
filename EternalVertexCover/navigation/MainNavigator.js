@@ -10,14 +10,11 @@ import {
   Import,
   Settings,
   Endless,
+  Tutorials,
+  Mode,
+  StageWrap,
+  Empty,
 } from '../screens';
-import SettingsButton from '../components/SettingsButton';
-import LevelHeader from '../components';
-import {DeleteButton} from '../components';
-import Tutorial from '../screens/Tutorials';
-import Mode from '../screens/Mode';
-import StageWrap from '../screens/StageWrap';
-import Empty from '../screens/Empty';
 
 const Stack = createStackNavigator();
 
@@ -37,7 +34,10 @@ function MainNavigator() {
       <Stack.Screen
         name="Mode"
         component={Mode}
-        // options={{headerShown: false}}
+        options={{
+          headerTitle: 'Modes',
+          headerTransparent: true,
+        }}
       />
       <Stack.Screen
         name="MainPage"
@@ -68,16 +68,25 @@ function MainNavigator() {
       />
       <Stack.Screen name="testarea" component={ForTest} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="Tutorial" component={Tutorial} />
       <Stack.Screen
-        options={{headerTitle: 'Endless Janitor'}}
+        name="Tutorial"
+        component={Tutorials}
+        options={{
+          headerTitle: 'Tutorials',
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
         name="StageWrap"
         component={StageWrap}
+        options={{headerTitle: 'Endless Janitor'}}
       />
       <Stack.Screen
         name="Empty"
         component={Empty}
-        options={{headerShown: false}}
+        options={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );
