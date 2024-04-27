@@ -9,6 +9,9 @@ import {MODES} from '../constants';
 import {LeftArrowIcon} from '../components/icons';
 
 export default function StageWrap({navigation, route}) {
+  const score = route.params.score;
+  const graphNode = route.params.numNode;
+  const graphEdges = route.params.numEdge;
   const [stageObj, setStageObj] = useState(null);
   const [time, setTime] = useState(route.params.time);
   const [modalVisible, setIsModalVisible] = useState(false);
@@ -17,9 +20,6 @@ export default function StageWrap({navigation, route}) {
   const solution = useRef([]);
   const [highScore, setHighScore] = useState(0);
   const [graph] = useState(RandomGraphGenerator(graphNode, graphEdges));
-  const score = route.params.score;
-  const graphNode = route.params.numNode;
-  const graphEdges = route.params.numEdge;
 
   useEffect(() => {
     navigation.setOptions({
