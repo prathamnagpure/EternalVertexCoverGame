@@ -16,7 +16,6 @@ import {
   StyleSheet,
   Text,
   ImageBackground,
-  ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
 import {
@@ -40,7 +39,7 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import {MODES} from '../constants';
+import {MODES, BUTTON_TEXT} from '../constants';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import {AnimationSpeedContext, InGameVolumeContext} from '../contexts';
 import {useHeaderHeight} from '@react-navigation/elements';
@@ -68,6 +67,7 @@ export default function Stage({
   isChallenge,
   isEndless,
   modalGoBack,
+  onLose,
 }) {
   const {animationSpeed} = useContext(AnimationSpeedContext);
   const poopDuration = animationSpeed * 300;
@@ -233,7 +233,6 @@ export default function Stage({
         break;
       case 14:
         setTutVisible(false);
-        break;
     }
   };
 
@@ -305,7 +304,7 @@ export default function Stage({
     const status = construct();
     if (status === 'ok') {
       if (mode === MODES.AUTO_DEFENDER) {
-        stage.guards.sort();
+        stage.guards.sort((a, b) => a - b);
         moveMap.current = new Map(Object.entries(stage.map));
         setTurn(turns.attacker);
       } else if (mode === MODES.AUTO_ATTACKER) {
@@ -316,6 +315,7 @@ export default function Stage({
       setIsLoading(false);
     } else if (status === 'error') {
       setWarning('An error occurred');
+      setTimeout(() => setWarning(''), 3000);
       setIsLoading(false);
     }
   }, [construct, mode, stage.guards, stage.map]);
@@ -377,6 +377,10 @@ export default function Stage({
       return;
     }
     currentMomentoIndex.current++;
+    console.log(
+      maxMomentoIndex.current,
+      momentoes.current.map(m => m.guardStateMap),
+    );
     if (isHumanPlaying()) {
       applyMomento(momentoes.current[currentMomentoIndex.current]);
     }
@@ -386,8 +390,10 @@ export default function Stage({
     setNodeStateMap(momento.nodeStateMap);
     setGuardStateMap(momento.guardStateMap);
     [...momento.guardStateMap.keys()].forEach(key => {
-      const state = guardStateMap.get(key);
-      state.animateRef(state.cx, state.cy, 0);
+      const [nodeId] = momento.guardIdToNodeIdMap.get(key);
+      const nodeState = nodeStateMap.get(nodeId);
+      const guardState = guardStateMap.get(key);
+      guardState.animateRef(nodeState.cx, nodeState.cy, 0);
     });
 
     nodeIdToGuardIdMap.current = momento.nodeIdToGuardIdMap;
@@ -497,9 +503,7 @@ export default function Stage({
   function playAutoAttacker(isCalledByRedo) {
     if (moves.current === 0) {
       setGameWinner(prev => (prev ? prev : winner.defender));
-      if (mode === MODES.AUTO_ATTACKER) {
-        onWin(stage.guardCount - guardStateMap.size);
-      }
+      onWin?.(stage.guardCount - guardStateMap.size);
       return;
     }
     guards.current = [];
@@ -508,8 +512,7 @@ export default function Stage({
         guards.current.push(parseInt(nodeId, 10));
       }
     });
-    guards.current.sort();
-    console.log(tupleToString(guards.current) + ';' + moves.current);
+    guards.current.sort((a, b) => a - b);
     let toAttack = moveMap.current.get(
       tupleToString(guards.current) + ';' + moves.current,
     )[0];
@@ -525,6 +528,7 @@ export default function Stage({
     --moves.current;
     if (moves.current <= 0) {
       setGameWinner(prev => (prev ? prev : winner.defender));
+      onLose?.();
       return;
     }
     guards.current = [];
@@ -533,7 +537,7 @@ export default function Stage({
         guards.current.push(parseInt(nodeId, 10));
       }
     });
-    guards.current.sort();
+    guards.current.sort((a, b) => a - b);
     const [node1, node2] = attackedEdge.current.split(';');
     let edgeIndex = -1;
     edgeList.current.forEach((value, index) => {
@@ -558,6 +562,7 @@ export default function Stage({
   function checkAttack(isCalledByRedo = false) {
     if (!attackedEdge.current) {
       setWarning('You have to attack an edge');
+      setTimeout(() => setWarning(''), 3000);
       return false;
     } else {
       // Saving momento.
@@ -570,10 +575,20 @@ export default function Stage({
           setAtTutStage(5);
         }
         setTurn(turns.defenderLater);
+        if (isDefenderTutorial && atTutStage === 10) {
+          setTutVisible(true);
+          setAtTutStage(11);
+        }
+        if (isDefenderTutorial && atTutStage === 13) {
+          setTutVisible(true);
+          setAtTutStage(14);
+        }
       } else {
         setGameWinner(prev => (prev ? prev : winner.attacker));
         if (mode === MODES.AUTO_DEFENDER) {
-          onWin(stage.guardCount - guardStateMap.size);
+          onWin?.(stage.guardCount - guardStateMap.size);
+        } else if (mode === MODES.AUTO_ATTACKER) {
+          onLose?.();
         }
       }
     }
@@ -615,10 +630,7 @@ export default function Stage({
         }
       } else {
         setWarning('Janitors left should be 0');
-      }
-      if (isDefenderTutorial) {
-        setTutVisible(true);
-        setAtTutStage(11);
+        setTimeout(() => setWarning(''), 3000);
       }
     } else if (turn === turns.attacker) {
       if (checkAttack(isCalledByRedo)) {
@@ -680,13 +692,19 @@ export default function Stage({
           const [guardId] = guardIds;
           const guardState = guardStateMap.get(guardId);
           if (guardIds.length === 1) {
-            nodeIdToGuardIdMap.current.get(nodeId1).pop();
+            const arr = [...nodeIdToGuardIdMap.current.get(nodeId1)];
+            arr.pop();
+            nodeIdToGuardIdMap.current.set(nodeId1, arr);
           } else {
-            nodeIdToGuardIdMap.current.get(nodeId1).shift();
+            const arr = [...nodeIdToGuardIdMap.current.get(nodeId1)];
+            arr.shift();
+            nodeIdToGuardIdMap.current.set(nodeId1, arr);
           }
           guardIdToNodeIdMap.current.delete(guardId);
           if (nodeIdToGuardIdMap.current.get(nodeId2)?.length) {
-            nodeIdToGuardIdMap.current.get(nodeId2).push(guardId);
+            const arr = [...nodeIdToGuardIdMap.current.get(nodeId2)];
+            arr.push(guardId);
+            nodeIdToGuardIdMap.current.set(nodeId2, arr);
           } else {
             nodeIdToGuardIdMap.current.set(nodeId2, [guardId]);
           }
@@ -712,6 +730,11 @@ export default function Stage({
           !wasCovered
         ) {
           setGameWinner(prev => (prev ? prev : winner.attacker));
+          if (mode === MODES.AUTO_ATTACKER) {
+            onLose?.();
+          } else if (mode === MODES.AUTO_DEFENDER) {
+            onWin?.(stage.guardCount - guardStateMap.size);
+          }
         } else {
           setTimeout(() => {
             setPoop(false);
@@ -727,12 +750,9 @@ export default function Stage({
           setTurn(turns.attacker);
           setPigImage(Images.naugtypig);
         }
-        if (isDefenderTutorial && atTutStage === 13) {
-          setTutVisible(true);
-          setAtTutStage(14);
-        }
       } else {
         setWarning('Invalid move, try again.');
+        setTimeout(() => setWarning(''), 3000);
       }
     }
   }
@@ -798,10 +818,7 @@ export default function Stage({
     if (!bySystem && (isLoading || mode === MODES.AUTO_DEFENDER)) {
       return;
     }
-    if (isDefenderTutorial && atTutStage === 9 && nodeId !== '1') {
-      return;
-    }
-    if (isDefenderTutorial && nodeId === '1') {
+    if (isDefenderTutorial && atTutStage === 9) {
       setTutVisible(true);
       setAtTutStage(10);
     }
@@ -859,12 +876,12 @@ export default function Stage({
 
   let buttonTitle =
     turn === turns.attacker
-      ? 'Poop'
+      ? BUTTON_TEXT.ATTACK
       : turn === turns.defenderFirst
-      ? 'Confirm Placement'
+      ? BUTTON_TEXT.GUARDS_PLACEMENT
       : mode === MODES.AUTO_DEFENDER
-      ? 'Continue'
-      : 'Clean';
+      ? BUTTON_TEXT.AUTO_DEFENDER_MOVE_GUARDS
+      : BUTTON_TEXT.MOVE_GUARDS;
   let headingStyle = styles.heading;
   let headingText = '';
   if (gameWinner) {
@@ -1038,7 +1055,7 @@ export default function Stage({
             setIsLoading(false);
           }, 0);
         } else if (mode === MODES.AUTO_DEFENDER) {
-          stage.guards.sort();
+          stage.guards.sort((a, b) => a - b);
           returnVal = 'loading';
           setTimeout(() => {
             const map = Object.fromEntries(
@@ -1107,7 +1124,6 @@ export default function Stage({
         resizeMode="cover"
         style={styles.imageBackground}>
         <View>
-          {isLoading && <ActivityIndicator size="large" color="white" />}
           <SingleLineText style={[headingStyle]}>{headingText}</SingleLineText>
         </View>
         {!isEndless && (
@@ -1126,7 +1142,7 @@ export default function Stage({
           {renderGuards()}
         </View>
         {!(warning === '') && (
-          <SingleLineText pointerEvents="none" pointstyle={styles.warning}>
+          <SingleLineText pointerEvents="none" style={styles.warning}>
             {warning}
           </SingleLineText>
         )}
@@ -1322,14 +1338,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F194FF',
   },
   warning: {
-    padding: 15,
+    padding: horizontalScale(10),
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
     top: verticalScale(500),
-    color: 'red',
+    color: 'white',
     fontSize: horizontalScale(14),
     alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: horizontalScale(10),
   },
   undo: {
     borderRadius: horizontalScale(20),

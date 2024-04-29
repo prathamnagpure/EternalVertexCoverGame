@@ -1,8 +1,15 @@
 import React from 'react';
-import {View, Text, Pressable, StyleSheet, BackHandler} from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  BackHandler,
+  Alert,
+} from 'react-native';
 import {useRef, useEffect, useState, useCallback} from 'react';
 import RandomGraphGenerator from '../utils/RandomGraphGenerator';
-import {MyModal, Stage} from '../components';
+import {MyModal, SingleLineText, Stage} from '../components';
 import {horizontalScale, verticalScale} from '../utils/scaler';
 import {getData, setData} from '../utils/storage';
 import {MODES} from '../constants';
@@ -153,7 +160,6 @@ export default function StageWrap({navigation, route}) {
 
   function onWin(numbGuard) {
     navigation.pop();
-    let ed = 0;
     function insertEdge(u, v, gr) {
       gr[u][v] = true;
       gr[v][u] = true; // Undirected graph
@@ -165,10 +171,9 @@ export default function StageWrap({navigation, route}) {
     for (let i = 0; i < graph[1].length; i++) {
       for (let j = 0; j < graph[1][i].length; j++) {
         insertEdge(i, graph[1][i][j], gr);
-        ed++;
       }
     }
-    let [mvc, guardsList] = findMinCover(graphNode, graphEdges, gr);
+    let [mvc] = findMinCover(graphNode, graphEdges, gr);
     navigation.navigate('StageWrap', {
       ...route.params,
       time:
@@ -185,11 +190,19 @@ export default function StageWrap({navigation, route}) {
     });
   }
 
+  function onLose() {
+    if (score > highScore) {
+      setData('highScoreEJ', score);
+      setHighScore(score);
+      Alert.alert('New High Score!');
+    }
+  }
+
   const gameOver = useCallback(
     function gameOver(text) {
       setIsModalVisible(true);
       if (score > highScore) {
-        setData('highScore', score);
+        setData('highScoreEJ', score);
         text += ' ,new high score!';
       }
       setModalText(text);
@@ -207,7 +220,7 @@ export default function StageWrap({navigation, route}) {
   }
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: `Score: ${score} (Time Left: ${formatTime(time)})`,
+      headerTitle: `Time Left: ${formatTime(time)}`,
     });
   }, [time, navigation, score]);
 
@@ -223,7 +236,7 @@ export default function StageWrap({navigation, route}) {
   }, [time, gameOver]);
 
   useEffect(() => {
-    getData('highScore').then(val => {
+    getData('highScoreEJ').then(val => {
       setHighScore(val ?? 0);
     });
     let str = 'digraph G {\n';
@@ -276,6 +289,7 @@ export default function StageWrap({navigation, route}) {
         <Stage
           goAgain={goAgain}
           onWin={onWin}
+          onLose={onLose}
           stage={stageObj}
           isEndless={true}
           mode={MODES.AUTO_ATTACKER}
@@ -283,6 +297,12 @@ export default function StageWrap({navigation, route}) {
           navigation={navigation}
         />
       )}
+      <SingleLineText style={[styles.headingText, {left: 0}]}>
+        Score: {score}
+      </SingleLineText>
+      <SingleLineText style={[styles.headingText, {right: 0}]}>
+        HI: {highScore}
+      </SingleLineText>
     </View>
   );
 }
@@ -309,6 +329,7 @@ const styles = StyleSheet.create({
     color: 'black',
     backgroundColor: 'white',
     fontSize: horizontalScale(16),
+    top: 0,
     width: '20%',
     borderRadius: horizontalScale(10),
     padding: horizontalScale(1),

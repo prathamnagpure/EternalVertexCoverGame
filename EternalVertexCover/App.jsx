@@ -17,7 +17,7 @@ export default function App() {
   const [animationSpeed, setAnimationSpeed] = useState(7);
   const [backgroundMusic, setBackgroundMusic] = useState(null);
   const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.4);
-  const [inGameVolume, setInGameVolume] = useState(0.4);
+  const [inGameVolume, setInGameVolume] = useState(1.0);
   const [count, setCount] = useState(0);
   const [completedLevels, setCompletedLevels] = useState({
     completedAttackerLevels: [],

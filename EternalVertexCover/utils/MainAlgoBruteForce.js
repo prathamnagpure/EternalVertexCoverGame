@@ -304,7 +304,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         //console.log("postions' after concat ");
       }
     }
-    retPosits = retPosits.filter(ele => check(ele)).map(ele => ele.sort());
+    retPosits = retPosits
+      .filter(ele => check(ele))
+      .map(ele => ele.sort((a, b) => a - b));
     retPosits = [...new Set(retPosits.map(ele => JSON.stringify(ele)))].map(
       ele => JSON.parse(ele),
     );

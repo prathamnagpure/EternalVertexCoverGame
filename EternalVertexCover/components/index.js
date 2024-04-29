@@ -12,7 +12,6 @@ import Stage from './Stage';
 import TouchableCircle from './TouchableCircle';
 import TouchableLine from './TouchableLine';
 import TutorialStep from './TutorialStep';
-import Tutorial from './TutorialStage';
 import SettingsButton from './SettingsButton';
 import LevelHeader from './LevelHeader';
 import SingleLineText from './SingleLineText';
@@ -32,7 +31,6 @@ export {
   TouchableCircle,
   TouchableLine,
   TutorialStep,
-  Tutorial,
   SettingsButton,
   LevelHeader,
   SingleLineText,
