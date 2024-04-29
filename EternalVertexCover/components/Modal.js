@@ -12,6 +12,7 @@ export default function MyModal({
   buttonText,
   showAns,
   challengeMe,
+  width,
 }) {
   const [darknes, setDarkness] = useState({});
   return (
@@ -25,7 +26,12 @@ export default function MyModal({
         goBack();
       }}>
       <View style={[styles.centeredView, darknes]}>
-        <View style={[styles.modalView, {top: y, left: x}]}>
+        <View
+          style={[
+            styles.modalView,
+            {top: y, left: x},
+            {width: width ?? 'auto'},
+          ]}>
           <Text style={[styles.modalText]}>{text}</Text>
           <Pressable
             style={[styles.button, styles.buttonOpen]}

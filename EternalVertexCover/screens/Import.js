@@ -124,6 +124,7 @@ export default function Import({navigation}) {
       await pickSingle({copyTo: 'documentDirectory'});
       const files = await readDir(DocumentDirectoryPath);
       for (const file of files) {
+        console.log(file);
         if (file.isDirectory()) {
           console.log(await readDir(file.path));
         }
@@ -134,13 +135,17 @@ export default function Import({navigation}) {
     }
   }
 
-  function goToLevel(mode) {
-    setIsModeModalVisible(false);
-    let {stage, name} = selectedStage;
-    if (mode === MODES.AUTO_DEFENDER && selectedStage.moves % 2 === 0) {
-      stage = {...selectedStage, moves: selectedStage.moves - 1};
-    }
-    navigation.navigate('Level', {stage, mode, title: name});
+  function goToLevel(stage, name) {
+    navigation.navigate('Level', {
+      stage,
+      mode:
+        stage.whoIs === 0
+          ? MODES.AUTO_ATTACKER
+          : stage.whoIs === 1
+          ? MODES.AUTO_DEFENDER
+          : null,
+      title: name,
+    });
   }
 
   function handleListItemPress(stage, index, name) {
@@ -153,8 +158,9 @@ export default function Import({navigation}) {
         }
       });
     } else {
-      setSelectedStage({stage, name});
-      setIsModeModalVisible(true);
+      // setSelectedStage({stage, name});
+      // setIsModeModalVisible(true);
+      goToLevel(stage, name);
     }
   }
 

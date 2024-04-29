@@ -1,6 +1,13 @@
-import React from 'react';
+import {React, useState} from 'react';
 import Images from '../assets/Images';
-import {View, Text, StyleSheet, Pressable, ImageBackground} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ImageBackground,
+  Alert,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import images from '../assets/Images';
 import {horizontalScale, verticalScale} from '../utils/scaler';
+import {MyModal} from '../components';
 
 const positions = [
   [0, verticalScale(400)],
@@ -20,6 +28,11 @@ function Mode({navigation}) {
   const position = useSharedValue(0);
   const rotation = useSharedValue(0);
   const width = useSharedValue(1);
+  const [howTo, setHowTo] = useState(false);
+  function onClickNext() {
+    setHowTo(false);
+  }
+
   const animatedStyle = useAnimatedStyle(() => {
     return {
       position: 'absolute',
@@ -48,6 +61,55 @@ function Mode({navigation}) {
       resizeMode="cover"
       style={styles.imageBackground}>
       <Animated.Image source={images.naugtypig} style={animatedStyle} />
+      <Text
+        style={{
+          top: 50,
+          left: 10,
+          padding: 10,
+          position: 'absolute',
+          borderWidth: 5,
+          borderColor: 'black',
+          fontWeight: 'bold',
+          color: 'black',
+          textAlign: 'center',
+          textAlignVertical: 'center',
+          backgroundColor: '#AAA',
+          borderRadius: 20,
+        }}
+        onPress={() => {
+          setHowTo(!howTo);
+        }}>
+        How to Play?
+      </Text>
+      {howTo && (
+        <MyModal
+          onClickNext={onClickNext}
+          width={'90%'}
+          text={
+            <Text style={{lineHeight: 25, fontSize: 16}}>
+              it would be easier for you to understand this mode if you have
+              already played as janitor. just keep janitors at positions such
+              that you will be able protect the paths from the pig poop for
+              given number of moves.
+              {'\n'}
+              <Text style={{textAlign: 'left', fontWeight: '900'}}>
+                *Important - you won't get to defend , you just have to place
+                janitors and imagine that will this placement of janitors is
+                sufficient for protection. if you feel that your placement was
+                right and you shouldn't have lost , there is always an option to
+                challenge the pig (challenge me!).
+              </Text>
+              {'\n'}
+              How Score works ? Placing less janitors gives you more points on
+              each level, if you place more than required janitors you face a
+              penalty of time , and if you place close to minimu number you will
+              earn time.
+            </Text>
+          }
+          buttonText={'ok'}
+        />
+      )}
+
       <View style={styles.container}>
         <View style={styles.buttonContainer}>
           <Pressable

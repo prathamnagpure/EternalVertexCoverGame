@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 
 import {TouchableLine, TouchableCircle, Guard} from '../components';
@@ -16,6 +17,8 @@ import {AddIcon} from '../components/icons';
 import {readFile, writeFile, DownloadDirectoryPath} from 'react-native-fs';
 import {pickSingle} from 'react-native-document-picker';
 import {horizontalScale, verticalScale} from '../utils/scaler';
+import {giveMap} from '../utils/MainAlgoBruteForce';
+import {giveMap as giveMapD} from '../utils/MainAlgoBruteForceD';
 
 const states = {
   addButton: 1,
@@ -26,6 +29,7 @@ const states = {
   addGuards: 6,
 };
 
+const modes = {janitor: 0, pig: 1, nothing: 2};
 export default function GraphMaker() {
   const [state, setState] = useState(states.addButton);
   const [fpoint, setfpoint] = useState(null);
@@ -36,6 +40,9 @@ export default function GraphMaker() {
   const [inputValue, setInputValue] = useState('');
   const [number, setNumber] = useState('');
   const {height: windowHeight} = useWindowDimensions();
+  const [mode, setMode] = useState(modes.nothing);
+  // const [progress, setProgress] = useState(0);
+  const [indicator, setIndicator] = useState(false);
 
   const handleInputChange = text => {
     // Validate input if needed
@@ -48,19 +55,48 @@ export default function GraphMaker() {
       str +=
         index + ' ' + '[label=' + '"' + element[0] + ' ' + element[1] + '"]\n';
     });
+    const adj = [];
+    for (let i = 0; i < points.length; i++) {
+      adj.push([]);
+    }
     lines.forEach(element => {
       str += `${element[0]} -- ${element[1]}\n`;
+      adj[element[0]].push(element[1]);
+      adj[element[1]].push(element[0]);
     });
     str += '}';
     console.log(guards);
+    let map;
+    let whoIs = modes.nothing;
+    setIndicator(true);
+    if (mode === modes.janitor) {
+      map = giveMap(guards.length, adj, lines, parseInt(num, 10) * 2);
+      whoIs = modes.janitor;
+    } else if (mode === modes.pig) {
+      map = giveMapD(
+        guards.length,
+        guards,
+        adj,
+        lines,
+        parseInt(num, 10) * 2 - 1,
+      );
+      whoIs = modes.pig;
+    }
     const obj = {
       graph: str,
       guardCount: guards.length,
       moves: parseInt(num, 10) * 2,
       guards,
+      map,
+      whoIs,
     };
-    writeFile(DownloadDirectoryPath + `/${fileName}.txt`, JSON.stringify(obj));
-    Alert.alert('Exported');
+    writeFile(
+      DownloadDirectoryPath + `/${fileName}.txt`,
+      JSON.stringify(obj),
+    ).then(() => {
+      setIndicator(false);
+      Alert.alert('Exported to Downloads');
+    });
   }
   async function forImport() {
     try {
@@ -108,9 +144,12 @@ export default function GraphMaker() {
   }
   const handleSubmit = () => {
     // Process the submitted value here
+    console.log('balle balle');
     console.log('Submitted value:', inputValue);
-    forExport(inputValue, number);
+
     setModalVisible(false);
+    setIndicator(true);
+    setTimeout(() => forExport(inputValue, number), 0);
   };
   useEffect(() => console.log({lines, points}), [lines, points]);
   //   function changeState({locationX, locationY}) {}
@@ -292,36 +331,96 @@ export default function GraphMaker() {
             ),
         )}
       </Pressable>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.white}>Export</Text>
-            <TextInput
-              style={styles.input}
-              onChangeText={setInputValue}
-              value={inputValue}
-              placeholder="File name"
-              placeholderTextColor={'gray'}
-            />
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              placeholder="Number of moves"
-              placeholderTextColor={'gray'}
-              value={number}
-              onChangeText={handleInputChange}
-            />
-            <Button title="Submit" onPress={handleSubmit} />
-            <Button title="Close" onPress={() => setModalVisible(false)} />
+      {modalVisible && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(false);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.white}>Export</Text>
+              <TextInput
+                style={styles.input}
+                onChangeText={setInputValue}
+                value={inputValue}
+                placeholder="File name"
+                placeholderTextColor={'gray'}
+              />
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholder="Number of moves"
+                placeholderTextColor={'gray'}
+                value={number}
+                onChangeText={handleInputChange}
+              />
+              <Button
+                title={'PvP' + (mode === modes.nothing ? '👍' : '')}
+                onPress={() => {
+                  setMode(modes.nothing);
+                }}
+              />
+
+              <Button
+                title={'janitor' + (mode === modes.janitor ? '👍' : '')}
+                onPress={() => {
+                  setMode(modes.janitor);
+                }}
+              />
+              <Button
+                title={'pig' + (mode === modes.pig ? '👍' : '')}
+                onPress={() => {
+                  setMode(modes.pig);
+                }}
+              />
+              <Text
+                title=""
+                style={{
+                  backgroundColor: 'red',
+                  padding: 20,
+                  fontWeight: 'bold',
+                  // alignContent: 'center',
+                  // verticalAlign: 'center',
+                }}
+                onPress={handleSubmit}>
+                Submit
+              </Text>
+              <Text
+                title="Close"
+                style={{
+                  backgroundColor: 'red',
+                  padding: 10,
+                  fontWeight: 'bold',
+                  // alignContent: 'center',
+                  // verticalAlign: 'center',
+                }}
+                onPress={() => setModalVisible(false)}>
+                Close
+              </Text>
+              {/* {progress > 0 && <Text>{progress}</Text>} */}
+            </View>
           </View>
-        </View>
+        </Modal>
+      )}
+      {/* <Modal animationType="slide" transparent={true} visible={progress > 0}>
+        <Text style={{top: 500, bottom: 0, position: 'absolute'}}>
+          progress is {'\n'}
+          {progress}
+        </Text>
       </Modal>
+      <Text style={{top: 500, bottom: 0, position: 'absolute'}}>
+        progress is {'\n'}
+        {progress}
+      </Text> */}
+      {indicator && (
+        <ActivityIndicator
+          size={'large'}
+          style={{position: 'absolute', right: 10, top: 10}}
+        />
+      )}
     </View>
   );
 }
@@ -352,11 +451,13 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
+    gap: 10,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
+    gap: 10,
     backgroundColor: 'white',
     padding: horizontalScale(20),
     borderRadius: horizontalScale(10),
