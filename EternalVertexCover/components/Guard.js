@@ -32,9 +32,9 @@ function Guard({cx, cy, width, height, id, onPress, animateRef}) {
 
   const styles = StyleSheet.create({
     image: {
-      height,
+      height: undefined,
       width,
-      flex: 1,
+      aspectRatio: 1 / 1.2,
     },
   });
 

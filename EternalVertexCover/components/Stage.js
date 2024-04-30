@@ -170,7 +170,7 @@ export default function Stage({
     left: inX.value,
     top: inY.value,
     width: butwidth.value,
-    height: butwidth.value,
+    height: undefined,
   }));
 
   const animatedStylesPoop = useAnimatedStyle(() => {
@@ -377,10 +377,6 @@ export default function Stage({
       return;
     }
     currentMomentoIndex.current++;
-    console.log(
-      maxMomentoIndex.current,
-      momentoes.current.map(m => m.guardStateMap),
-    );
     if (isHumanPlaying()) {
       applyMomento(momentoes.current[currentMomentoIndex.current]);
     }
@@ -641,9 +637,6 @@ export default function Stage({
             if (atTutStage === 2) {
               setAtTutStage(3);
               setTutVisible(true);
-            }
-            if (atTutStage === 4) {
-              console.log('reached in at 4');
             }
           }
         }
@@ -953,6 +946,7 @@ export default function Stage({
         }
     }
   }
+
   const construct = useCallback(
     function construct() {
       let ast = null;
@@ -1169,7 +1163,11 @@ export default function Stage({
           <>
             <Animated.Image
               source={pigImage}
-              style={[styles.pig, animatedStyles]}
+              style={[
+                styles.pig,
+                animatedStyles,
+                {aspectRatio: pigImage === Images.naugtypig ? 1 : 1 / 1.2},
+              ]}
             />
             {/* {pigImage !== Images.naugtypig && (
               <Animated.View

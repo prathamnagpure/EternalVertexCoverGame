@@ -43,6 +43,7 @@ export default function Import({navigation}) {
           try {
             const content = await readFile(innerFile.path);
             level.stage = JSON.parse(content);
+            console.log('IMPORT MAP', level.stage.map);
           } catch (err) {
             console.log({err, path: innerFile.path});
           }

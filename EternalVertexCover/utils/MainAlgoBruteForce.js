@@ -132,17 +132,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
                 mxMoves = moves + 1;
               }
             } else {
-              if (tupleToString(guards) + ';' + curMove === '0,2;4') {
-                console.log(
-                  'idhar aaaya ',
-                  minMoves,
-                  moves,
-                  guards,
-                  tempPura,
-                  element,
-                  index,
-                );
-              }
               if (tempdLose / (tempdLose + tempdWin) >= probMax) {
                 puraEdge = index;
                 probMax = tempdLose / (tempdLose + tempdWin);
@@ -151,9 +140,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           }
         }
       });
-      if (tupleToString(guards) + ';' + curMove === '0,2;4') {
-        console.log('exact case ', countt, cnt);
-      }
       if (cnt === countt) {
         pura = result.lose;
       }
@@ -191,7 +177,7 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
   } else {
     //console.log("defender");
     if (
-      dMoveMap.get(tupleToString(guards) + ';' + attackedge + ';' + curMove) !=
+      dMoveMap.get(tupleToString(guards) + ';' + attackedge + ';' + curMove) !==
       undefined
     ) {
       //console.log("HIT");
@@ -223,12 +209,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
           result.lose,
           1,
         ]);
-        if (
-          tupleToString(guards) + ';' + attackedge + ';' + curMove ===
-          '0,2;1;3'
-        ) {
-          console.log('218');
-        }
         return [guards, 0, 1, result.lose, 1];
       } else {
         cantgo[node1] = 1;
@@ -328,17 +308,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
       );
       dWin += tempaLose;
       dLose += tempaWin;
-      if (curMove === 1) {
-        console.log(
-          tupleToString(guards) + ';' + attackedge + ';' + curMove,
-          'tempPura is ',
-          _,
-          tempaWin,
-          tempaLose,
-          tempPura,
-          Moves,
-        );
-      }
       if (true) {
         if (tempPura === result.lose && dminMoves >= Moves + 1) {
           pura = result.win;
@@ -359,17 +328,9 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         }
       }
     });
-    //console.log("returned positions ");
 
     if (cnt === retPosits.length) {
       pura = result.lose;
-    }
-    if (curMove === 1) {
-      console.log(
-        'final is ',
-        pura,
-        tupleToString(guards) + ';' + attackedge + ';' + curMove,
-      );
     }
 
     if (pura === result.lose) {
@@ -396,12 +357,6 @@ function mainAlgo(turn, guards, attackedge, adjList, edgList, curMove) {
         pura,
         dminMoves,
       ]);
-    }
-    if (
-      tupleToString(guards) + ';' + attackedge + ';' + curMove ===
-      '0,2;1;3'
-    ) {
-      console.log('390');
     }
     return dMoveMap.get(
       tupleToString(guards) + ';' + attackedge + ';' + curMove,
@@ -431,7 +386,5 @@ export function giveMap(guardNum, adjList, edgList, moves, progress) {
   combinations(tempArr, guardNum).map(value => {
     mainAlgo(1, value, undefined, adjList, edgList, moves);
   });
-  console.log('this is ', aMoveMap);
-  console.log('this is dmoveMap', dMoveMap);
   return aMoveMap;
 }

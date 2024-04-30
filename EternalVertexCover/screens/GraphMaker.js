@@ -65,7 +65,6 @@ export default function GraphMaker() {
       adj[element[1]].push(element[0]);
     });
     str += '}';
-    console.log(guards);
     let map;
     let whoIs = modes.nothing;
     setIndicator(true);
@@ -87,7 +86,7 @@ export default function GraphMaker() {
       guardCount: guards.length,
       moves: parseInt(num, 10) * 2,
       guards,
-      map,
+      map: Object.fromEntries(map),
       whoIs,
     };
     writeFile(
@@ -102,7 +101,6 @@ export default function GraphMaker() {
     try {
       const result = await pickSingle({copyTo: 'cachesDirectory'});
       const file = await readFile(result.fileCopyUri);
-      console.log(file);
       const obj = JSON.parse(file);
       const parse = require('dotparser');
       let ast = null;
@@ -133,7 +131,6 @@ export default function GraphMaker() {
           ]);
         }
       }
-      console.log({ppoints, llines});
       setpoints(ppoints);
       setLines(llines);
       setGuards(obj.guards);
@@ -143,15 +140,10 @@ export default function GraphMaker() {
     }
   }
   const handleSubmit = () => {
-    // Process the submitted value here
-    console.log('balle balle');
-    console.log('Submitted value:', inputValue);
-
     setModalVisible(false);
     setIndicator(true);
     setTimeout(() => forExport(inputValue, number), 0);
   };
-  useEffect(() => console.log({lines, points}), [lines, points]);
   //   function changeState({locationX, locationY}) {}
   function lineRemove(id) {
     if (state === states.remove) {
@@ -183,11 +175,9 @@ export default function GraphMaker() {
         });
       } else {
         setLines(prev => {
-          console.log({prev, id});
           const temp = prev.filter(value => {
             return value[0] !== id && value[1] !== id;
           });
-          console.log(temp);
           return temp.map(value => {
             if (value[0] > id) {
               value[0]--;
@@ -205,9 +195,11 @@ export default function GraphMaker() {
         });
       }
     } else if (state === states.addGuards) {
-      setGuards(prev => {
-        return [...prev, id];
-      });
+      if (!guards.includes(id)) {
+        setGuards(prev => {
+          return [...prev, id];
+        });
+      }
     }
   }
   function userClick(event) {
@@ -257,7 +249,7 @@ export default function GraphMaker() {
           }}>
           <AddIcon color={state === states.addGuards ? 'black' : 'gray'} />
           <Text style={state === states.addGuards ? styles.black : styles.gray}>
-            Guard
+            Janitor
           </Text>
         </Pressable>
         <Pressable
@@ -288,7 +280,6 @@ export default function GraphMaker() {
 
       <Pressable style={styles.rightElement} onPressIn={userClick}>
         {lines.map((value, index) => {
-          console.log({points, value});
           return (
             <TouchableLine
               x1={points[value[0]][0]}
@@ -357,49 +348,37 @@ export default function GraphMaker() {
                 value={number}
                 onChangeText={handleInputChange}
               />
-              <Button
-                title={'PvP' + (mode === modes.nothing ? '👍' : '')}
-                onPress={() => {
-                  setMode(modes.nothing);
-                }}
-              />
+              <View style={styles.topButtonsContainer}>
+                <Button
+                  title={'PvP' + (mode === modes.nothing ? '👍' : '')}
+                  onPress={() => {
+                    setMode(modes.nothing);
+                  }}
+                />
 
-              <Button
-                title={'janitor' + (mode === modes.janitor ? '👍' : '')}
-                onPress={() => {
-                  setMode(modes.janitor);
-                }}
-              />
-              <Button
-                title={'pig' + (mode === modes.pig ? '👍' : '')}
-                onPress={() => {
-                  setMode(modes.pig);
-                }}
-              />
-              <Text
-                title=""
-                style={{
-                  backgroundColor: 'red',
-                  padding: 20,
-                  fontWeight: 'bold',
-                  // alignContent: 'center',
-                  // verticalAlign: 'center',
-                }}
-                onPress={handleSubmit}>
-                Submit
-              </Text>
-              <Text
-                title="Close"
-                style={{
-                  backgroundColor: 'red',
-                  padding: 10,
-                  fontWeight: 'bold',
-                  // alignContent: 'center',
-                  // verticalAlign: 'center',
-                }}
-                onPress={() => setModalVisible(false)}>
-                Close
-              </Text>
+                <Button
+                  title={'janitor' + (mode === modes.janitor ? '👍' : '')}
+                  onPress={() => {
+                    setMode(modes.janitor);
+                  }}
+                />
+                <Button
+                  title={'pig' + (mode === modes.pig ? '👍' : '')}
+                  onPress={() => {
+                    setMode(modes.pig);
+                  }}
+                />
+              </View>
+              <View style={styles.bottomButtonsContainer}>
+                <Text style={styles.bottomButtons} onPress={handleSubmit}>
+                  Submit
+                </Text>
+                <Text
+                  style={styles.bottomButtons}
+                  onPress={() => setModalVisible(false)}>
+                  Close
+                </Text>
+              </View>
               {/* {progress > 0 && <Text>{progress}</Text>} */}
             </View>
           </View>
@@ -485,5 +464,23 @@ const styles = StyleSheet.create({
   },
   black: {
     color: 'black',
+  },
+  bottomButtons: {
+    padding: horizontalScale(10),
+    fontWeight: 'bold',
+    borderColor: 'black',
+    borderRadius: horizontalScale(10),
+    backgroundColor: '#F194FF',
+    color: 'white',
+  },
+  bottomButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: horizontalScale(30),
+  },
+  topButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    gap: horizontalScale(5),
   },
 });

@@ -29,7 +29,12 @@ function TouchableCircle({
         {isGuard && (
           <Image
             source={images.guard}
-            style={{position: 'absolute', width: 2 * r, height: 2 * r}}
+            style={{
+              position: 'absolute',
+              height: 3 * r,
+              width: undefined,
+              aspectRatio: 1 / 1.2,
+            }}
           />
         )}
       </View>
@@ -42,6 +47,9 @@ const staticStyle = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'green',
     borderWidth: 5,
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'center',
   },
 });
 

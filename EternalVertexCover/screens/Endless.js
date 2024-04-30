@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   ImageBackground,
   View,
@@ -148,7 +149,7 @@ export default function Endless({navigation, route}) {
   }
 
   function check() {
-    if (route.params.numMoves == 1) {
+    if (route.params.numMoves === 1) {
       // return true;
       // console.log(
       //   'check values ',
@@ -204,17 +205,21 @@ export default function Endless({navigation, route}) {
   function buttonPress(id) {
     if (guardsList.includes(id)) {
       setGuardsList(prev => {
-        setNumGuards(p => {
-          return p + 1;
-        });
+        if (route.params.numMoves !== 1) {
+          setNumGuards(p => {
+            return p + 1;
+          });
+        }
         return [...prev.filter(a => a !== id)];
       });
     } else {
-      if (numGuards) {
+      if (numGuards > 0 || route.params.numMoves === 1) {
         setGuardsList(prev => {
-          setNumGuards(p => {
-            return p - 1;
-          });
+          if (route.params.numMoves !== 1) {
+            setNumGuards(p => {
+              return p - 1;
+            });
+          }
           return [...prev, id];
         });
       }
@@ -405,34 +410,43 @@ export default function Endless({navigation, route}) {
         source={Images.farm}
         resizeMode="cover"
         style={styles.imageBackground}>
-        <Text style={{fontWeight: 'bold', color: 'black'}}>Score:{score}</Text>
+        <Text
+          style={{
+            fontWeight: 'bold',
+            color: 'black',
+            left: horizontalScale(5),
+          }}>
+          Score:{score}
+        </Text>
         <Text
           style={{
             fontWeight: 'bold',
             position: 'absolute',
-            right: 0,
+            right: horizontalScale(5),
             color: 'black',
           }}>
           High Score:{highScore}
         </Text>
+        {route.params.numMoves !== 1 && (
+          <Text
+            style={{
+              fontWeight: 'bold',
+              position: 'absolute',
+              right: horizontalScale(150),
+              color: 'black',
+            }}>
+            Guards Left:{numGuards}
+          </Text>
+        )}
         <Text
           style={{
             fontWeight: 'bold',
             position: 'absolute',
-            right: 150,
+            right: horizontalScale(150),
+            top: horizontalScale(40),
             color: 'black',
           }}>
-          Guards Left:{numGuards}
-        </Text>
-        <Text
-          style={{
-            fontWeight: 'bold',
-            position: 'absolute',
-            right: 150,
-            top: 40,
-            color: 'black',
-          }}>
-          number of Moves:{route.params.numMoves}
+          Number of Moves:{route.params.numMoves}
         </Text>
         <Pressable
           onPress={() => {
@@ -442,7 +456,7 @@ export default function Endless({navigation, route}) {
             {
               position: 'absolute',
               top: '5%',
-              right: 0,
+              right: horizontalScale(5),
               // width: Dimensions.get('window').width / 4,
             },
             styles.button,
@@ -465,9 +479,9 @@ export default function Endless({navigation, route}) {
           showAns={route.params.numMoves === 1 ? showAns : null}
           challengeMe={route.params.numMoves > 1 ? challengeMe : null}
         />
-        <View style={{right: 0, fontWeight: 'bold'}}>
+        <View style={{left: horizontalScale(5), fontWeight: 'bold'}}>
           <Text style={{fontWeight: 'bold', color: 'black'}}>
-            Time left is {time}
+            Time Left: {time}
           </Text>
         </View>
         {giveGraph()}
@@ -493,9 +507,9 @@ export default function Endless({navigation, route}) {
 }
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+    borderRadius: horizontalScale(20),
+    padding: horizontalScale(10),
+    elevation: horizontalScale(2),
   },
   buttonOpen: {
     backgroundColor: '#F194FF',

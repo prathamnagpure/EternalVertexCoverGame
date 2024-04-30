@@ -197,7 +197,7 @@ export default function TutorialStep({
         <>
           <MyModal
             text={
-              'If you made a mistake in moving the guard, you can undo the motion by clicking the edge'
+              'If you made a mistake in moving the janitor, you can undo the motion by clicking on the edge'
             }
             modalVisible={true}
             x={-20}
